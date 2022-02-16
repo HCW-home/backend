@@ -1,0 +1,6 @@
+builder:
+- method: docker
+  options:
+    image: builder-centos7
+    env:
+      SPEC_PATH: redhat/hug-home-backend.spec

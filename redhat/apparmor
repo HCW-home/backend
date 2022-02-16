@@ -1,0 +1,27 @@
+# Last Modified: Wed Jul 31 16:38:49 2019
+#include <tunables/global>
+
+/usr/bin/node flags=(complain) {
+  #include <abstractions/base>
+
+  network inet dgram,
+  network inet stream,
+  network inet6 stream,
+  network netlink raw,
+
+  /bin/dash mrix,
+  /etc/host.conf r,
+  /etc/hosts r,
+  /etc/nsswitch.conf r,
+  /etc/hug-home/** r,
+  /run/resolvconf/resolv.conf r,
+  /usr/ r,
+  /usr/bin/clamscan mrix,
+  /usr/bin/node mrix,
+  /usr/share/ r,
+  /usr/share/hug-home-backend/** r,
+  /var/lib/clamav/daily.cld r,
+  /var/lib/hug-home/attachments/ rw,
+
+}
+

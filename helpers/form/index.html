@@ -1,0 +1,75 @@
+<html>
+<head>
+ <link rel="stylesheet" href="style.css">
+ <title>Telexpertise request</title>
+ <script src="https://code.jquery.com/jquery-latest.js"></script>
+</head>
+<body>
+    <section class="contact-form">
+        <h1>Telexpertise request</h1>
+        <p>Use this form in order to get an invite to a telexpertise consultation.</p>
+      
+        <form>
+          <div class="input-group">
+            <input id="salutation-mr" name="gender" type="radio" value="male" required/>
+            <label class="inline" for="salutation-mr">Mr.</label>
+      
+            <input id="salutation-mrs" name="gender" type="radio" value="female" />
+            <label class="inline" for="salutation-mrs">Mrs.</label>
+      
+          </div>
+      
+          <div class="input-group">
+            <label for="name">Your full name</label>
+            <input id="name" name="firstName" type="text" required/>
+          </div>
+
+          <div class="input-group">
+            <label for="name">Your location</label>
+            <input id="location" name="lastName" type="text" required/>
+          </div>
+      
+          <div class="input-group">
+            <label for="email">Email Address</label>
+            <input id="email" name="emailAddress" type="email" required/>
+          </div>
+      
+          <div class="input-group">
+            <label for="subject">Field of expertise</label>
+            <select id="subject" name="queue">
+              <option>Anaesthesia</option>
+              <option>Surgery</option>
+              <option>Pediatric</option>
+              <option>Gyne/Obstetric</option>
+              <option>Medical</option>
+              <option>Physiotherapy</option>
+              <option>Mental health</option>
+              <option>Nutrition</option>
+              <option>Other</option>
+            </select>
+          </div>
+          
+          <div class="input-group">
+            <label for="request">Request</label>
+            <input id="request" name="request" type="text" />
+          </div>
+
+          <div class="input-group">
+            <label for="message">Additional information</label>
+            <textarea id="message" name="message" rows="6" cols="65"></textarea>
+          </div>
+
+          <input type="hidden" name="isPatientInvite" value="true">
+
+          <button type="submit">Get the link</button>
+        </form>
+      </section>
+      
+      <div class="json_response" style="display: none;">
+        <h2>Request consultation</h2>
+        <p>Thanks for your request, you can use this link to make your consultation request.</p>
+        <a class="link" href=""></a>
+      </div>
+</body>
+</html>
+<script src="myfunction.js"></script>

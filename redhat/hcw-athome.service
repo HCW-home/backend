@@ -1,0 +1,14 @@
+[Unit]
+Description=@Home Backend
+After=network.target redis.service clamd@scan.service
+
+[Service]
+EnvironmentFile=/etc/hug-home/hug-home-backend.conf
+Type=simple
+User=apache
+ExecStart=/usr/bin/node /usr/share/hug-home-backend/app.js
+WorkingDirectory=/usr/share/hug-home-backend
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
