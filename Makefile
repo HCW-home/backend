@@ -6,25 +6,26 @@ timeStamp:=$(shell date +%Y%m%d%H%M%S)
 .PHONY: install build archive test clean
 
 show:
-		@ echo Timestamp: "$(timeStamp)"
-		@ echo Node Version: $(node_version)
-		@ echo yarn_version: $(yarn_version)
+	@ echo Timestamp: "$(timeStamp)"
+	@ echo Node Version: $(node_version)
+	@ echo yarn_version: $(yarn_version)
 
-install:
-		@ npx yarn install
-		@ npx grunt build:production
+node_modules:
+	@ npx yarn install
+
+build: node_modules
+install: build
 
 archive:
-		@ tar -czvf "dosetup-$(timeStamp).tar.gz" dist
+	@ tar -czvf "dosetup-$(timeStamp).tar.gz" dist
 
 test:
-		echo "test the app"
-		@ npx yarn run test
+	echo "test the app"
+	@ npx yarn run test
 
 clean:
-		echo "cleaning the dist directory"
-		@ rm -rf dist
-		@ rm -rf dist.tar.gz
+	@ echo "cleaning the dist directory"
+	@ rm -rf node_modules
 
 INFO := @bash -c '\
   printf $(YELLOW); \
