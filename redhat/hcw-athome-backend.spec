@@ -28,7 +28,7 @@ SPECS version 1
 %{__install} -d -m0755 %{buildroot}/lib/systemd/system
 %{__cp} redhat/hug-home.service %{buildroot}/lib/systemd/system
 %{__install} -d -m0755 %{buildroot}/%{_sysconfdir}/hug-home/
-%{__cp} redhat/hug-home-backend.conf %{buildroot}/%{_sysconfdir}/hug-home/
+%{__cp} redhat/hcw-backend.conf %{buildroot}/%{_sysconfdir}/hug-home/
 %{__cp} redhat/nginx-common %{buildroot}/%{_sysconfdir}/hug-home/
 %{__cp} redhat/nginx-proxy %{buildroot}/%{_sysconfdir}/hug-home/
 %{__install} -d -m0755 %{buildroot}/%{_datadir}/doc/%{name}/
@@ -48,9 +48,6 @@ SPECS version 1
 ## Commands to for the post install
 systemctl daemon-reload
 systemctl restart hug-home
-#mkdir -p /usr/share/hug-home-backend/.tmp
-#chown -R apache /usr/share/hug-home-backend/.tmp
-#./node_modules/.bin/grunt build:production
 mkdir -p /var/lib/hug-home/attachments/
 chown -R apache /var/lib/hug-home/attachments/
 
