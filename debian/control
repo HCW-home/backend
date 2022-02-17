@@ -1,0 +1,16 @@
+Source: hcw-athome-backend
+Section: unknown
+Priority: optional
+Maintainer: Olivier Bitsch <olivier.b@iabsis.com>
+Build-Depends: debhelper-compat (= 13), nodejs (=2:12.22.10-1nodesource)
+Standards-Version: 4.5.1
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Browser: https://salsa.debian.org/debian/hcw-athome-backend
+#Vcs-Git: https://salsa.debian.org/debian/hcw-athome-backend.git
+Rules-Requires-Root: no
+
+Package: hcw-athome-backend
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, nodejs (=2:12.22.10-1nodesource)
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>

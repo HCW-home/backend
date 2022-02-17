@@ -1,5 +1,5 @@
 Summary: Front end for Hug@Home Backend application
-Name: hug-home-backend
+Name: hcw-athome-backend
 Version: 4.9.1
 Release: 2
 Group: Web Application
@@ -48,8 +48,10 @@ SPECS version 1
 ## Commands to for the post install
 systemctl daemon-reload
 systemctl restart hug-home
+adduser --system hcwhome || true
+
 mkdir -p /var/lib/hug-home/attachments/
-chown -R apache /var/lib/hug-home/attachments/
+chown -R hcwhome /var/lib/hug-home/attachments/
 
 %changelog
 * Wed Apr 17 2019 Olivier Bitsch <olivier.b@iabsis.com>
