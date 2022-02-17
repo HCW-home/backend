@@ -31,7 +31,7 @@ SPECS version 1
 %{__cp} hcw-athome.service %{buildroot}/lib/systemd/system
 ## Create config folder
 %{__install} -d -m0755 %{buildroot}/%{_sysconfdir}/hcw-athome/
-%{__cp} .env %{buildroot}/%{_sysconfdir}/hug-home/hcw-athome.conf
+%{__cp} .env.dist %{buildroot}/%{_sysconfdir}/hug-home/hcw-athome.conf
 ## Create nginx config
 %{__cp} nginx/nginx-common %{buildroot}/%{_sysconfdir}/hcw-athome/
 %{__cp} nginx/nginx-proxy %{buildroot}/%{_sysconfdir}/hcw-athome/

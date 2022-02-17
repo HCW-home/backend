@@ -34,7 +34,7 @@ override_dh_auto_install:
 	cp hcw-athome.service debian/hcw-athome-backend/lib/systemd/system
 	## Create config folder
 	install -d -m0755 debian/hcw-athome-backend/etc/hcw-athome/
-	cp .env debian/hcw-athome-backend/etc/hug-home/hcw-athome.conf
+	cp .env.dist debian/hcw-athome-backend/etc/hug-home/hcw-athome.conf
 	## Create nginx config
 	cp nginx/nginx-common debian/hcw-athome-backend/etc/hcw-athome/
 	cp nginx/nginx-proxy debian/hcw-athome-backend/etc/hcw-athome/
