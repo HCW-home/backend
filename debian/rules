@@ -23,3 +23,21 @@
 #override_dh_auto_configure:
 #	dh_auto_configure -- \
 #	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
+
+override_dh_auto_install:
+	## Prepare node_modules
+	make
+	## Create datadir folder
+	install -d -m0755 debian/hcw-athome-backend/usr/share/hcw-athome/backend/
+	cp -a app.js api config node_modules package.json package-lock.json public tasks views debian/hcw-athome-backend/usr/share/hcw-athome/backend/
+	install -d -m0755 debian/hcw-athome-backend/lib/systemd/system
+	cp hcw-athome.service debian/hcw-athome-backend/lib/systemd/system
+	## Create config folder
+	install -d -m0755 debian/hcw-athome-backend/etc/hcw-athome/
+	cp .env debian/hcw-athome-backend/etc/hug-home/hcw-athome.conf
+	## Create nginx config
+	cp nginx/nginx-common debian/hcw-athome-backend/etc/hcw-athome/
+	cp nginx/nginx-proxy debian/hcw-athome-backend/etc/hcw-athome/
+	## Copy nginx sample
+	install -d -m0755 debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/
+	cp -a nginx/hcw-athome-{doctor,nurse,patient,scheduler}.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/

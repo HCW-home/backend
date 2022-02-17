@@ -2,6 +2,7 @@ node_version:=$(shell node -v)
 yarn_version:=$(shell npx yarn -v)
 timeStamp:=$(shell date +%Y%m%d%H%M%S)
 
+.DEFAULT_GOAL := build
 
 .PHONY: install build archive test clean
 

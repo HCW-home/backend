@@ -3,11 +3,11 @@ Description=@Home Backend
 After=network.target redis.service clamd@scan.service
 
 [Service]
-EnvironmentFile=/etc/hug-home/hug-home-backend.conf
+EnvironmentFile=/etc/hcw-athome/hcw-athome.conf
 Type=simple
 User=apache
-ExecStart=/usr/bin/node /usr/share/hug-home-backend/app.js
-WorkingDirectory=/usr/share/hug-home-backend
+ExecStart=/usr/bin/node app.js
+WorkingDirectory=/usr/share/hcw-athome/backend/
 Restart=on-failure
 
 [Install]

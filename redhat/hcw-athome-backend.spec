@@ -22,17 +22,22 @@ SPECS version 1
 %__cp -a %{_sourcedir} %{_topdir}/BUILD
 
 %install
-%{__make} install
-%{__install} -d -m0755 %{buildroot}/%{_datadir}/%{name}/
-%{__cp} -a app.js api config node_modules package.json package-lock.json public tasks views %{buildroot}/%{_datadir}/%{name}/
+## Prepare node_modules
+%{__make}
+## Create datadir folder
+%{__install} -d -m0755 %{buildroot}/%{_datadir}/hcw-athome/backend/
+%{__cp} -a app.js api config node_modules package.json package-lock.json public tasks views %{buildroot}/%{_datadir}/hcw-athome/backend/
 %{__install} -d -m0755 %{buildroot}/lib/systemd/system
-%{__cp} redhat/hug-home.service %{buildroot}/lib/systemd/system
-%{__install} -d -m0755 %{buildroot}/%{_sysconfdir}/hug-home/
-%{__cp} redhat/hcw-backend.conf %{buildroot}/%{_sysconfdir}/hug-home/
-%{__cp} redhat/nginx-common %{buildroot}/%{_sysconfdir}/hug-home/
-%{__cp} redhat/nginx-proxy %{buildroot}/%{_sysconfdir}/hug-home/
+%{__cp} hcw-athome.service %{buildroot}/lib/systemd/system
+## Create config folder
+%{__install} -d -m0755 %{buildroot}/%{_sysconfdir}/hcw-athome/
+%{__cp} .env %{buildroot}/%{_sysconfdir}/hug-home/hcw-athome.conf
+## Create nginx config
+%{__cp} nginx/nginx-common %{buildroot}/%{_sysconfdir}/hcw-athome/
+%{__cp} nginx/nginx-proxy %{buildroot}/%{_sysconfdir}/hcw-athome/
+## Copy nginx sample
 %{__install} -d -m0755 %{buildroot}/%{_datadir}/doc/%{name}/
-%{__cp} -a redhat/nginx/ %{buildroot}/%{_datadir}/doc/%{name}/nginx-samples/
+%{__cp} -a nginx/hcw-athome{doctor,nurse,patient,scheduler}.conf %{buildroot}/%{_datadir}/doc/%{name}/nginx-samples/
 
 %clean
 %{__rm} -rf %{buildroot}
@@ -47,11 +52,11 @@ SPECS version 1
 %post
 ## Commands to for the post install
 systemctl daemon-reload
-systemctl restart hug-home
+systemctl restart hcw-athome
 adduser --system hcwhome || true
 
-mkdir -p /var/lib/hug-home/attachments/
-chown -R hcwhome /var/lib/hug-home/attachments/
+mkdir -p /var/lib/hcw-athome/attachments/
+chown -R hcwhome /var/lib/hcw-athome/attachments/
 
 %changelog
 * Wed Apr 17 2019 Olivier Bitsch <olivier.b@iabsis.com>
