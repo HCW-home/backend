@@ -22,7 +22,7 @@ archive:
 
 test:
 	echo "test the app"
-	@ npx yarn run test
+#	@ npx yarn run test
 
 clean:
 	@ echo "cleaning the dist directory"
