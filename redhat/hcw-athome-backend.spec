@@ -26,7 +26,7 @@ SPECS version 1
 %{__make}
 ## Create datadir folder
 %{__install} -d -m0755 %{buildroot}/%{_datadir}/hcw-athome/backend/
-%{__cp} -a app.js api config node_modules package.json package-lock.json public tasks views %{buildroot}/%{_datadir}/hcw-athome/backend/
+%{__cp} -a app.js api config node_modules package.json public tasks views %{buildroot}/%{_datadir}/hcw-athome/backend/
 %{__install} -d -m0755 %{buildroot}/lib/systemd/system
 %{__cp} hcw-athome.service %{buildroot}/lib/systemd/system
 ## Create config folder
