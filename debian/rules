@@ -29,7 +29,7 @@ override_dh_auto_install:
 	make
 	## Create datadir folder
 	install -d -m0755 debian/hcw-athome-backend/usr/share/hcw-athome/backend/
-	cp -a app.js api config node_modules package.json package-lock.json public tasks views debian/hcw-athome-backend/usr/share/hcw-athome/backend/
+	cp -a app.js api config node_modules package.json public tasks views debian/hcw-athome-backend/usr/share/hcw-athome/backend/
 	install -d -m0755 debian/hcw-athome-backend/lib/systemd/system
 	cp hcw-athome.service debian/hcw-athome-backend/lib/systemd/system
 	## Create config folder

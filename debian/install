@@ -1,8 +1,0 @@
-app.js      /usr/share/hcw-athome/backend/
-api     /usr/share/hcw-athome/backend/
-config      /usr/share/hcw-athome/backend/
-node_modules        /usr/share/hcw-athome/backend/
-package.json        /usr/share/hcw-athome/backend/
-public      /usr/share/hcw-athome/backend/
-tasks       /usr/share/hcw-athome/backend/
-views       /usr/share/hcw-athome/backend/
