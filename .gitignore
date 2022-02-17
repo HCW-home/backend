@@ -134,5 +134,5 @@ lib-cov
 .tmp
 .env
 assets
-views
+#views
 scripts
