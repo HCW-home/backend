@@ -39,8 +39,8 @@ override_dh_auto_install:
 	cp nginx/nginx-common debian/hcw-athome-backend/etc/hcw-athome/
 	cp nginx/nginx-proxy debian/hcw-athome-backend/etc/hcw-athome/
 	## Copy nginx sample
-	install -d -m0755 debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/
+	install -d -m0755 debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
 	cp -a nginx/hcw-athome-doctor.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
-	cp -a nginx/hcw-athome-patient.conf nginx/hcw-athome-doctor,nurse,patient,scheduler.conf
-	cp -a nginx/hcw-athome-patient.conf nginx/hcw-athome-doctor,nurse,patient,scheduler.conf
-	cp -a nginx/hcw-athome-scheduler.conf nginx/hcw-athome-doctor,nurse,patient,scheduler.conf
+	cp -a nginx/hcw-athome-patient.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
+	cp -a nginx/hcw-athome-patient.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
+	cp -a nginx/hcw-athome-scheduler.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
