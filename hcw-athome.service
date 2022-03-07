@@ -8,7 +8,7 @@ Type=simple
 User=hcwhome
 ExecStart=/usr/bin/node app.js
 WorkingDirectory=/usr/share/hcw-athome/backend/
-Restart=on-failure
+Restart=always
 
 [Install]
 WantedBy=multi-user.target
