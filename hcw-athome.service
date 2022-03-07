@@ -5,7 +5,7 @@ After=network.target redis.service clamd@scan.service
 [Service]
 EnvironmentFile=/etc/hcw-athome/hcw-athome.conf
 Type=simple
-User=apache
+User=hcwhome
 ExecStart=/usr/bin/node app.js
 WorkingDirectory=/usr/share/hcw-athome/backend/
 Restart=on-failure
