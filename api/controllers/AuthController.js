@@ -603,6 +603,24 @@ module.exports = {
           return res.status(401).json({ error: "Unauthorized" });
         }
 
+        // Check if timestamp is no more than 5 minutes old
+        if (!decoded.timestamp) {
+          return res.status(401).json({ error: "Timestamp is required" });
+        }
+        try {
+          var now =  new Date();
+          timestamp = new Date(decoded.timestamp * 1000)
+          var FIVE_MIN=5*60*1000;
+
+          if (now - timestamp > FIVE_MIN) {
+            return res.status(401).json({ error: "Timestamp is older than 5 minutes" });
+          }
+
+        } catch (error) {
+          console.log("error ", error);
+          return res.status(500).json({ error: "Unexpected error" });
+        }
+
         if (!decoded.email) {
           return res.status(401).json({ error: "Email is required" });
         }
