@@ -1,3 +1,15 @@
+hcw-athome-backend (4.9.4) focal; urgency=medium
+
+  * Fix node repository file
+  * Fix various default configuration
+  * Update SMS texts
+  * Add README
+  * Updating Nginx configuration
+  * [FEATURE] - Integrate ClickATel SMS gateway
+  * Adding new timestamp in JWT
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 09 Mar 2022 10:44:02 +0100
+
 hcw-athome-backend (4.9.3) unstable; urgency=medium
 
   * Fix user HUG@Home service
@@ -7,7 +19,6 @@ hcw-athome-backend (4.9.3) unstable; urgency=medium
 hcw-athome-backend (4.9.2) unstable; urgency=medium
 
   [ Olivier Bitsch ]
-  * [FEATURE] - detect if SMS_SWISSCOM_SENDER is numeric only or alphanumeric
   * [FEATURE] - detect if SMS_SWISSCOM_SENDER is numeric only or alphanumeric
 
   [ Muhammed ]
