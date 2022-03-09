@@ -127,6 +127,80 @@ function sendSmsWithSwisscom (phoneNumber, message) {
 
 }
 
+/**
+ * Sends an SMS through the Clickatel SMS API.
+ *
+ * @param {string} phoneNumber
+ * @param {string} message
+ * @returns {void}
+ */
+ function sendSmsWithClickatel (phoneNumber, message) {
+  const https = require('https');
+
+  phoneNumber = phoneNumber.replace(/^00/, '+');
+  const clickATel = {
+    appKey: process.env.SMS_CLICKATEL
+  };
+  console.log(clickATel);
+  console.log('Sending SMS...');
+
+  const data = JSON.stringify({
+    content: message,
+    to: [ phoneNumber ]
+  })
+
+
+
+  const options = {
+    hostname: 'platform.clickatell.com',
+    port: 443,
+    path: '/messages',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': clickATel.appKey,
+    }
+  }
+  
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, res => {
+      let rawData = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('end', () => {
+        console.log('Will get raw data');
+        console.log('raw data', rawData);
+        try {
+          const parsedData = JSON.parse(rawData);
+          console.log('GOT CLICKATEL DATA', parsedData);
+          if (parsedData.messages[0].accepted) {
+            return resolve();
+          }
+          console.error(parsedData);
+          return reject(parsedData);
+        } catch (e) {
+          console.error(e.message);
+          return reject(e);
+        }
+      });
+      console.log(`statusCode: ${res.statusCode}`)
+    })
+
+    try {
+      req.on('error', (e) => {
+        console.error('ERROR', e.message);
+        return reject(e);
+      });
+      req.write(data)
+      req.end()
+    } catch (error) {
+        console.log('error write to request ', error);
+        return reject(error);
+    }
+
+  })
+
+}
 
 module.exports = {
 
@@ -179,6 +253,13 @@ module.exports = {
         await sendSmsWithSwisscom(phoneNumber, message);
 
         return exits.success();
+
+      } else if ('SMS_CLICKATEL' in process.env) {
+        console.log(`Sending an SMS to ${phoneNumber} through Clickatel`);
+        await sendSmsWithClickatel(phoneNumber, message);
+
+        return exits.success();
+
       } else {
         console.error('No SMS gateway configured');
         if (process.env.NODE_ENV === 'development') {
