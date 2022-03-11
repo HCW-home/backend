@@ -1,3 +1,10 @@
+hcw-athome-backend (4.9.5) focal; urgency=medium
+
+  [ Muhammed ]
+  * use theme config variable
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Mar 2022 08:49:20 +0100
+
 hcw-athome-backend (4.9.4) focal; urgency=medium
 
   * Fix node repository file

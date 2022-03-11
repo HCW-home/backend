@@ -200,6 +200,13 @@ use hcw-athome
 db.mediasoupserver.insertOne({url:'https://<mediasoup domain>', username:'<user>', password:'<pass>',maxNumberOfSessions:10})
 ~~~
 
+Now declare the translation organisations, if none just use
+
+~~~
+mongo
+use hcw-at-home
+db.translationorganization.insertOne({ "name" : "Default", "mainEmail" : "", "languages" : [ "fr" ], "canRefuse" : true, "createdAt" : 1645793656770, "updatedAt" : 1645793656770, "reportEmail" : "" })
+
 We now can enable and start all services.
 
 ~~~
