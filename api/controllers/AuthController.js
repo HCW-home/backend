@@ -587,6 +587,7 @@ module.exports = {
       androidStoreUrl: process.env.ANDROID_STORE_URL,
       androidStoreTitle: process.env.ANDROID_STORE_TITLE,
       logo: process.env.LOGO,
+      accessibilityMode: process.env.ACCESSIBILITY_MODE,
     });
   },
   externalAuth(req, res) {
@@ -608,14 +609,15 @@ module.exports = {
           return res.status(401).json({ error: "Timestamp is required" });
         }
         try {
-          var now =  new Date();
-          timestamp = new Date(decoded.timestamp * 1000)
-          var FIVE_MIN=5*60*1000;
+          var now = new Date();
+          timestamp = new Date(decoded.timestamp * 1000);
+          var FIVE_MIN = 5 * 60 * 1000;
 
           if (now - timestamp > FIVE_MIN) {
-            return res.status(401).json({ error: "Timestamp is older than 5 minutes" });
+            return res
+              .status(401)
+              .json({ error: "Timestamp is older than 5 minutes" });
           }
-
         } catch (error) {
           console.log("error ", error);
           return res.status(500).json({ error: "Unexpected error" });
