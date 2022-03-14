@@ -1,20 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from pymongo import MongoClient
-from pprint import pprint
-import datetime
+HOSTNAME="xx.xx"
+PROTO="https"
+LOGIN="xx"
+PASSWORD="xx"
 
-conn = MongoClient('mongodb://localhost:27017/')
-db = conn['hug-home']
 
-import time
-millis = int(round(time.time() * 1000))
-oneHourAgo = millis - 3600000
+import json, requests
 
-query = {"type":{"$in":["videoCall", "audioCall"]}, "$or": [{"closedAt":{"$exists":False}},{"closedAt":0}], "acceptedAt":{"$ne":0}, "createdAt":{"$gt": oneHourAgo }}
 
-message = db['message']
-call = message.find(query)
+class Mediasoup:
+    def __init__(self):
+        self.url_api=PROTO + "://" + LOGIN + ":" + PASSWORD + "@" + HOSTNAME
 
-print("OK | call=" + str(call.count()))
+    def getSessions(self):
+        url = self.url_api + "/rooms-count"
+        response = requests.get(url)
+        if response.status_code == 200:
+            self.sessions = json.loads(response.content.decode('utf-8'))
+            return self.sessions
+        else:
+            print("Unable to get number of session")
+            return None
+
+if __name__ == "__main__":
+    mediasoup = Mediasoup()
+    sessions = mediasoup.getSessions()
+    if not sessions == None:
+        count = sessions["count"]
+        print("OK | call=" + str(count))
+    else:
+        print("KO - Unable to get call")
