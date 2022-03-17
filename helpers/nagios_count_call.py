@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+## The purpose of this file is to provide helper used by Nagios.
+## It returns the number of remote consultation ongoing.
+
 HOSTNAME="xx.xx"
 PROTO="https"
 LOGIN="xx"
@@ -12,10 +15,10 @@ import json, requests
 
 class Mediasoup:
     def __init__(self):
-        self.url_api=PROTO + "://" + LOGIN + ":" + PASSWORD + "@" + HOSTNAME
+        self.url_api = f'{PROTO}://{LOGIN}:{PASSWORD}@{HOSTNAME}'
 
     def getSessions(self):
-        url = self.url_api + "/rooms-count"
+        url = f'{self.url_api}/rooms-count'
         response = requests.get(url)
         if response.status_code == 200:
             self.sessions = json.loads(response.content.decode('utf-8'))
@@ -27,8 +30,8 @@ class Mediasoup:
 if __name__ == "__main__":
     mediasoup = Mediasoup()
     sessions = mediasoup.getSessions()
-    if not sessions == None:
+    if sessions is not None:
         count = sessions["count"]
-        print("OK | call=" + str(count))
+        print(f"OK | call={count}")
     else:
         print("KO - Unable to get call")
