@@ -37,8 +37,14 @@ HCW@Home is provided as source code only. The following instruction requires to 
 
 Those are requirements of few users all on one server.
 
-
 #### Ubuntu/Debian
+
+The first step is to ensure your server is in your prefered timezone. Despitate HCW@Home tries to display times with your current timezone (e.g. by using your browser timezone), there are case where time is send based on server timezone (e.g an SMS with scheduled consultation). To reconfigure timezone on your local server, use the following command.
+
+~~~
+dpkg-reconfigure tzdata
+~~~
+
 
 HCW@Home relies on third party repository as there is no mongo or nodejs into official repositories.
 
