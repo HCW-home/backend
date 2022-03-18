@@ -1,3 +1,12 @@
+hcw-athome-backend (4.9.6) focal; urgency=medium
+
+  * New Mediasoup helper
+  * Update language file
+  * Update helper file for Mediasoup
+  * [README] - adding note about timezone
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 18 Mar 2022 17:10:05 +0100
+
 hcw-athome-backend (4.9.5) focal; urgency=medium
 
   [ Muhammed ]
