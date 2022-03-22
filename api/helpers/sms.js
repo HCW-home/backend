@@ -71,7 +71,8 @@ function sendSmsWithSwisscom (phoneNumber, message) {
     source_addr: process.env.SMS_SWISSCOM_SENDER,
     source_addr_ton: sourceAddrTon,
     source_addr_npi: 1,
-    short_message: message
+    data_coding: "utf8",
+    short_message: message.concat(" ")
   };
 
   return new Promise((resolve, reject) => {
