@@ -1,6 +1,6 @@
 {
-    "patient invite": "ምስ ሓኪም ብቪድዮ ንምዝርራብ ኣብዚ ክሊክ ይግበሩ።  %(doctorName)s : %(url)s",
-    "guest invite": "ምስ ሓኪም ብቪድዮ ንምዝ ርራብ ኣብዚ ክሊክ ይግበሩ።  %(doctorName)s : %(url)s",
+    "patient invite": "ምስ ሓኪም ብቪድዮ ንምዝርራብ ኣብዚ ክሊክ ይግበሩ።  %(branding)s : %(url)s",
+    "guest invite": "ምስ ሓኪም ብቪድዮ ንምዝ ርራብ ኣብዚ ክሊክ ይግበሩ።  %(branding)s : %(url)s",
     "scheduled patient invite": "ሰላም፣ ናብ ስልካዊ ማዕዳ፣ ብተሌፎን ዝግበር  ሕክምናዊ ኣገልግሎት ተዓዲምኩም ኣለኹም። %(branding)s ንዕለት %(inviteTime)s መሳርሒኻ ምስ እዚ መተኣሳሰሪ ሊንክ ምስምማዑ ንምርግጋጽ ፈቲንካዮ ጽናሕ ።\n %(testingUrl)s",
     "scheduled guest invite": "ሰላም፣ ምስ ሓኪም ንምምኻር  ተዓዲምኩም ኣለኹም።  %(branding)s ንዕለት %(inviteTime)s. መሳርሒኻ ምስ'ዚ መተኣሳሰሪ ሊንክ ምስምማዑ ንምርግጋጽ ፈቲንካዮ ጽናሕ ።\n %(testingUrl)s",
     "first invite reminder": "መተንባህታJ-1  ብተሌፎን ሓኪም ንምርኣይ %(branding) ንጽባሕ ቆጸራ ኣለካ %(inviteTime)s",
