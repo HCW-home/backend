@@ -19,7 +19,7 @@
     "cn": "chino",
     "sa": "árabe",
     "it": "italiano",
-    "your consultation link": "Su enlace para la teleconsulta",
+    "your consultation link": "Su enlace para la teleconsulta %(branding)s",
     "patient invite": "Haga clic aquí para acceder a su consulta por vídeo : %(url)s",
     "scheduled patient invite": "Hola: Ha sido invitado a una teleconsulta de telemedicina %(branding)s el %(inviteTime)s. Le recomendamos que compruebe de inmediato la compatibilidad de su dispositivo con el siguiente enlace. %(testingUrl)s",
     "fr": "Francés",
@@ -38,9 +38,9 @@
     "second invite reminder": "Su consulta comenzará dentro de un minuto: %(url)s",
     "translator is ready subject": "Solicitud de intérprete aceptada",
     "translator login link email": "Haga clic aquí para unirse a la consulta %(url)s",
-    "translator login link email subject": "Su enlace para la teleconsulta",
+    "translator login link email subject": "Su enlace para la teleconsulta %(branding)s",
     "scheduled translation request email": "Estimado intérprete: \n\nHemos recibido una solicitud de un profesional sanitario para un intérprete en la plataforma %(branding)s:\nIdioma del profesional sanitario: %(doctorLanguage)s\nIdioma del paciente: %(patientLanguage)s \nFecha: %(inviteTime)s\n \nPara confirmar o no su disponibilidad, haga clic en el enlace a continuación %(url)s \n\nSi nadie confirma su disponibilidad transcurridas 48 horas, consideraremos que no hay nadie disponible. \n\n\nGracias.",
-    "translation request refused subject": "Solicitud de intérprete rechazada",
+    "translation request refused subject": "Solicitud de intérprete rechazada %(branding)s",
     "invalid invite": "Este enlace de invitación no es válido",
     "de": "Alemán"
 }
