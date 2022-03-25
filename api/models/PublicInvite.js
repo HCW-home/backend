@@ -264,7 +264,7 @@ module.exports = {
       try {
         await sails.helpers.email.with({
           to: invite.emailAddress,
-          subject: sails._t(locale, 'your consultation link'),
+          subject: sails._t(locale, 'your consultation link', {url, branding: process.env.BRANDING, doctorName}),
           text: message
         });
       } catch (error) {
