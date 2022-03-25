@@ -173,7 +173,7 @@ module.exports = {
 
     return sails.helpers.email.with({
       to: email,
-      subject: sails._t(doctorLang, 'translator login link email subject'),
+      subject: sails._t(doctorLang, 'translator login link email subject', {url, branding: process.env.BRANDING, doctorName}),
       text: sails._t(doctorLang, 'translator login link email', {url, doctorName})
     });
   },
@@ -221,7 +221,7 @@ module.exports = {
       try {
         await sails.helpers.email.with({
           to: invite.emailAddress,
-          subject: sails._t(locale, 'your consultation link'),
+          subject: sails._t(locale, 'your consultation link', {url, branding: process.env.BRANDING, doctorName}),
           text: message
         });
       } catch (error) {
@@ -331,7 +331,7 @@ module.exports = {
 
           await sails.helpers.email.with({
             to: invite.emailAddress,
-            subject: sails._t(locale, 'your consultation link'),
+            subject: sails._t(locale, 'your consultation link', {url, branding: process.env.BRANDING, doctorName}),
             text: firstReminderMessage
           });
 
@@ -341,7 +341,7 @@ module.exports = {
 
         await sails.helpers.email.with({
           to: invite.emailAddress,
-          subject: sails._t(locale, 'your consultation link'),
+          subject: sails._t(locale, 'your consultation link', {url, branding: process.env.BRANDING, doctorName}),
           text: secondReminderMessage
         });
 
