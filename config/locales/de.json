@@ -1,6 +1,6 @@
 {
-    "patient invite": "Klicken Sie hier, um auf Ihre Videokonsultation mit Ihrem Betreuer %(doctorName)s : %(url)s zuzugreifen",
-    "guest invite": "Klicken Sie hier, um auf Ihre Videokonsultation mit Ihrem Betreuer %(doctorName)s : %(url)s zuzugreifen",
+    "patient invite": "Klicken Sie hier, um auf Ihre Videokonsultation %(branding)s : %(url)s zuzugreifen",
+    "guest invite": "Klicken Sie hier, um auf Ihre Videokonsultation %(branding)s : %(url)s zuzugreifen",
     "scheduled patient invite": "Hallo, Sie wurden zu einer %(branding)s-Telemedizinkonsultation um %(inviteTime)s eingeladen. Wir empfehlen Ihnen, die Kompatibilität Ihres Geräts vorab über den folgenden Link zu testen.\n\n%(testingURL)s",
     "scheduled guest invite": "Hallo, Sie wurden zu einer % (Branding)s Telekonsultation für Telemedizin um %(inviteTime)s eingeladen. Wir empfehlen Ihnen, die Kompatibilität Ihres Geräts vorab über den folgenden Link zu testen. %(testingURL)s",
     "first invite reminder": "D-1 Erinnerung Ihre %(branding)s telemedizinische Beratung findet morgen um %(inviteTime)s statt",
