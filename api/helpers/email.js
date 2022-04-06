@@ -61,13 +61,14 @@ module.exports = {
       return exits.success();
     }
 
+    const html = "<p>".concat(inputs.text.replace(/(http[s]?\:\/\/[^ ]*)/, '<a href="$1">$1</a>'));
 
     const options = {
       from: process.env.MAIL_SMTP_SENDER,
       to: inputs.to,
       subject: inputs.subject,
-      text: inputs.text
-
+      text: inputs.text,
+      html: html
     };
 
     if (inputs.attachments) {
