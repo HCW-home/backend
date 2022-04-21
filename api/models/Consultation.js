@@ -37,8 +37,8 @@ const columns = [
   { colName: "Langues", key: "languages" },
   { colName: "Organisation d'interprétariat", key: "translationOrganization" },
   { colName: "Nom de l'interprète", key: "interpreterName" },
-  { colName: "consultationEstimatedAt", key: "Prise en charge estimée" },
-  { colName: "firstCallAt", key: "Premier appel effectué" },
+  { colName: "Prise en charge estimée", key: "consultationEstimatedAt" },
+  { colName: "Premier appel effectué", key: "firstCallAt" },
 ];
 
 module.exports = {
