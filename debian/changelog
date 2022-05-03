@@ -1,67 +1,71 @@
-hcw-athome-backend (4.9.9) focal; urgency=medium
+hcw-athome-backend (4.9.10) focal; urgency=medium
 
-  * Updates translation + refs #4198
-  * refs #4198 - add vars
+- Updates translation + refs #4198
+- refs #4198 - add vars
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 25 Mar 2022 09:09:54 +0100
+-- Olivier Bitsch <olivier.b@iabsis.com> Fri, 25 Mar 2022 09:09:54 +0100
 
 hcw-athome-backend (4.9.7) focal; urgency=medium
 
-  * Tweak caracter encoding issue with Swisscom API
-  * Language update
+- Tweak caracter encoding issue with Swisscom API
+- Language update
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 24 Mar 2022 11:06:08 +0100
+-- Olivier Bitsch <olivier.b@iabsis.com> Thu, 24 Mar 2022 11:06:08 +0100
 
 hcw-athome-backend (4.9.6) focal; urgency=medium
 
-  * New Mediasoup helper
-  * Update language file
-  * Update helper file for Mediasoup
-  * [README] - adding note about timezone
+- New Mediasoup helper
+- Update language file
+- Update helper file for Mediasoup
+- [README] - adding note about timezone
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 18 Mar 2022 17:10:05 +0100
+-- Olivier Bitsch <olivier.b@iabsis.com> Fri, 18 Mar 2022 17:10:05 +0100
 
 hcw-athome-backend (4.9.5) focal; urgency=medium
 
-  [ Muhammed ]
-  * use theme config variable
+[ Muhammed ]
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Mar 2022 08:49:20 +0100
+- use theme config variable
+
+-- Olivier Bitsch <olivier.b@iabsis.com> Fri, 11 Mar 2022 08:49:20 +0100
 
 hcw-athome-backend (4.9.4) focal; urgency=medium
 
-  * Fix node repository file
-  * Fix various default configuration
-  * Update SMS texts
-  * Add README
-  * Updating Nginx configuration
-  * [FEATURE] - Integrate ClickATel SMS gateway
-  * Adding new timestamp in JWT
+- Fix node repository file
+- Fix various default configuration
+- Update SMS texts
+- Add README
+- Updating Nginx configuration
+- [FEATURE] - Integrate ClickATel SMS gateway
+- Adding new timestamp in JWT
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 09 Mar 2022 10:44:02 +0100
+-- Olivier Bitsch <olivier.b@iabsis.com> Wed, 09 Mar 2022 10:44:02 +0100
 
 hcw-athome-backend (4.9.3) unstable; urgency=medium
 
-  * Fix user HUG@Home service
+- Fix user HUG@Home service
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 07 Mar 2022 10:58:25 +0100
+-- Olivier Bitsch <olivier.b@iabsis.com> Mon, 07 Mar 2022 10:58:25 +0100
 
 hcw-athome-backend (4.9.2) unstable; urgency=medium
 
-  [ Olivier Bitsch ]
-  * [FEATURE] - detect if SMS_SWISSCOM_SENDER is numeric only or alphanumeric
+[ Olivier Bitsch ]
 
-  [ Muhammed ]
-  * exit app if clamscan didn't connect
-  * Add logo to app config refs #4114
+- [FEATURE] - detect if SMS_SWISSCOM_SENDER is numeric only or alphanumeric
 
-  [ Olivier Bitsch ]
-  * refs #4114 - add value into config
+[ Muhammed ]
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 04 Mar 2022 11:51:41 +0100
+- exit app if clamscan didn't connect
+- Add logo to app config refs #4114
+
+[ Olivier Bitsch ]
+
+- refs #4114 - add value into config
+
+-- Olivier Bitsch <olivier.b@iabsis.com> Fri, 04 Mar 2022 11:51:41 +0100
 
 hcw-athome-backend (4.9.1) unstable; urgency=medium
 
-  * Initial Release.
+- Initial Release.
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 17 Feb 2022 15:33:08 +0100
+-- Olivier Bitsch <olivier.b@iabsis.com> Thu, 17 Feb 2022 15:33:08 +0100
