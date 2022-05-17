@@ -31,7 +31,7 @@ Health Care Worker @Home is supported by:
 
 ### Installation
 
-HCW@Home is provided as source code only. The following instruction requires to request access to our private Redhat/Rocky or Ubuntu/Debian repository. If you need this access, please contact us. This setup install all packages on one same server while it's possible to distribute all components across various servers, required to support thousand of users in same time.
+HCW@Home is provided as source code only but also as Redhat/Rocky or Ubuntu/Debian package now available on our public repositories. If you need this access, please contact us. This setup install all packages on one same server while it's possible to distribute all components across various servers, required to support thousand of users in same time.
 
 #### Requirements
 
@@ -76,6 +76,17 @@ apt update
 apt install ${PACKAGE}
 ~~~
 
+Now install HCW@Home repositories official repositories.
+
+~~~
+cat > /tmp/test << EOF
+deb [trusted=yes] https://projects.iabsis.com/repository/hcw-backend/debian focal main
+deb [trusted=yes] https://projects.iabsis.com/repository/mediasoup-api/debian bionic main
+deb [trusted=yes] https://projects.iabsis.com/repository/hcw-patient/debian focal main
+deb [trusted=yes] https://projects.iabsis.com/repository/hcw-doctor/debian focal main
+EOF
+~~~
+
 All packages can now be installed in one command.
 
 ~~~
@@ -92,7 +103,6 @@ apt install \
   mediasoup-api \
   coturn
 ~~~
-
 
 By default, HCW@Home doesn't install Nginx configuration. You can use the ready configuration from doc folder.
 Once in place, you have to adjust them, especially the domain part that must fit with your environment.
@@ -142,6 +152,12 @@ server {
 }
 ~~~
 
+Once nginx configuration is ready, you can choose to put a reverse proxy in front of this installation, or install certificates with the following command. Install the certificate for the three domains required by HCW@Home.
+
+~~~
+certbot --nginx
+~~~
+
 Replace some vars into `/etc/mediasoup-api/mediasoup-api.conf` to have is working properly behind a reverse proxy.
 
 ~~~
@@ -157,7 +173,7 @@ adduser hcwhome clamav
 sed -i 's|/var/run/clamd.scan/clamd.sock|/var/run/clamav/clamd.ctl|g' /etc/hcw-athome/hcw-athome.conf
 ~~~
 
-Coturn configuration is required to allow relay. It's recommended to install several coturn servers, but having coturn on same server than HCW@Home is also supported.
+Coturn configuration is required to allow relay. It's recommended to install several coturn servers, but having coturn on same server than HCW@Home is also supported. It's also recommended to have two public IP addresses to get full coturn capabilities.
 
 The first step is to define pair of credential in addition of a realm of your choice.
 

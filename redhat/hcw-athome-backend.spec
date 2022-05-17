@@ -1,13 +1,13 @@
 Summary: Front end for Hug@Home Backend application
 Name: hcw-athome-backend
-Version: 4.9.9
+Version: 4.9.11
 Release: 1
 Group: Web Application
 License: HUG
 Source: %{name}-%{version}.tar.gz
 BuildRoot: %{_tmppath}/%{name}-root
-BuildRequires: nodejs = 2:12.22.10-1nodesource
-Requires: nodejs = 2:12.22.10-1nodesource
+BuildRequires: nodejs
+Requires: nodejs
 BuildArch: noarch
 
 %global __requires_exclude dtrace
