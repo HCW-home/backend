@@ -144,11 +144,14 @@ module.exports = {
       );
 
       const url = `${process.env.DOCTOR_URL}/app/reset-password?token=${resetPasswordToken}`;
-
+      const doctorLanguage =
+        user.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
       await sails.helpers.email.with({
         to: user.email,
-        subject: "Mot de passe oublié",
-        text: `Vous nous avez indiqué que vous avez oublié votre mot de passe. Merci de cliquer sur le lien suivant afin de changer votre mot de passe ${url}. Ce lien ne fonctionnera que 5 minutes.`,
+        subject: sails._t(doctorLanguage, "forgot password email subject", {
+          url,
+        }),
+        text: sails._t(doctorLanguage, "forgot password email", { url }),
       });
     }
   },
