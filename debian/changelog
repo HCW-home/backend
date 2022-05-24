@@ -1,3 +1,15 @@
+hcw-athome-backend (4.9.12) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update README.md for public repositories
+
+  [ Muhammed ]
+  * FIX forgot password malformed url and add translations refs #4457
+  * version increment
+  * forgot password translations
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 18 May 2022 09:50:39 +0200
+
 hcw-athome-backend (4.9.11) focal; urgency=medium
 
 - Updates translation + refs #4198
