@@ -4,12 +4,11 @@
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
-const schedule = require('node-schedule');
-const RINGING_TIMEOUT = 5* 60 * 1000;
+const schedule = require("node-schedule");
+const RINGING_TIMEOUT = 30 * 1000;
 const CALL_DURATION_TIMEOUT = 2 * 60 * 60 * 1000;
 module.exports = {
   attributes: {
-
     //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
     //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
     //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
@@ -23,111 +22,126 @@ module.exports = {
     //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
 
     from: {
-      model: 'user'
+      model: "user",
     },
     to: {
-      model: 'user'
+      model: "user",
     },
     text: {
-      type: 'string'
+      type: "string",
     },
     consultation: {
-      model: 'consultation',
-      required: true
+      model: "consultation",
+      required: true,
     },
     read: {
-      type: 'boolean'
+      type: "boolean",
       // default:false
     },
     type: {
-      type: 'string',
-      isIn: ['attachment', 'text', 'videoCall', 'audioCall']
+      type: "string",
+      isIn: ["attachment", "text", "videoCall", "audioCall"],
     },
     mimeType: {
-      type: 'string'
+      type: "string",
     },
     fileName: {
-      type: 'string'
+      type: "string",
     },
     filePath: {
-      type: 'string'
+      type: "string",
     },
     acceptedAt: {
-      type: 'number'
+      type: "number",
     },
     closedAt: {
-      type: 'number'
+      type: "number",
     },
     isConferenceCall: {
-      type: 'boolean'
+      type: "boolean",
     },
     currentParticipants: {
-      collection: 'user'
+      collection: "user",
     },
     participants: {
-      collection: 'user'
+      collection: "user",
     },
     status: {
-      type: 'string',
-      isIn: ['ringing', 'ongoing', 'ended']
+      type: "string",
+      isIn: ["ringing", "ongoing", "ended"],
     },
     openViduURL: {
-      type: 'string'
+      type: "string",
     },
-    mediasoupURL:{
-      type:'string'
-    }
+    mediasoupURL: {
+      type: "string",
+    },
   },
-  async endCall (message, consultation, reason) {
-    console.log('End call');
+  async endCall(message, consultation, reason) {
+    console.log("End call");
     await Message.updateOne({
       id: message.id,
-      consultation: consultation.id
-    })
-    .set({
+      consultation: consultation.id,
+    }).set({
       closedAt: new Date(),
-      status: 'ended'
+      status: "ended",
     });
 
-    const consultationParticipants = Consultation.getConsultationParticipants(consultation);
+    const consultationParticipants =
+      Consultation.getConsultationParticipants(consultation);
 
-    consultationParticipants.forEach(participant => {
-      sails.sockets.broadcast(participant, 'endCall', {
+    consultationParticipants.forEach((participant) => {
+      sails.sockets.broadcast(participant, "endCall", {
         data: {
           reason,
           consultation,
-          message
-        }
+          message,
+        },
       });
     });
   },
-  async afterCreate (message, proceed) {
+  async afterCreate(message, proceed) {
+    const consultation = await Consultation.findOne({
+      id: message.consultation,
+    });
 
-    const consultation = await Consultation.findOne({ id: message.consultation });
+    sails.sockets.broadcast(
+      message.to || consultation.queue || consultation.doctor,
+      "newMessage",
+      { data: message }
+    );
 
-
-    sails.sockets.broadcast(message.to || consultation.queue || consultation.doctor, 'newMessage', { data: message });
-
-    if (message.type === 'audioCall' || message.type === 'videoCall') {
-
-      sails.sockets.broadcast(message.from, 'newMessage', { data: message });
-      schedule.scheduleJob(new Date(Date.now() + RINGING_TIMEOUT), async () => {
-        message = await Message.findOne({ id: message.id });
-        if (message.status === 'ringing') {
-          Message.endCall(message, consultation, 'RINGING_TIMEOUT');
-        }
+    if (message.type === "audioCall" || message.type === "videoCall") {
+      sails.sockets.broadcast(message.from, "newMessage", { data: message });
+      await sails.helpers.schedule.with({
+        name: "RINGING_TIMEOUT",
+        data: { message },
+        time: new Date(Date.now() + RINGING_TIMEOUT),
+        handler: async (job) => {
+          const message = await Message.findOne({
+            id: job.attrs.data.message.id,
+          });
+          if (message.status === "ringing") {
+            Message.endCall(message, consultation, "RINGING_TIMEOUT");
+          }
+        },
       });
 
-      schedule.scheduleJob(new Date(Date.now() + CALL_DURATION_TIMEOUT), async () => {
-        message = await Message.findOne({ id: message.id });
-        if (message.status !== 'ended') {
-          Message.endCall(message, consultation, 'DURATION_TIMEOUT');
-        }
+      await sails.helpers.schedule.with({
+        name: "DURATION_TIMEOUT",
+        data: { message },
+        time: new Date(Date.now() + CALL_DURATION_TIMEOUT),
+        handler: async (job) => {
+          const message = await Message.findOne({
+            id: job.attrs.data.message.id,
+          });
+          if (message.status !== "ended") {
+            Message.endCall(message, consultation, "DURATION_TIMEOUT");
+          }
+        },
       });
-
     }
 
     return proceed();
-
-  }
+  },
 };
