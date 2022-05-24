@@ -1,4 +1,4 @@
-const NodeClam = require("clamscan");
+let NodeClam = require("clamscan");
 const Agenda = require("agenda");
 module.exports = function myBasicHook(sails) {
   return {
@@ -33,7 +33,7 @@ module.exports = function myBasicHook(sails) {
       try {
         // Do some stuff here to initialize hook
         // And then call `cb` to continue
-        sails.config.startCron();
+        await sails.config.startCron();
       } catch (error) {
         console.error("Error initializing cron");
       }

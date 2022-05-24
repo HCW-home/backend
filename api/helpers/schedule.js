@@ -26,8 +26,6 @@ module.exports = {
   },
 
   fn: async function (inputs) {
-    // TODO
-    console.log("agenda ", sails.agenda);
     if (!sails.agenda._definitions[inputs.name]) {
       sails.agenda.define(inputs.name, inputs.handler);
     }

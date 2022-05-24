@@ -6,7 +6,6 @@
  */
 const moment = require("moment-timezone");
 moment.locale("fr");
-const schedule = require("node-schedule");
 
 const FIRST_INVITE_REMINDER = 24 * 60 * 60 * 1000;
 const SECOND_INVITE_REMINDER = 30 * 1000;

@@ -4,7 +4,6 @@
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
-const schedule = require("node-schedule");
 const RINGING_TIMEOUT = 30 * 1000;
 const CALL_DURATION_TIMEOUT = 2 * 60 * 60 * 1000;
 module.exports = {
