@@ -1,7 +1,120 @@
+const Agenda = require("agenda");
 const CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000;
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
+
 module.exports = {
   startCron: async () => {
+    const agenda = new Agenda({ db: { address: process.env.DB_URI } });
+    await agenda.start();
+    sails.agenda = agenda;
+
+    const jobs = {
+      FIRST_INVITE_REMINDER_SMS: async (invite) => {
+        await sails.helpers.sms.with({
+          phoneNumber: invite.phoneNumber,
+          message:
+            sails.models.publicinvite.getReminderMessage(invite)
+              .firstReminderMessage,
+        });
+      },
+      SECOND_INVITE_REMINDER_SMS: async (invite) => {
+        await sails.helpers.sms.with({
+          phoneNumber: invite.phoneNumber,
+          message:
+            sails.models.publicinvite.getReminderMessage(invite)
+              .secondReminderMessage,
+        });
+      },
+      FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
+        const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+
+        const doctorName =
+          (invite.doctor.firstName || "") +
+          " " +
+          (invite.doctor.lastName || "");
+        const locale =
+          invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+
+        await sails.helpers.email.with({
+          to: invite.emailAddress,
+          subject: sails._t(locale, "your consultation link", {
+            url,
+            branding: process.env.BRANDING,
+            doctorName,
+          }),
+          text: sails.models.publicinvite.getReminderMessage(invite)
+            .firstReminderMessage,
+        });
+      },
+      SECOND_INVITE_REMINDER_EMAIL: async (invite) => {
+        const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+
+        const doctorName =
+          (invite.doctor.firstName || "") +
+          " " +
+          (invite.doctor.lastName || "");
+        const locale =
+          invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+        await sails.helpers.email.with({
+          to: invite.emailAddress,
+          subject: sails._t(locale, "your consultation link", {
+            url,
+            branding: process.env.BRANDING,
+            doctorName,
+          }),
+          text: sails.models.publicinvite.getReminderMessage(invite)
+            .secondReminderMessage,
+        });
+      },
+    };
+
+    await Promise.all(
+      Object.keys(jobs).map((name) => {
+        console.log("define job ", name, jobs[name]);
+        sails.agenda.define(name, async (job) => {
+          const { invite } = job.attrs.data;
+          const updatedInvite = await sails.models.publicinvite.findOne({
+            id: invite.id,
+          });
+          // if shceduledFor has changed, do not run the job
+          if (updatedInvite.scheduledFor !== invite.scheduledFor) {
+            return;
+          }
+
+          await jobs[name](invite);
+        });
+      })
+    );
+
+    sails.agenda.define("TRANSLATOR_REQUEST_EXPIRE", async (job) => {
+      return sails.models.publicinvite.expireTranslatorRequest();
+    });
+
+    sails.agenda.define("RINGING_TIMEOUT", async (job) => {
+      const message = await sails.models.message.findOne({
+        id: job.attrs.data.message.id,
+      });
+      if (message.status === "ringing") {
+        sails.models.message.endCall(
+          message,
+          job.attrs.data.consultation,
+          "RINGING_TIMEOUT"
+        );
+      }
+    });
+    sails.agenda.define("DURATION_TIMEOUT", async (job) => {
+      const message = await sails.models.message.findOne({
+        id: job.attrs.data.message.id,
+      });
+      if (message.status !== "ended") {
+        sails.models.message.endCall(
+          message,
+          job.attrs.data.consultation,
+          "DURATION_TIMEOUT"
+        );
+      }
+    });
+
     sails.agenda.define("delete old consultations", async (job) => {
       const now = Date.now();
       const consultationsToBeClosed = await Consultation.find({
@@ -41,7 +154,6 @@ module.exports = {
         })
       );
     });
-
     await sails.agenda.every("*/5 * * * *", "delete old consultations");
   },
 };

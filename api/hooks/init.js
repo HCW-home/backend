@@ -1,5 +1,4 @@
 let NodeClam = require("clamscan");
-const Agenda = require("agenda");
 module.exports = function myBasicHook(sails) {
   return {
     async initialize(cb) {
@@ -18,16 +17,6 @@ module.exports = function myBasicHook(sails) {
         if (process.env.NODE_ENV === "production") {
           process.exit(1);
         }
-      }
-
-      try {
-        const agenda = new Agenda({ db: { address: process.env.DB_URI } });
-        await agenda.start();
-
-        sails.agenda = agenda;
-      } catch (error) {
-        console.error("Error initializing agenda");
-        process.exit(1);
       }
 
       try {

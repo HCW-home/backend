@@ -8,9 +8,7 @@ module.exports = {
       type: "string",
       required: true,
     },
-    handler: {
-      type: "ref",
-    },
+
     time: {
       type: "ref",
     },
@@ -25,10 +23,8 @@ module.exports = {
     },
   },
 
-  fn: async function (inputs) {
-    if (!sails.agenda._definitions[inputs.name]) {
-      sails.agenda.define(inputs.name, inputs.handler);
-    }
-    sails.agenda.schedule(inputs.time, inputs.name, inputs.data);
+  fn: async function (inputs, exits) {
+    await sails.agenda.schedule(inputs.time, inputs.name, inputs.data);
+    return exits.success();
   },
 };

@@ -4,7 +4,7 @@
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
-const RINGING_TIMEOUT = 30 * 1000;
+const RINGING_TIMEOUT = 5 * 60 * 1000;
 const CALL_DURATION_TIMEOUT = 2 * 60 * 60 * 1000;
 module.exports = {
   attributes: {
@@ -114,30 +114,14 @@ module.exports = {
       sails.sockets.broadcast(message.from, "newMessage", { data: message });
       await sails.helpers.schedule.with({
         name: "RINGING_TIMEOUT",
-        data: { message },
+        data: { message, consultation },
         time: new Date(Date.now() + RINGING_TIMEOUT),
-        handler: async (job) => {
-          const message = await Message.findOne({
-            id: job.attrs.data.message.id,
-          });
-          if (message.status === "ringing") {
-            Message.endCall(message, consultation, "RINGING_TIMEOUT");
-          }
-        },
       });
 
       await sails.helpers.schedule.with({
         name: "DURATION_TIMEOUT",
         data: { message },
         time: new Date(Date.now() + CALL_DURATION_TIMEOUT),
-        handler: async (job) => {
-          const message = await Message.findOne({
-            id: job.attrs.data.message.id,
-          });
-          if (message.status !== "ended") {
-            Message.endCall(message, consultation, "DURATION_TIMEOUT");
-          }
-        },
       });
     }
 

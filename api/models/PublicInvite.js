@@ -8,7 +8,7 @@ const moment = require("moment-timezone");
 moment.locale("fr");
 
 const FIRST_INVITE_REMINDER = 24 * 60 * 60 * 1000;
-const SECOND_INVITE_REMINDER = 30 * 1000;
+const SECOND_INVITE_REMINDER = 60 * 1000;
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
 const testingUrl = `${process.env.PUBLIC_URL}/#test-call`;
 const crypto = require("crypto");
@@ -210,52 +210,50 @@ module.exports = {
     });
   },
 
+  async expireTranslatorRequest(job) {
+    const { invite } = job.attrs.data;
+    const translatorRequestInvite = await PublicInvite.findOne({
+      type: "TRANSLATOR_REQUEST",
+      id: invite.id,
+    })
+      .populate("doctor")
+      .populate("patientInvite")
+      .populate("translationOrganization");
+    if (translatorRequestInvite.status === "SENT") {
+      await PublicInvite.updateOne({
+        type: "TRANSLATOR_REQUEST",
+        id: invite.id,
+      }).set({ status: "REFUSED" });
+      await PublicInvite.updateOne({
+        id: translatorRequestInvite.patientInvite.id,
+      }).set({ status: "CANCELED" });
+
+      if (translatorRequestInvite.patientInvite.guestInvite) {
+        await PublicInvite.updateOne({
+          id: translatorRequestInvite.patientInvite.guestInvite,
+        }).set({ status: "CANCELED" });
+      }
+
+      if (translatorRequestInvite.doctor.email) {
+        const docLocale =
+          translatorRequestInvite.doctor.preferredLanguage ||
+          process.env.DEFAULT_DOCTOR_LOCALE;
+        await sails.helpers.email.with({
+          to: translatorRequestInvite.doctor.email,
+          subject: sails._t(docLocale, "translation request refused subject"),
+          text: sails._t(docLocale, "translation request refused body", {
+            branding: process.env.BRANDING,
+          }),
+        });
+      }
+    }
+  },
+
   async setTranslatorRequestTimer(invite) {
     await sails.helpers.schedule.with({
       name: "TRANSLATOR_REQUEST_EXPIRE",
       data: { invite },
       time: new Date(Date.now() + TRANSLATOR_REQUEST_TIMEOUT),
-      handler: async (job) => {
-        const { invite } = job.attrs.data;
-        const translatorRequestInvite = await PublicInvite.findOne({
-          type: "TRANSLATOR_REQUEST",
-          id: invite.id,
-        })
-          .populate("doctor")
-          .populate("patientInvite")
-          .populate("translationOrganization");
-        if (translatorRequestInvite.status === "SENT") {
-          await PublicInvite.updateOne({
-            type: "TRANSLATOR_REQUEST",
-            id: invite.id,
-          }).set({ status: "REFUSED" });
-          await PublicInvite.updateOne({
-            id: translatorRequestInvite.patientInvite.id,
-          }).set({ status: "CANCELED" });
-
-          if (translatorRequestInvite.patientInvite.guestInvite) {
-            await PublicInvite.updateOne({
-              id: translatorRequestInvite.patientInvite.guestInvite,
-            }).set({ status: "CANCELED" });
-          }
-
-          if (translatorRequestInvite.doctor.email) {
-            const docLocale =
-              translatorRequestInvite.doctor.preferredLanguage ||
-              process.env.DEFAULT_DOCTOR_LOCALE;
-            await sails.helpers.email.with({
-              to: translatorRequestInvite.doctor.email,
-              subject: sails._t(
-                docLocale,
-                "translation request refused subject"
-              ),
-              text: sails._t(docLocale, "translation request refused body", {
-                branding: process.env.BRANDING,
-              }),
-            });
-          }
-        }
-      },
     });
   },
 
@@ -380,7 +378,7 @@ module.exports = {
     }
   },
 
-  setPatientOrGuestInviteReminders(invite) {
+  getReminderMessage(invite) {
     const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
     const inviteTime = moment(invite.scheduledFor)
@@ -402,73 +400,47 @@ module.exports = {
             branding: process.env.BRANDING,
             doctorName,
           });
+
     const secondReminderMessage =
       invite.type === "PATIENT"
         ? sails._t(locale, "second invite reminder", { url, doctorName })
         : sails._t(locale, "second guest invite reminder", { url, doctorName });
 
+    return {
+      firstReminderMessage,
+      secondReminderMessage,
+    };
+  },
+
+  async setPatientOrGuestInviteReminders(invite) {
     if (invite.phoneNumber) {
       if (invite.scheduledFor - Date.now() > FIRST_INVITE_REMINDER) {
-        PublicInvite.scheduleInviteJob(
-          "FIRST_INVITE_REMINDER_SMS",
-          invite,
-          new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
-          async (invite_) => {
-            await sails.helpers.sms.with({
-              phoneNumber: invite_.phoneNumber,
-              message: firstReminderMessage,
-            });
-          }
-        );
+        await sails.helpers.schedule.with({
+          name: "FIRST_INVITE_REMINDER_SMS",
+          data: { invite },
+          time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
+        });
       }
-      PublicInvite.scheduleInviteJob(
-        "SECOND_INVITE_REMINDER_SMS",
-        invite,
-        new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
-        async (invite_) => {
-          await sails.helpers.sms.with({
-            phoneNumber: invite_.phoneNumber,
-            message: secondReminderMessage,
-          });
-        }
-      );
+      await sails.helpers.schedule.with({
+        name: "SECOND_INVITE_REMINDER_SMS",
+        data: { invite },
+        time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+      });
     }
 
     if (invite.emailAddress) {
       if (invite.scheduledFor - Date.now() > FIRST_INVITE_REMINDER) {
-        PublicInvite.scheduleInviteJob(
-          "FIRST_INVITE_REMINDER_EMAIL",
-          invite,
-          new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
-          async (invite_) => {
-            await sails.helpers.email.with({
-              to: invite_.emailAddress,
-              subject: sails._t(locale, "your consultation link", {
-                url,
-                branding: process.env.BRANDING,
-                doctorName,
-              }),
-              text: firstReminderMessage,
-            });
-          }
-        );
+        await sails.helpers.schedule.with({
+          name: "FIRST_INVITE_REMINDER_EMAIL",
+          data: { invite },
+          time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
+        });
       }
-      PublicInvite.scheduleInviteJob(
-        "SECOND_INVITE_REMINDER_EMAIL",
-        invite,
-        new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
-        async (invite_) => {
-          await sails.helpers.email.with({
-            to: invite_.emailAddress,
-            subject: sails._t(locale, "your consultation link", {
-              url,
-              branding: process.env.BRANDING,
-              doctorName,
-            }),
-            text: secondReminderMessage,
-          });
-        }
-      );
+      await sails.helpers.schedule.with({
+        name: "SECOND_INVITE_REMINDER_EMAIL",
+        data: { invite },
+        time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+      });
     }
   },
   async destroyPatientInvite(invite) {
@@ -546,29 +518,6 @@ module.exports = {
         }),
       });
     }
-  },
-
-  async scheduleInviteJob(name, invite, jobTime, handler) {
-    await sails.helpers.schedule.with({
-      name,
-      data: { invite },
-      time: jobTime,
-      handler: async (job) => {
-        const { invite } = job.attrs.data;
-        const updatedInvite = await PublicInvite.findOne({ id: invite.id });
-        // if shceduledFor has changed, do not run the job
-        if (updatedInvite.scheduledFor !== invite.scheduledFor) {
-          return;
-        }
-        // TODO : Temporary disable this check has patient doesn't receive invite when
-        // other participant are added Check Redmine #3732
-        //      if(updatedInvite.updatedAt !== invite.updatedAt){
-        //        console.log('invite have been updated CANCEL JOB')
-        //        return
-        //      }
-        await handler(invite);
-      },
-    });
   },
 
   async cancelTranslationRequestInvite(patientInvite) {
