@@ -42,6 +42,6 @@ module.exports = {
       );
     });
 
-    await agenda.every("*/5 * * * *", "delete old consultations");
+    await sails.agenda.every("*/5 * * * *", "delete old consultations");
   },
 };

@@ -35,7 +35,7 @@ module.exports = function myBasicHook(sails) {
         // And then call `cb` to continue
         await sails.config.startCron();
       } catch (error) {
-        console.error("Error initializing cron");
+        console.error("Error initializing cron", error);
       }
       return cb();
     },
