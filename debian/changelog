@@ -1,22 +1,25 @@
-hcw-athome-backend (4.9.13) focal; urgency=medium
+hcw-athome-backend (4.9.14) focal; urgency=medium
 
-  [ Muhammed ]
-  * Awesome persistent scheduled jobs using agenda
-  * completely replace node-schedule with agenda
+[ Muhammed ]
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 31 May 2022 09:19:55 +0200
+- Awesome persistent scheduled jobs using agenda
+- completely replace node-schedule with agenda
+
+-- Olivier Bitsch <olivier.b@iabsis.com> Tue, 31 May 2022 09:19:55 +0200
 
 hcw-athome-backend (4.9.12) focal; urgency=medium
 
-  [ Olivier Bitsch ]
-  * Update README.md for public repositories
+[ Olivier Bitsch ]
 
-  [ Muhammed ]
-  * FIX forgot password malformed url and add translations refs #4457
-  * version increment
-  * forgot password translations
+- Update README.md for public repositories
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 18 May 2022 09:50:39 +0200
+[ Muhammed ]
+
+- FIX forgot password malformed url and add translations refs #4457
+- version increment
+- forgot password translations
+
+-- Olivier Bitsch <olivier.b@iabsis.com> Wed, 18 May 2022 09:50:39 +0200
 
 hcw-athome-backend (4.9.11) focal; urgency=medium
 
@@ -89,4 +92,4 @@ hcw-athome-backend (4.9.1) unstable; urgency=medium
 - Initial Release.
 
 -- Olivier Bitsch <olivier.b@iabsis.com> Thu, 17 Feb 2022 15:33:08 +0100
- -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 03 May 2022 16:45:57 +0200
+-- Olivier Bitsch <olivier.b@iabsis.com> Tue, 03 May 2022 16:45:57 +0200
