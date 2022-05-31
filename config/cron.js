@@ -8,7 +8,7 @@ module.exports = {
     await agenda.start();
     sails.agenda = agenda;
 
-    const jobs = {
+    const inviteJobs = {
       FIRST_INVITE_REMINDER_SMS: async (invite) => {
         await sails.helpers.sms.with({
           phoneNumber: invite.phoneNumber,
@@ -69,19 +69,22 @@ module.exports = {
     };
 
     await Promise.all(
-      Object.keys(jobs).map((name) => {
-        console.log("define job ", name, jobs[name]);
+      Object.keys(inviteJobs).map((name) => {
         sails.agenda.define(name, async (job) => {
           const { invite } = job.attrs.data;
           const updatedInvite = await sails.models.publicinvite.findOne({
             id: invite.id,
           });
+          if (!updatedInvite) {
+            console.warn("invite was deleted");
+            return;
+          }
           // if shceduledFor has changed, do not run the job
           if (updatedInvite.scheduledFor !== invite.scheduledFor) {
             return;
           }
 
-          await jobs[name](invite);
+          await inviteJobs[name](invite);
         });
       })
     );
