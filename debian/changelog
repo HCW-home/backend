@@ -1,3 +1,11 @@
+hcw-athome-backend (4.9.13) focal; urgency=medium
+
+  [ Muhammed ]
+  * Awesome persistent scheduled jobs using agenda
+  * completely replace node-schedule with agenda
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 31 May 2022 09:19:55 +0200
+
 hcw-athome-backend (4.9.12) focal; urgency=medium
 
   [ Olivier Bitsch ]

@@ -5,6 +5,7 @@ DISTRO=focal
 
 set -e
 
+apt update
 apt -y install wget apt-transport-https gnupg ca-certificates
 wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
 
