@@ -87,7 +87,7 @@ module.exports = {
     );
 
     sails.agenda.define("TRANSLATOR_REQUEST_EXPIRE", async (job) => {
-      return sails.models.publicinvite.expireTranslatorRequest();
+      await sails.models.publicinvite.expireTranslatorRequest(job);
     });
 
     sails.agenda.define("RINGING_TIMEOUT", async (job) => {
