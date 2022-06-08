@@ -25,6 +25,8 @@ module.exports = {
     const socket = sails.sockets.get(socketId);
 
     socket.once('disconnect', async (reason) => {
+      console.log('Disconnecting User from webSocket:', user.name, user.role, user.id)
+
       await Consultation.changeOnlineStatus(user, false)
     });
     sails.sockets.join(req, user.id, async (err) => {
