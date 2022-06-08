@@ -18,6 +18,10 @@ module.exports = async function (req, res, proceed) {
 
 
 
+  if(!consultation){
+    return res.forbidden('Consultation not found');
+  }
+
   if(consultation.queue){
 
     if(!req.user.viewAllQueues){
