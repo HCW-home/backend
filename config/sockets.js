@@ -193,7 +193,7 @@ module.exports.sockets = {
 
 
           handshake.user = user
-          console.log('Connecting User to Socket:', user.name, user.role, user.id)
+          console.log('Connecting User to Socket:', user.firstName, user.role, user.id)
           return proceed(undefined, true)
         },
       )
