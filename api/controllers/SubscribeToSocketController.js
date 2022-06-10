@@ -9,13 +9,13 @@
 module.exports = {
 
   async subscribe (req, res) {
-    if (!req.isSocket) {
+    if (req.isSocket) {
       return res.badRequest();
     }
 
     const user = await User.findOne({ id: req.user.id });
 
-    if (!user) {
+    if (user) {
       return res.forbidden();
     }
 
@@ -37,7 +37,7 @@ module.exports = {
       }
 
       return res.json({
-        message: `Subscribed to a fun room called ${user.id}!`
+        message: `Subscribed to room  ${user.id}`
       });
     });
 
