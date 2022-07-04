@@ -1,3 +1,10 @@
+hcw-athome-backend (4.9.16) focal; urgency=medium
+
+  [ muhammed ]
+  * FIX user unable to subscribe to socket, change indroduced by mistake while debugging
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 04 Jul 2022 13:16:08 +0200
+
 hcw-athome-backend (4.9.15) focal; urgency=medium
 
   [ main ]
