@@ -403,9 +403,32 @@ module.exports = {
 
   logout(req, res) {
     req.logOut();
-    req.session.destroy(function (err) {
-      res.status(200).send();
-    });
+    if((process.env.LOGIN_METHOD === 'saml' ||
+    process.env.LOGIN_METHOD === "both")
+    && process.env.LOGOUT_URL
+    ){
+      try {
+        samlStrategy.logout(req, (err)=>{
+          if(err){
+            console.error("Error logging out from saml", err)
+          }
+          console.log('Saml logged out')
+          req.session.destroy(function (err) {
+            res.status(200).send();
+          });
+        })
+      } catch (error) {
+        console.error("Error logging out from saml", error)
+        req.session.destroy(function (err) {
+          res.status(200).send();
+        });
+      }
+    }else{
+      req.session.destroy(function (err) {
+        res.status(200).send();
+      });
+    }
+
   },
 
   /**
