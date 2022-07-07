@@ -429,7 +429,6 @@ console.log('env >>>> ', process.env.NODE_ENV);
 
   passport.use(samlStrategy);
 
-  sails.samlStrategy = samlStrategy;
 // }
 
 
