@@ -12,6 +12,7 @@ BuildArch: noarch
 
 %global __requires_exclude dtrace
 %define _binaries_in_noarch_packages_terminate_build   0
+%undefine __brp_mangle_shebangs
 
 %description
 SPECS version 1
@@ -36,18 +37,18 @@ SPECS version 1
 %{__cp} nginx/nginx-common %{buildroot}/%{_sysconfdir}/hcw-athome/
 %{__cp} nginx/nginx-proxy %{buildroot}/%{_sysconfdir}/hcw-athome/
 ## Copy nginx sample
-%{__install} -d -m0755 %{buildroot}/%{_datadir}/doc/%{name}/
-%{__cp} -a nginx/hcw-athome{doctor,nurse,patient,scheduler}.conf %{buildroot}/%{_datadir}/doc/%{name}/nginx-samples/
+%{__install} -d -m0755 %{buildroot}/%{_datadir}/doc/%{name}/nginx-samples/
+%{__cp} -a nginx/hcw-athome-{doctor,nurse,patient,scheduler}.conf %{buildroot}/%{_datadir}/doc/%{name}/nginx-samples/
 
 %clean
 %{__rm} -rf %{buildroot}
 
 %files
 %defattr(-,root,root, 0755)
-%{_datadir}/%{name}/
+%{_datadir}/hcw-athome/
 %{_datadir}/doc/%{name}/
 /lib/systemd/system/
-%config(noreplace) %{_sysconfdir}/hug-home/
+%config(noreplace) %{_sysconfdir}/hcw-athome/
 
 %post
 ## Commands to for the post install
