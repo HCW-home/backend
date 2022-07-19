@@ -1,3 +1,14 @@
+hcw-athome-backend (4.9.17) focal; urgency=medium
+
+  [ muhammed ]
+  * SAML logout
+  * remove unneeded code
+
+  [ Olivier Bitsch ]
+  * Switch to Centos8 build and fix path
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 19 Jul 2022 08:56:57 +0200
+
 hcw-athome-backend (4.9.16) focal; urgency=medium
 
   [ muhammed ]
