@@ -1,0 +1,19 @@
+diff --git a/node_modules/activedirectory/lib/activedirectory.js b/node_modules/activedirectory/lib/activedirectory.js
+index 316dd10..435042c 100755
+--- a/node_modules/activedirectory/lib/activedirectory.js
++++ b/node_modules/activedirectory/lib/activedirectory.js
+@@ -575,7 +575,13 @@ function parseRangeAttributes(result, opts, callback) {
+   _.each(rangeAttributes, function(rangeAttribute, index) {
+     // Merge existing range into the properly named property.
+     if (! result[rangeAttribute.attributeName]) result[rangeAttribute.attributeName] = [];
+-    Array.prototype.push.apply(result[rangeAttribute.attributeName], result[rangeAttribute.toString()]);
++    let array = result[rangeAttribute.attributeName];
++    let object = result[rangeAttribute.toString()];
++    if (typeof(object) === 'string') {
++        array.push(object);
++    } else {
++        Array.prototype.push.apply(array, object);
++    }
+     delete(result[rangeAttribute.toString()]);
+ 
+     // Build our ldap query attributes with the proper attribute;range= tags to
