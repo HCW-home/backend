@@ -113,6 +113,10 @@ module.exports = {
     patientTZ: {
       type: "string",
     },
+    metadata:{
+      type: "json",
+      required: false
+    }
   },
   customToJSON() {
     return _.omit(this, ["inviteToken"]);
@@ -266,7 +270,6 @@ module.exports = {
           .locale(locale)
           .format("D MMMM HH:mm zz")
       : "";
-
     const doctorName = invite.doctor
       ? (invite.doctor.firstName || "") + " " + (invite.doctor.lastName || "")
       : "";
