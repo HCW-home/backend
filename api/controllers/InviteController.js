@@ -266,7 +266,8 @@ module.exports = {
         //IMADTeam: req.body.IMADTeam,
         birthDate: req.body.birthDate,
         patientTZ: req.body.patientTZ,
-        metadata: req.body.metadata,  //! passing metadata from request
+        metadata: req.body.metadata,  
+        //! passing metadata from request
       };
       if (doctor) {
         inviteData.doctor = doctor.id;
