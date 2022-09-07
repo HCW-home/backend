@@ -52,6 +52,17 @@ function validateInviteRequest(invite) {
   return errors;
 }
 
+  //function that transform DISPLAY_META in a object
+   function toObjectDIsplayMeta(string, para){
+    let arrayString = string.split(',');
+    let ObjectDisplay = {}
+    for (let i = 0; i < arrayString.length; i++) {
+      ObjectDisplay[arrayString[i]] = para[arrayString[i]];
+    }
+    return ObjectDisplay;
+  }
+
+
 async function createTranslationRequest(translationInvite, organization) {
   // if organization has main email sent to that email
   if (organization.mainEmail) {
@@ -266,7 +277,8 @@ module.exports = {
         //IMADTeam: req.body.IMADTeam,
         birthDate: req.body.birthDate,
         patientTZ: req.body.patientTZ,
-        metadata: req.body.metadata,  
+        //metadata: req.body.metadata,  
+        metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
         //! passing metadata from request
       };
       if (doctor) {
