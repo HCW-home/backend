@@ -1,3 +1,9 @@
+hcw-athome-backend (4.9.20) focal; urgency=medium
+
+  * Fix transaction in ru and it
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 08 Sep 2022 12:23:16 +0200
+
 hcw-athome-backend (4.9.19) focal; urgency=medium
 
   * New Italian and Russian translation
