@@ -54,12 +54,20 @@ function validateInviteRequest(invite) {
 
   //function that transform DISPLAY_META in a object
    function toObjectDIsplayMeta(string, para){
-    let arrayString = string.split(',');
-    let ObjectDisplay = {}
-    for (let i = 0; i < arrayString.length; i++) {
-      ObjectDisplay[arrayString[i]] = para[arrayString[i]];
+     let ObjectDisplay = {};
+    if(string === "" || string === undefined){
+      return ObjectDisplay;
+    }else{
+      let arrayString = string.split(',');
+      for (let i = 0; i < arrayString.length; i++) {
+        if(para === undefined){
+          ObjectDisplay = {};
+        }else{
+          ObjectDisplay[arrayString[i]] = para[arrayString[i]];
+        }
+      }
+      return ObjectDisplay;
     }
-    return ObjectDisplay;
   }
 
 
@@ -276,8 +284,7 @@ module.exports = {
         type: "PATIENT",
         //IMADTeam: req.body.IMADTeam,
         birthDate: req.body.birthDate,
-        patientTZ: req.body.patientTZ,
-        //metadata: req.body.metadata,  
+        patientTZ: req.body.patientTZ, 
         metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
         //! passing metadata from request
       };

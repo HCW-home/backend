@@ -614,6 +614,7 @@ module.exports = {
       androidStoreTitle: process.env.ANDROID_STORE_TITLE,
       logo: process.env.LOGO,
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
+      metadata: (process.env.DISPLAY_META).split(','), //! sending metadata to the front
     });
   },
   externalAuth(req, res) {
