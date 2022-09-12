@@ -21,9 +21,16 @@ hcw-athome-backend (4.9.21) focal; urgency=medium
 
 hcw-athome-backend (4.9.20) focal; urgency=medium
 
-  * Fix translation in ru and it
+  [Olivier Bitsch]
+  * Fix transaction in ru and it
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 08 Sep 2022 12:23:16 +0200
+  [ Yassine El Fallouhi ]
+  * Added new field(metadata)
+  * retrive data from metadata
+  * Passing metadata to the front and treat it in backend
+  * correct some errors
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 12 Sep 2022 10:10:32 +0200
 
 hcw-athome-backend (0.4.9.21) focal; urgency=medium
 
