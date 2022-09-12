@@ -52,23 +52,23 @@ function validateInviteRequest(invite) {
   return errors;
 }
 
-  //function that transform DISPLAY_META in a object from a string
-   function toObjectDIsplayMeta(string, para){
-     let ObjectDisplay = {};
-    if(string === "" || string === undefined){
-      return ObjectDisplay;
-    }else{
-      let arrayString = string.split(',');
-      for (let i = 0; i < arrayString.length; i++) {
-        if(para === undefined){
-          ObjectDisplay = {};
-        }else{
-          ObjectDisplay[arrayString[i]] = para[arrayString[i]];
-        }
-      }
-      return ObjectDisplay;
-    }
-  }
+  //!function that transform DISPLAY_META in a object from a string
+  //  function toObjectDIsplayMeta(string, para){
+  //    let ObjectDisplay = {};
+  //   if(string === "" || string === undefined){
+  //     return ObjectDisplay;
+  //   }else{
+  //     let arrayString = string.split(',');
+  //     for (let i = 0; i < arrayString.length; i++) {
+  //       if(para === undefined){
+  //         ObjectDisplay = {};
+  //       }else{
+  //         ObjectDisplay[arrayString[i]] = para[arrayString[i]];
+  //       }
+  //     }
+  //     return ObjectDisplay;
+  //   }
+  // }
 
 
 async function createTranslationRequest(translationInvite, organization) {
@@ -285,7 +285,8 @@ module.exports = {
         //IMADTeam: req.body.IMADTeam,
         birthDate: req.body.birthDate,
         patientTZ: req.body.patientTZ, 
-        metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
+        // metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
+        metadata: req.body.metadata,
         //! passing metadata from request
       };
       if (doctor) {
