@@ -52,7 +52,7 @@ function validateInviteRequest(invite) {
   return errors;
 }
 
-  //function that transform DISPLAY_META in a object
+  //function that transform DISPLAY_META in a object from a string
    function toObjectDIsplayMeta(string, para){
      let ObjectDisplay = {};
     if(string === "" || string === undefined){
