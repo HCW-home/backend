@@ -301,6 +301,7 @@ module.exports = {
         consultationJson.invite = invite.id;
         consultationJson.invitedBy = invite.invitedBy;
 
+        consultationJson.metadata = invite.metadata; //! we pass the metadata from the invite to the consultation
         consultationJson.IMADTeam = invite.IMADTeam || "none";
         consultationJson.birthDate = invite.birthDate;
       }
