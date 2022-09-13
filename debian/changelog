@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.22) focal; urgency=medium
+
+  [ YassineEF ]
+  * refs #5029 -We are ableto  pass the env variable Display Meta to the front
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 13 Sep 2022 16:46:31 +0200
+
 hcw-athome-backend (0.4.9.21) focal; urgency=medium
 
   [ YassineEF ]
