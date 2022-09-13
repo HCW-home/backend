@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.21) focal; urgency=medium
+
+  [ YassineEF ]
+  * refs #5028 -We can pass now custom metadata to the endpoint /invite
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 13 Sep 2022 11:25:48 +0200
+
 hcw-athome-backend (0.4.9.20) focal; urgency=medium
 
   [ Yassine El Fallouhi ]
