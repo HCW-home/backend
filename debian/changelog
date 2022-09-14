@@ -1,3 +1,10 @@
+hcw-athome-backend (4.9.23) focal; urgency=medium
+
+  [ muhammed ]
+  * handle req.options undefined refs #5050
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 14 Sep 2022 15:21:02 +0200
+
 hcw-athome-backend (4.9.22) focal; urgency=high
 
   [ YassineEF ]
