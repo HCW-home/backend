@@ -1,16 +1,16 @@
 /* eslint-disable callback-return */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable func-style */
-const package = require('../../package.json');
-const DEFAULT_TOTAL_COUNT_HEADER = 'X-Total-Count';
-const DEFAULT_PAGINATION_JSON_HEADER = 'X-Pagination-JSON';
+const package = require("../../package.json");
+const DEFAULT_TOTAL_COUNT_HEADER = "X-Total-Count";
+const DEFAULT_PAGINATION_JSON_HEADER = "X-Pagination-JSON";
 
 const defaults = {
-  actions: ['find', 'populate', /^.*\/(find|populate)$/],
+  actions: ["find", "populate", /^.*\/(find|populate)$/],
   totalCountHeader: true,
   paginationHeader: false,
   paginationJsonHeader: false,
-  silentError: false
+  silentError: false,
 };
 
 const isRegExp = (value) => {
@@ -24,23 +24,28 @@ const isNotRegExp = (value) => {
 const generate = (options = {}) => {
   options = Object.assign({}, defaults, options);
 
-  const totalCountHeader = options.totalCountHeader === false
-        ? null
-        : typeof options.totalCountHeader === 'string'
-            ? options.totalCountHeader
-            : DEFAULT_TOTAL_COUNT_HEADER;
+  const totalCountHeader =
+    options.totalCountHeader === false
+      ? null
+      : typeof options.totalCountHeader === "string"
+      ? options.totalCountHeader
+      : DEFAULT_TOTAL_COUNT_HEADER;
 
-  const paginationJsonHeader = options.paginationJsonHeader === false
-        ? null
-        : typeof options.paginationJsonHeader === 'string'
-            ? options.paginationJsonHeader
-            : DEFAULT_PAGINATION_JSON_HEADER;
+  const paginationJsonHeader =
+    options.paginationJsonHeader === false
+      ? null
+      : typeof options.paginationJsonHeader === "string"
+      ? options.paginationJsonHeader
+      : DEFAULT_PAGINATION_JSON_HEADER;
 
   options.actions = [].concat(options.actions);
 
   const actions = {
-    map: [...options.actions].filter(isNotRegExp).reduce((hash, key) => { hash[key] = true; return hash; }, {}),
-    regexps: [...options.actions].filter(isRegExp)
+    map: [...options.actions].filter(isNotRegExp).reduce((hash, key) => {
+      hash[key] = true;
+      return hash;
+    }, {}),
+    regexps: [...options.actions].filter(isRegExp),
   };
 
   const testAction = function (action) {
@@ -58,7 +63,10 @@ const generate = (options = {}) => {
     // if(!req.options){
     //   return next();
     // }
-    const now = !!(req.options && (req.options.blueprintAction || req.options.action));
+    const now = !!(
+      req.options &&
+      (req.options.blueprintAction || req.options.action)
+    );
     let oldSendOrNext;
 
     // if we have options, execute now
@@ -84,12 +92,15 @@ const generate = (options = {}) => {
 
       const sendArgs = Array.from(arguments);
 
-      const parseBlueprintOptions = req.options.parseBlueprintOptions
-                || req._sails.config.blueprints.parseBlueprintOptions
-                || req._sails.hooks.blueprints.parseBlueprintOptions;
+      const parseBlueprintOptions =
+        req.options.parseBlueprintOptions ||
+        req._sails.config.blueprints.parseBlueprintOptions ||
+        req._sails.hooks.blueprints.parseBlueprintOptions;
 
       if (!parseBlueprintOptions) {
-        req._sails.log.warn(`[${package.name}] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+`);
+        req._sails.log.warn(
+          `[${package.name}] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+`
+        );
         return oldSendOrNext.apply(res, arguments);
       }
 
@@ -100,23 +111,39 @@ const generate = (options = {}) => {
       // https://gitter.im/balderdashy/sails?at=5a3d24bcba39a53f1a903eef
       let populatingAssociation;
       if (/populate/.test(action) && queryOptions.alias) {
-        populatingAssociation = Model.associations.filter(association => association.alias === queryOptions.alias)[0];
+        populatingAssociation = Model.associations.filter(
+          (association) => association.alias === queryOptions.alias
+        )[0];
       }
       let PopulatingAssociationModel;
       if (populatingAssociation) {
-        PopulatingAssociationModel = req._sails.models[populatingAssociation[populatingAssociation.type]];
+        PopulatingAssociationModel =
+          req._sails.models[populatingAssociation[populatingAssociation.type]];
       }
       let modelAssociation;
       if (PopulatingAssociationModel) {
-        modelAssociation = PopulatingAssociationModel.associations.filter(association => association.collection === queryOptions.using || association.model === queryOptions.using)[0];
+        modelAssociation = PopulatingAssociationModel.associations.filter(
+          (association) =>
+            association.collection === queryOptions.using ||
+            association.model === queryOptions.using
+        )[0];
       }
 
       const criteria = Object.assign({}, queryOptions.criteria);
       const populates = Object.assign({}, queryOptions.populates);
 
-      const limit = req.param('limit') || criteria.limit || (populates[queryOptions.alias] || {}).limit;
-      const skip = req.param('skip') || criteria.skip || (populates[queryOptions.alias] || {}).skip;
-      const sort = req.param('sort') || criteria.sort || (populates[queryOptions.alias] || {}).sort;
+      const limit =
+        req.param("limit") ||
+        criteria.limit ||
+        (populates[queryOptions.alias] || {}).limit;
+      const skip =
+        req.param("skip") ||
+        criteria.skip ||
+        (populates[queryOptions.alias] || {}).skip;
+      const sort =
+        req.param("sort") ||
+        criteria.sort ||
+        (populates[queryOptions.alias] || {}).sort;
 
       // sails will throw an error if I don't do this
       delete criteria.limit;
@@ -125,7 +152,12 @@ const generate = (options = {}) => {
 
       let promise;
 
-      if (PopulatingAssociationModel && criteria.where && criteria.where.id && modelAssociation) {
+      if (
+        PopulatingAssociationModel &&
+        criteria.where &&
+        criteria.where.id &&
+        modelAssociation
+      ) {
         // todo: pile of sh*t part-2
         const id = criteria.where.id;
         delete criteria.where.id;
@@ -136,30 +168,35 @@ const generate = (options = {}) => {
         promise = Model.count(criteria);
       }
 
-      promise.then(
-                    (count) => {
-                      if (totalCountHeader) {
-                        res.set(totalCountHeader, count);
-                        res.header('Access-Control-Expose-Headers', totalCountHeader);
-                      }
-                      if (paginationJsonHeader) {
-                        res.set(paginationJsonHeader, JSON.stringify({
-                          count,
-                          sort,
-                          limit: limit !== null ? parseInt(limit) : undefined,
-                          skip: skip !== null ? parseInt(skip) : undefined
-                        }));
-                      }
-                      return oldSendOrNext.apply(res, sendArgs);
-                    })
-                .catch(
-                    (err) => {
-                      if (! silentError) {
-                        req._sails.log.error(`[${package.name}] Was not able to get count for '${req.originalUrl}'\n${err.toString()}`);
-                      }
-                      return oldSendOrNext.apply(res, sendArgs);
-                    }
-                );
+      promise
+        .then((count) => {
+          if (totalCountHeader) {
+            res.set(totalCountHeader, count);
+            res.header("Access-Control-Expose-Headers", totalCountHeader);
+          }
+          if (paginationJsonHeader) {
+            res.set(
+              paginationJsonHeader,
+              JSON.stringify({
+                count,
+                sort,
+                limit: limit !== null ? parseInt(limit) : undefined,
+                skip: skip !== null ? parseInt(skip) : undefined,
+              })
+            );
+          }
+          return oldSendOrNext.apply(res, sendArgs);
+        })
+        .catch((err) => {
+          if (!silentError) {
+            req._sails.log.error(
+              `[${package.name}] Was not able to get count for '${
+                req.originalUrl
+              }'\n${err.toString()}`
+            );
+          }
+          return oldSendOrNext.apply(res, sendArgs);
+        });
     };
 
     if (now) {
