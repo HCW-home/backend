@@ -1,3 +1,10 @@
+hcw-athome-backend (4.9.22) focal; urgency=high
+
+  [ YassineEF ]
+  * refs #5046 -Fixed empty Display Meta error
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 14 Sep 2022 12:16:26 +0200
+
 hcw-athome-backend (4.9.21) focal; urgency=medium
 
   [ YassineEF ]
