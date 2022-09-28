@@ -1,3 +1,10 @@
+hcw-athome-backend (4.9.23) focal; urgency=medium
+
+  [ muhammed ]
+  * handle req.options undefined refs #5050
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 14 Sep 2022 15:21:02 +0200
+
 hcw-athome-backend (4.9.22) focal; urgency=high
 
   [ YassineEF ]
@@ -14,20 +21,9 @@ hcw-athome-backend (4.9.21) focal; urgency=medium
 
 hcw-athome-backend (4.9.20) focal; urgency=medium
 
-  [ YassineEF ]
-  * refs #5028 -We can pass now custom metadata to the endpoint /invite
+  * Fix translation in ru and it
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 13 Sep 2022 11:25:48 +0200
-
-hcw-athome-backend (0.4.9.20) focal; urgency=medium
-
-  [ Yassine El Fallouhi ]
-  * Added new field(metadata)
-  * retrive data from metadata
-  * Passing metadata to the front and treat it in backend
-  * correct some errors
-
- -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 12 Sep 2022 10:10:32 +0200
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 08 Sep 2022 12:23:16 +0200
 
 hcw-athome-backend (0.4.9.21) focal; urgency=medium
 
