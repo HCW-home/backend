@@ -1,3 +1,11 @@
+hcw-athome-backend (4.9.24) focal; urgency=medium
+
+  [ YassineEF ]
+  * refs  #5050 Probably indentation error
+  * refs #5124 Fixing SMS
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 07 Oct 2022 16:24:40 +0200
+
 hcw-athome-backend (4.9.23) focal; urgency=medium
 
   [ muhammed ]
