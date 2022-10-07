@@ -604,6 +604,7 @@ module.exports = {
   },
   async sendPatientReadyToDoctor(consultation, doctor) {
     const doctorId = doctor._id ? doctor._id.toString() : doctor.id;
+
     if (doctor && doctor.enableNotif && doctor.notifPhoneNumber) {
       const tokenString = await PublicInvite.generateToken();
       const token = await Token.create({
@@ -627,7 +628,7 @@ module.exports = {
 
       await sails.helpers.sms.with({
         phoneNumber: doctor.notifPhoneNumber,
-        message: sails._t(doctorLanguage, "patient is ready", { url }),
+        message: sails._t(doctorLanguage, "patient is ready",  { url }),
       });
     }
   },
