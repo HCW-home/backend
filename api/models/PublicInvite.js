@@ -152,7 +152,7 @@ module.exports = {
 
   generateToken,
   sendTranslationRequestInvite(invite, email) {
-    const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorLangCode =
       invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
     const inviteTime = invite.scheduledFor
@@ -194,7 +194,7 @@ module.exports = {
   },
 
   sendTranslatorInvite(invite, email) {
-    const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorLang =
       invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
     const doctorName =
@@ -262,7 +262,7 @@ module.exports = {
   },
 
   async sendPatientInvite(invite) {
-    const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -322,7 +322,7 @@ module.exports = {
   },
 
   async sendGuestInvite(invite) {
-    const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -382,7 +382,7 @@ module.exports = {
   },
 
   getReminderMessage(invite) {
-    const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
     const inviteTime = moment(invite.scheduledFor)
       .tz(invite.patientTZ || moment.tz.guess())

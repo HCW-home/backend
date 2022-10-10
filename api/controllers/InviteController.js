@@ -416,7 +416,7 @@ module.exports = {
       }
     }
 
-    invite.patientURL = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     invite.doctorURL = process.env.DOCTOR_URL;
     return res.json({
       success: true,
@@ -811,7 +811,7 @@ module.exports = {
       }
     }
 
-    invite.patientURL = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     invite.doctorURL = process.env.DOCTOR_URL;
     return res.json({
       success: true,
@@ -1006,7 +1006,7 @@ module.exports = {
         process.env.DOCTOR_URL + "/app/consultation/" + consultation.id;
     }
 
-    invite.patientURL = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+    invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
     return res.json(invite);
   },

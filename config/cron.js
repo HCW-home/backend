@@ -26,7 +26,7 @@ module.exports = {
         });
       },
       FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
-        const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+        const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
         const doctorName =
           (invite.doctor.firstName || "") +
@@ -47,7 +47,7 @@ module.exports = {
         });
       },
       SECOND_INVITE_REMINDER_EMAIL: async (invite) => {
-        const url = `${process.env.PUBLIC_URL}?invite=${invite.inviteToken}`;
+        const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
         const doctorName =
           (invite.doctor.firstName || "") +
