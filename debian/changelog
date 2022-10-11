@@ -1,3 +1,9 @@
+hcw-athome-backend (4.9.26) focal; urgency=medium
+
+  * Adding ionic scheme
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 11 Oct 2022 12:45:48 +0200
+
 hcw-athome-backend (4.9.25) focal; urgency=medium
 
   * Send link with /inv/ prefix
