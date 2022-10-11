@@ -1,3 +1,9 @@
+hcw-athome-backend (4.9.25) focal; urgency=medium
+
+  * Send link with /inv/ prefix
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 11 Oct 2022 09:43:22 +0200
+
 hcw-athome-backend (4.9.24) focal; urgency=medium
 
   [ YassineEF ]
