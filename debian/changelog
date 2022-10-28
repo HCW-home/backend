@@ -1,3 +1,9 @@
+hcw-athome-backend (4.9.27) focal; urgency=medium
+
+  * Adding new var SAML_AUTOCREATE_USER to allow auto create user based on SAML response
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 28 Oct 2022 09:16:42 +0200
+
 hcw-athome-backend (4.9.26) focal; urgency=medium
 
   * Adding ionic scheme
