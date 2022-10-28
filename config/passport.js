@@ -336,7 +336,6 @@ passport.use(
 const SamlStrategy = require("passport-saml").Strategy;
 let samlStrategy;
 console.log("env >>>> ", process.env.NODE_ENV);
-// if (process.env.NODE_ENV !== 'development' && process.env.SAML_CALLBACK) {
 
 samlStrategy = new SamlStrategy(
   {
@@ -481,7 +480,18 @@ samlStrategy = new SamlStrategy(
         });
       } else {
         if (!user) {
-          return cb(new Error("User not found"));
+          console.log("Autocreate enabled, create user", profile)
+          if (process.env.SAML_AUTOCREATE_USER && process.env.SAML_AUTOCREATE_USER == 'true') {
+              user = await User.create({
+              email: profile[process.env.EMAIL_FIELD],
+              firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
+              lastName: profile[process.env.SAML_LASTNAME_FIELD],
+              role: sails.config.globals.ROLE_DOCTOR
+            }).fetch()
+          } else {
+            return cb(new Error("User not found"));
+          }
+          
         }
         const token = jwt.sign(user, sails.config.globals.APP_SECRET);
         user.token = token;
