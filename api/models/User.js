@@ -86,7 +86,7 @@ module.exports = {
     },
     lastLoginType: {
       type: 'string',
-      isIn: ['saml', 'local', 'sslcert', 'invite']
+      isIn: ['saml', 'local', 'sslcert', 'invite', 'openidconnect']
     },
     preferredLanguage: {
       type: 'string'

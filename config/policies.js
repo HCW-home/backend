@@ -81,6 +81,8 @@ module.exports.policies = {
     loginLocal: true,
     loginCert: true,
     loginSaml: true,
+    loginOpenId: true,
+    loginOpenIdReturn: true,
     loginInvite: true,
     loginSms: true,
     login2FA: true,

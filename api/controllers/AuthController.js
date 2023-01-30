@@ -595,6 +595,45 @@ module.exports = {
     });
   },
 
+  loginOpenId(req, res, next) {
+    passport.authenticate('openidconnect')(req, res, next)
+  },
+
+  loginOpenIdReturn(req, res){
+    bodyParser.urlencoded({ extended: false })(req, res, () => {
+      passport.authenticate("openidconnect", async (err, user, info = {}) => {
+        if (err) {
+          sails.log("error authenticating ", err);
+          return res.view("pages/error", {
+            error: err,
+          });
+        }
+        if (!user) {
+          return res.json({
+            message: info.message,
+            user,
+          });
+        }
+
+        try {
+          await User.updateOne({ id: user.id }).set({ lastLoginType: "openidconnect" });
+        } catch (error) {
+          console.log("error Updating user login type ", error);
+        }
+
+        return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
+      })(req, res, (err) => {
+        if (err) {
+          sails.log("error authenticating ", err);
+          return res.view("pages/error", {
+            error: err,
+          });
+        }
+        res.redirect(`${process.env['DOCTOR_URL']}/app/login`);
+      });
+    });
+  },
+
   metadata(req, res) {
     res.send(
       samlStrategy.generateServiceProviderMetadata(

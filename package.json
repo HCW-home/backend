@@ -31,6 +31,7 @@
     "passport": "^0.4.0",
     "passport-custom": "^1.1.1",
     "passport-local": "^1.0.0",
+    "passport-openidconnect": "^0.1.1",
     "passport-saml": "^2.0.2",
     "passport-trusted-header": "^1.1.0",
     "sails": "^1.4.0",
