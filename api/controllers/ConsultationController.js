@@ -5,7 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const ObjectId = require("mongodb").ObjectID;
-const { OpenVidu } = require("openvidu-node-client");
 const uuidv1 = require("uuid/v1");
 const fs = require("fs");
 const Json2csvParser = require("json2csv").Parser;

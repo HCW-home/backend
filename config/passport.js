@@ -514,7 +514,7 @@ samlStrategy = new SamlStrategy(
     signingCert: process.env.SAML_CERT,
     privateCert: fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8"),
     identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
-    //    cert: process.env.SAML_CERT_IDENTITY
+       cert: process.env.SAML_CERT_IDENTITY
   },
   async (profile, cb) => {
     try {
