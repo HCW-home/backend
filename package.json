@@ -11,22 +11,23 @@
     "@sailshq/socket.io-redis": "^5.2.1",
     "activedirectory": "^0.7.2",
     "agenda": "^5.0.0",
-    "axios": "^0.21.1",
+    "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "buffer": "^6.0.3",
     "clamscan": "^2.1.2",
-    "dotenv": "^16.0.3",
-    "grunt": "1.4.0",
+    "dotenv": "^16.1.4",
+    "grunt": "1.6.1",
     "install": "^0.13.0",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.0",
+    "ldapjs": "3.0.2",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
     "mongo-sanitize": "^1.1.0",
     "node-schedule": "^2.1.1",
-    "nodemailer": "^6.9.2",
-    "npm": "6.14.10",
+    "nodemailer": "^6.9.3",
+    "npm": "9.7.1",
     "openvidu-node-client": "^2.27.0",
     "ovh": "^2.0.3",
     "passport": "^0.6.0",
@@ -42,12 +43,12 @@
     "sails-mongo": "^2.0.1",
     "sails-pagination-middleware": "^0.0.2",
     "skipper-disk": "^0.5.12",
-    "uuid": "^3.3.2",
+    "uuid": "^9.0.0",
     "yarn": "^1.22.19"
   },
   "devDependencies": {
     "grunt-contrib-copy": "^1.0.0",
-    "patch-package": "^6.2.2"
+    "patch-package": "^7.0.0"
   },
   "scripts": {
     "start": "NODE_ENV=production node app.js",
@@ -68,6 +69,7 @@
     "node": ">=10.24.1"
   },
   "resolutions": {
-    "activedirectory/ldapjs": "1.0.2"
+    "activedirectory/ldapjs": "1.0.2",
+    "getobject": ">=1.0.0"
   }
 }

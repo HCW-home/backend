@@ -5,7 +5,6 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const ObjectId = require("mongodb").ObjectID;
-const uuidv1 = require("uuid/v1");
 const fs = require("fs");
 const Json2csvParser = require("json2csv").Parser;
 const jwt = require("jsonwebtoken");
@@ -435,25 +434,6 @@ module.exports = {
     }
   },
 
-  async testCall(req, res) {
-    try {
-      const mediasoupServers = await sails.helpers.getMediasoupServers();
-
-      const serverIndex = Math.floor(Math.random() * mediasoupServers.length);
-
-      const mediasoupServer = mediasoupServers[serverIndex];
-      const roomIdPeerId = "test_" + uuidv1();
-      const token = await sails.helpers.getMediasoupToken.with({
-        roomId: roomIdPeerId,
-        peerId: roomIdPeerId,
-        server: mediasoupServer,
-      });
-
-      return res.json({ token, peerId: roomIdPeerId });
-    } catch (err) {
-      console.error(err);
-    }
-  },
 
   async call(req, res) {
     try {
@@ -725,61 +705,6 @@ module.exports = {
     }
   },
 
-  uploadFile(req, res) {
-    const fileId = uuidv1();
-    const filePath = `${req.params.consultation}_${fileId}${
-      req.headers["mime-type"].split("/")[1]
-        ? `.${req.headers["mime-type"].split("/")[1]}`
-        : ""
-    }`;
-    req.file("attachment").upload(
-      {
-        dirname: sails.config.globals.attachmentsDir,
-        saveAs: filePath,
-      },
-      async function whenDone(err, uploadedFiles) {
-        if (err) {
-          return res.status(500).send(err);
-        } else {
-          sails.log("uploaded ", uploadedFiles);
-          if (!uploadedFiles[0]) {
-            return res.status(400);
-          }
-
-          try {
-            if (process.env.NODE_ENV !== "development") {
-              // eslint-disable-next-line camelcase
-              const { is_infected } =
-                await sails.config.globals.clamscan.is_infected(
-                  uploadedFiles[0].fd
-                );
-              if (is_infected) {
-                return res.status(400).send(new Error("File is infected"));
-              }
-            }
-          } catch (error) {
-            sails.log("Error scanning", error);
-            return res.serverError();
-          }
-
-          const message = await Message.create({
-            type: "attachment",
-            mimeType: req.headers["mime-type"],
-            fileName: decodeURIComponent(req.headers["filename"]),
-            filePath,
-            consultation: req.params.consultation,
-            to: req.body.to || null,
-            from: req.user.id,
-          }).fetch();
-
-          return res.send({
-            message,
-            textParams: req.params,
-          });
-        }
-      }
-    );
-  },
 
   async attachment(req, res) {
     const msg = await Message.findOne({
@@ -804,38 +729,6 @@ module.exports = {
     const readStream = fs.createReadStream(filePath);
 
     readStream.pipe(res);
-  },
-
-  sendReport(req, res) {
-    const filePath = `${uuidv1()}.pdf`;
-
-    req.file("report").upload(
-      {
-        dirname: "./.tmp",
-        saveAs: filePath,
-      },
-      async function whenDone(err, uploadedFiles) {
-        if (err) {
-          return res.status(500).send(err);
-        } else {
-          try {
-            await sails.helpers.email.with({
-              to: "aapozaid@gmail.com",
-              subject: "Report",
-              text: "PDF report ",
-              attachments: [
-                {
-                  fileName: "Report.pdf",
-                  path: uploadedFiles[0].fd,
-                },
-              ],
-            });
-          } catch (error) {
-            res.send(500);
-          }
-        }
-      }
-    );
   },
 
   async patientFeedback(req, res) {
