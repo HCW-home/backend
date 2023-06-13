@@ -1,3 +1,14 @@
+hcw-athome-backend (0.4.9.28) focal; urgency=medium
+
+  [ Aram ]
+  * feat: add OpenID intergation
+
+  [ Gor Grigoryan ]
+  * audit fixes
+  * node update, audit fix
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 13 Jun 2023 09:47:20 +0200
+
 hcw-athome-backend (4.9.27) focal; urgency=medium
 
   * Adding new var SAML_AUTOCREATE_USER to allow auto create user based on SAML response
