@@ -509,12 +509,11 @@ samlStrategy = new SamlStrategy(
       "https://login.microsoftonline.com/17e1281a-ff7f-4071-9ddd-60a77a0a0fe7/saml2",
     logoutUrl: process.env.LOGOUT_URL,
     issuer: process.env.SAML_ISSUER || "de2981db-9607-451a-80ca-4a0a886ca206",
-    decryptionCert: process.env.SAML_CERT,
+    cert: process.env.SAML_CERT,
     decryptionPvk: fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8"),
-    signingCert: process.env.SAML_CERT,
-    privateCert: fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8"),
-    identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
-       cert: process.env.SAML_CERT_IDENTITY
+    //signingCert: process.env.SAML_CERT,
+    privateKey: fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8"),
+    //identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
   },
   async (profile, cb) => {
     try {
