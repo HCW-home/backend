@@ -402,7 +402,7 @@ module.exports = {
   },
 
   logout(req, res) {
-    req.logOut();
+    req?.logOut();
     if((process.env.LOGIN_METHOD === 'saml' ||
     process.env.LOGIN_METHOD === "both")
     && process.env.LOGOUT_URL
