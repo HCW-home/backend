@@ -402,11 +402,15 @@ module.exports = {
   },
 
   logout(req, res) {
-    res.json({success: true})
-    req?.logOut();
+    req.sessionStore.client.keys("sess:*", (err, keys) => {
+      keys.forEach(key => {
+        req.sessionStore.client.del(key, (err, res) => {
+        })
+      })
+    });
     if((process.env.LOGIN_METHOD === 'saml' ||
-    process.env.LOGIN_METHOD === "both")
-    && process.env.LOGOUT_URL
+        process.env.LOGIN_METHOD === "both")
+      && process.env.LOGOUT_URL
     ){
       try {
         samlStrategy.logout(req, (err)=>{
