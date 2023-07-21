@@ -72,7 +72,15 @@ module.exports = {
     });
   },
 
-  loginInvite(req, res) {
+  async loginInvite(req, res) {
+    const invite = await PublicInvite.findOne({
+      or: [
+        { inviteToken: req.body.inviteToken },
+        { expertToken: req.body.inviteToken }
+      ]
+    });
+    const isExpert = invite.expertToken === req.body.inviteToken;
+
     passport.authenticate("invite", async (err, user) => {
       if (err || !user) {
         return res.status(401).send({

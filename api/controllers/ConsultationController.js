@@ -40,6 +40,10 @@ module.exports = {
       match = [{ guest: ObjectId(req.user.id) }];
     }
 
+    if (req.user && req.user.role === "expert") {
+      match = [{ experts: req.user.id }];
+    }
+
     if (req.user.viewAllQueues) {
       const queues = (await Queue.find({})).map(
         (queue) => new ObjectId(queue.id)
@@ -265,7 +269,10 @@ module.exports = {
 
       if (!invite) {
         invite = await PublicInvite.findOne({
-          inviteToken: req.body.invitationToken,
+          or: [
+            { inviteToken: req.body.invitationToken},
+            { expertToken: req.body.invitationToken}
+          ]
         });
       }
 
@@ -275,6 +282,16 @@ module.exports = {
       });
       if (existingConsultation) {
         return res.json(existingConsultation);
+      }
+
+      const isExpert = invite.expertToken === req.body.invitationToken
+      if(invite && isExpert){
+        Consultation.update({invitationToken: invite.inviteToken}, {})
+          .fetch()
+          .then(consultation=>{
+          res.json(consultation[0]);
+        })
+        return;
       }
 
       if (invite) {
@@ -302,6 +319,7 @@ module.exports = {
         consultationJson.metadata = invite.metadata; //! we pass the metadata from the invite to the consultation
         consultationJson.IMADTeam = invite.IMADTeam || "none";
         consultationJson.birthDate = invite.birthDate;
+        consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
       }
     }
 

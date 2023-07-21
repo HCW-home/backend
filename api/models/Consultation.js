@@ -67,6 +67,15 @@ module.exports = {
       type: "string",
       required: false,
     },
+    expertInvitationURL: {
+      type: "string",
+      required: false,
+    },
+    experts: {
+      type: 'json',
+      columnType: 'array',
+      defaultsTo: []
+    },
     status: {
       type: "string",
       isIn: ["pending", "active", "closed"],
@@ -245,6 +254,11 @@ module.exports = {
       consultation.doctor !== consultation.acceptedBy
     ) {
       consultationParticipants.push(consultation.doctor);
+    }
+    if (consultation.experts?.length) {
+      consultation.experts.forEach(expert => {
+        consultationParticipants.push(expert);
+      });
     }
     return consultationParticipants;
   },
@@ -584,10 +598,10 @@ module.exports = {
   },
   getConsultationReport(consultation) {
     if (consultation.owner) {
-      consultation.owner.name = `${consultation.owner.firstName} ${consultation.owner.lastName}`;
+      consultation.owner.name = `${ consultation.owner.firstName } ${ consultation.owner.lastName }`;
     }
     if (consultation.acceptedBy) {
-      consultation.acceptedBy.name = `${consultation.acceptedBy.firstName} ${consultation.acceptedBy.lastName}`;
+      consultation.acceptedBy.name = `${ consultation.acceptedBy.firstName } ${ consultation.acceptedBy.lastName }`;
     }
     const mappedConsultation = {};
     columns.forEach((col) => {
@@ -622,13 +636,13 @@ module.exports = {
           },
         }
       );
-      const url = `${process.env.DOCTOR_URL}/app/plan-consultation?token=${tokenString}`;
+      const url = `${ process.env.DOCTOR_URL }/app/plan-consultation?token=${ tokenString }`;
       const doctorLanguage =
         doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
       await sails.helpers.sms.with({
         phoneNumber: doctor.notifPhoneNumber,
-        message: sails._t(doctorLanguage, "patient is ready",  { url }),
+        message: sails._t(doctorLanguage, "patient is ready", { url }),
       });
     }
   },

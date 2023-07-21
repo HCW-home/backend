@@ -40,6 +40,11 @@ module.exports = async function (req, res, proceed) {
       id: consultationId,
       guest: req.user.id
     });
+  } else if (role === 'expert'){
+    consultation = await Consultation.count({
+      id: consultationId,
+      experts: req.user.id
+    });
   }else{
     return res.notFound()
   }

@@ -162,7 +162,7 @@ function sendSmsWithSwisscom (phoneNumber, message) {
       'Authorization': clickATel.appKey,
     }
   }
-  
+
   return new Promise((resolve, reject) => {
     const req = https.request(options, res => {
       let rawData = '';
@@ -174,7 +174,7 @@ function sendSmsWithSwisscom (phoneNumber, message) {
         try {
           const parsedData = JSON.parse(rawData);
           console.log('GOT CLICKATEL DATA', parsedData);
-          if (parsedData.messages[0].accepted) {
+          if (parsedData.messages[0]?.accepted) {
             return resolve();
           }
           console.error(parsedData);

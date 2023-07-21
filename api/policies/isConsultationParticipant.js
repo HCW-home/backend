@@ -10,7 +10,12 @@ module.exports = async function (req, res, proceed) {
     }
   }
   let consultation;
-  if (req.user.role === 'nurse' || req.user.role === 'patient') {
+  if (req.user.role === 'expert') {
+    consultation = await Consultation.count({
+      id: consultationId,
+      experts: req.user.id
+    });
+  } else if (req.user.role === 'nurse' || req.user.role === 'patient') {
 
     consultation = await Consultation.count({
       id: consultationId,

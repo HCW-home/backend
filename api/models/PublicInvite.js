@@ -49,6 +49,9 @@ module.exports = {
     inviteToken: {
       type: "string",
     },
+    expertToken: {
+      type: "string",
+    },
     status: {
       type: "string",
       isIn: ["PENDING", "SENT", "ACCEPTED", "COMPLETE", "REFUSED", "CANCELED"],
@@ -119,10 +122,11 @@ module.exports = {
     }
   },
   customToJSON() {
-    return _.omit(this, ["inviteToken"]);
+    return _.omit(this, ["inviteToken", 'expertToken']);
   },
   async beforeCreate(obj, proceed) {
     obj.inviteToken = await generateToken();
+    obj.expertToken = await generateToken();
     return proceed();
   },
   async beforeUpdate(valuesToSet, proceed) {

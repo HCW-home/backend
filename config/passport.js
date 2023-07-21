@@ -53,7 +53,10 @@ passport.use(
   new CustomStrategy(async (req, callback) => {
     // Do your custom user finding logic here, or set to false based on req object
     const invite = await PublicInvite.findOne({
-      inviteToken: req.body.inviteToken,
+      or: [
+        { inviteToken: req.body.inviteToken },
+        { expertToken: req.body.inviteToken }
+      ]
     });
 
     if (!invite) {
@@ -64,10 +67,14 @@ passport.use(
       return callback({ invite: "cannot use this invite for login" }, null);
     }
 
+    const isExpert = invite.expertToken === req.body.inviteToken;
+
     if (
+      !isExpert && (
       invite.status === "ACCEPTED" ||
       invite.status === "COMPLETED" ||
       invite.status === "REFUSED"
+      )
     ) {
       return callback({ invite: "invite have already been accepted" }, null);
     }
@@ -78,9 +85,9 @@ passport.use(
       });
     }
 
-    let user = await User.findOne({ username: invite.id });
+    let user = await User.findOne({ role: { '!=': 'expert' }, username: invite.id });
 
-    if (user) {
+    if (user && !isExpert) {
       return callback(null, user);
     }
 
@@ -88,7 +95,7 @@ passport.use(
       username: invite.id,
       firstName: "",
       lastName: "",
-      role: invite.type.toLowerCase(),
+      role: isExpert ? 'expert' : invite.type.toLowerCase(),
       password: "",
       temporaryAccount: true,
       inviteToken: invite.id,
@@ -105,6 +112,36 @@ passport.use(
     }
 
     user = await User.create(newUser).fetch();
+
+    if (isExpert) {
+      const patientInvite = await PublicInvite.findOne({
+        expertToken: req.body.inviteToken,
+      });
+
+      await Consultation.findOne({ invitationToken: patientInvite.inviteToken })
+        .then(consultation => {
+
+          if (consultation) {
+            consultation.status = 'active';
+            consultation.experts.push(user.id);
+
+            Consultation.getConsultationParticipants(consultation).forEach(
+              (participant) => {
+                console.log('participant',participant);
+                sails.sockets.broadcast(participant, "consultationUpdated", {
+                  data: { consultation },
+                });
+              }
+            );
+          }
+
+          return Consultation.update({ _id: consultation.id }, consultation);
+        })
+        .then(updatedConsultation => {
+          console.log('Updated consultation:', updatedConsultation);
+        })
+        .catch(err => console.error(err));
+    }
 
     if (invite.type === "GUEST") {
       const patientInvite = await PublicInvite.findOne({

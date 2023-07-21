@@ -36,6 +36,7 @@ module.exports.security = {
       'http://localhost:8100',
       'http://localhost:4200',
       'http://localhost:4300',
+      'http://localhost:49321',
       'http://localhost:4400',
       // 'ionic://localhost',
       ...((process.env.ALLOW_ORIGINS && process.env.ALLOW_ORIGINS.split(',')) || [])

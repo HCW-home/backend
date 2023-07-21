@@ -284,7 +284,7 @@ module.exports = {
         type: "PATIENT",
         //IMADTeam: req.body.IMADTeam,
         birthDate: req.body.birthDate,
-        patientTZ: req.body.patientTZ, 
+        patientTZ: req.body.patientTZ,
         // metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
         metadata: req.body.metadata,
         //! passing metadata from request
@@ -378,11 +378,7 @@ module.exports = {
 
     let shouldSend = true;
     if (!req.body.hasOwnProperty("sendInvite")) {
-      if (req.user.role === "scheduler") {
-        req.body.sendInvite = false;
-      } else {
-        req.body.sendInvite = true;
-      }
+      req.body.sendInvite = req.user.role !== "scheduler";
     }
 
     shouldSend = req.body.sendInvite;
@@ -946,19 +942,28 @@ module.exports = {
    */
   async findByToken(req, res) {
     const publicinvite = await PublicInvite.findOne({
-      inviteToken: req.params.invitationToken,
+      or: [
+        { inviteToken: req.params.invitationToken },
+        { expertToken: req.params.invitationToken }
+      ]
     })
       .populate("translationOrganization")
       .populate("doctor");
     if (!publicinvite) {
       return res.notFound();
     }
+    const isExpert = publicinvite.expertToken === req.params.invitationToken;
     publicinvite.doctor = _.pick(publicinvite.doctor, [
       "firstName",
       "lastName",
     ]);
 
-    res.json(publicinvite);
+    const expertBody = {}
+    if(isExpert){
+      expertBody.status = null;
+      expertBody.isExpert = true;
+    }
+    res.json({ ...publicinvite, ...expertBody });
   },
 
   async getConsultation(req, res) {
