@@ -54,6 +54,7 @@ module.exports.globals = {
   ROLE_DOCTOR: 'doctor',
   ROLE_NURSE: 'nurse',
   ROLE_PATIENT: 'patient',
+  ROLE_EXPERT: 'expert',
 
   attachmentsDir: process.env.ATTACHMENTS_DIR || '/var/lib/hug-home/attachments',
 

@@ -16,8 +16,15 @@ module.exports = async function (req, res, proceed) {
     consultation = await Consultation.findOne(
         { owner: user.id, _id: req.body.consultation || req.params.consultation }
     );
-
   }
+
+  if (user.role === sails.config.globals.ROLE_EXPERT) {
+    consultation = await Consultation.findOne({
+      id: req.body.consultation,
+      experts: req.user.id
+    });
+  }
+
   if (!consultation) {
     return res.forbidden();
   }

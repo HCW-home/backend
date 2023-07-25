@@ -549,6 +549,28 @@ module.exports = {
         });
       }
 
+      if (consultation.experts.length) {
+        for (let expert of consultation.experts) {
+          const expertToken = await sails.helpers.getMediasoupToken.with({
+            roomId: consultation.id,
+            peerId: expert,
+            server: mediasoupServer,
+          });
+          const expertMsg = Object.assign({}, msg);
+          expertMsg.token = expertToken;
+
+          sails.sockets.broadcast(expert, "newCall", {
+            data: {
+              consultation: req.params.consultation,
+              token: expertToken,
+              id: req.params.consultation,
+              audioOnly: req.query.audioOnly === "true",
+              msg: expertMsg,
+            },
+          });
+        }
+      }
+
       if (consultation.guest) {
         const guestToken = await sails.helpers.getMediasoupToken.with({
           roomId: consultation.id,
