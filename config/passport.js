@@ -111,6 +111,13 @@ passport.use(
       newUser.phoneNumberEnteredByPatient = req.body.phoneNumber;
     }
 
+    if (req.body.firstName) {
+      newUser.firstName = req.body.firstName;
+    }
+    if (req.body.lastName) {
+      newUser.lastName = req.body.lastName;
+    }
+
     user = await User.create(newUser).fetch();
 
     if (isExpert) {
