@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.35) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6016, add expert firstName and lastName
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 27 Jul 2023 13:25:40 +0200
+
 hcw-athome-backend (0.4.9.34) focal; urgency=medium
 
   [ Gor Grigoryan ]
