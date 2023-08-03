@@ -231,8 +231,19 @@ module.exports = {
 
     const consultationCollection = db.collection("consultation");
     const results = await consultationCollection.aggregate(agg);
+    const data = await results.toArray();
 
-    res.json(await results.toArray());
+    for (const index in data) {
+      const item = data[index]
+      if(item.consultation.experts.length){
+        const experts = await User.find({
+          id: { in: item.consultation.experts }
+        });
+        data[index].consultation.experts = experts;
+      }
+    }
+
+    res.json(data);
   },
 
   async create(req, res) {
@@ -270,8 +281,8 @@ module.exports = {
       if (!invite) {
         invite = await PublicInvite.findOne({
           or: [
-            { inviteToken: req.body.invitationToken},
-            { expertToken: req.body.invitationToken}
+            { inviteToken: req.body.invitationToken },
+            { expertToken: req.body.invitationToken }
           ]
         });
       }
@@ -284,13 +295,13 @@ module.exports = {
         return res.json(existingConsultation);
       }
 
-      const isExpert = invite.expertToken === req.body.invitationToken
-      if(invite && isExpert){
-        Consultation.update({invitationToken: invite.inviteToken}, {})
+      const isExpert = invite.expertToken === req.body.invitationToken;
+      if (invite && isExpert) {
+        Consultation.update({ invitationToken: invite.inviteToken }, {})
           .fetch()
-          .then(consultation=>{
-          res.json(consultation[0]);
-        })
+          .then(consultation => {
+            res.json(consultation[0]);
+          });
         return;
       }
 
@@ -319,7 +330,7 @@ module.exports = {
         consultationJson.metadata = invite.metadata; //! we pass the metadata from the invite to the consultation
         consultationJson.IMADTeam = invite.IMADTeam || "none";
         consultationJson.birthDate = invite.birthDate;
-        consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
+        consultationJson.expertInvitationURL = `${ process.env.PUBLIC_URL }/inv/?invite=${ invite.expertToken }`;
       }
     }
 
@@ -758,10 +769,10 @@ module.exports = {
     ) {
       res.setHeader(
         "Content-disposition",
-        `attachment; filename=${msg.fileName}`
+        `attachment; filename=${ msg.fileName }`
       );
     }
-    const filePath = `${sails.config.globals.attachmentsDir}/${msg.filePath}`;
+    const filePath = `${ sails.config.globals.attachmentsDir }/${ msg.filePath }`;
 
     if (!fs.existsSync(filePath)) {
       return res.notFound();
@@ -999,7 +1010,8 @@ module.exports = {
         type: "text",
         to: consultation.owner,
       }).fetch();
-      await Message.afterCreate(message, (err, message) => {});
+      await Message.afterCreate(message, (err, message) => {
+      });
 
       return res.status(200).json({
         message: "success",

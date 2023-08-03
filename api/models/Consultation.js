@@ -514,6 +514,10 @@ module.exports = {
       match = [{ guest: ObjectId(user.id) }];
     }
 
+    if (user && user.role === "expert") {
+      match = [{ experts: user.id }];
+    }
+
     if (user.viewAllQueues) {
       const queues = (await Queue.find({})).map(
         (queue) => new ObjectId(queue.id)
@@ -568,6 +572,13 @@ module.exports = {
         case "doctor":
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagDoctorOnline: isOnline,
+          });
+          consultation.flagDoctorOnline = isOnline;
+          break;
+        case "expert":
+          const expertsFlags = await Consultation.findOne({ id: consultation._id.toString() });
+          await Consultation.update({ id: consultation._id.toString() }).set({
+            flagExpertsOnline: { ...expertsFlags.flagExpertsOnline, [user.id]: isOnline },
           });
           consultation.flagDoctorOnline = isOnline;
           break;
