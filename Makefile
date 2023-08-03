@@ -17,6 +17,9 @@ node_modules:
 build: node_modules
 install: build
 
+docker:
+	docker build . -t hcw-backend                                    
+
 archive:
 	@ tar -czvf "dosetup-$(timeStamp).tar.gz" dist
 
