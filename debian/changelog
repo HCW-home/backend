@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.36) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * add expert status
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 03 Aug 2023 16:55:04 +0200
+
 hcw-athome-backend (0.4.9.35) focal; urgency=medium
 
   [ Gor Grigoryan ]
