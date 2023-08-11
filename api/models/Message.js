@@ -104,10 +104,14 @@ module.exports = {
       id: message.consultation,
     });
 
+    const user = await User.findOne({
+      id: message.from,
+    });
+
     sails.sockets.broadcast(
       message.to || consultation.queue || consultation.doctor,
       "newMessage",
-      { data: message }
+      { data: { ...message, from: user }}
     );
 
     if (message.type === "audioCall" || message.type === "videoCall") {
