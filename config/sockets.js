@@ -45,10 +45,10 @@ module.exports.sockets = {
   // The IP address and configuration of your redis host:
   // (if left unset, Sails will try to connect to a redis via port 6379 on localhost)
   //
-  // host: '127.0.0.1',
-  // port: 32768,
+  host:  process.env.REDIS_HOST || '127.0.0.1' ,
+  port: process.env.REDIS_PORT || '6379',
   // db: 'sails',
-  // pass: '<redis auth password>'
+  pass: process.env.REDIS_PASSWORD,
 
   // Match string representing the origins that are allowed to connect to the Socket.IO server
   origins: '*:*',
