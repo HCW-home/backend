@@ -17,7 +17,7 @@ hcw-athome-backend (0.4.9.37) focal; urgency=medium
   * fix CLAM_HOST and CLAM_SOCKET config
   * add redis host and port
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Aug 2023 16:55:35 +0200
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Aug 2023 16:57:07 +0200
 
 hcw-athome-backend (0.4.9.36) focal; urgency=medium
 
