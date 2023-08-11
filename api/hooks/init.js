@@ -3,11 +3,19 @@ module.exports = function myBasicHook(sails) {
   return {
     async initialize(cb) {
       try {
+        const clamdscanConfig = {};
+        if (process.env.CLAM_SOCKET) {
+          clamdscanConfig.socket = process.env.CLAM_SOCKET;
+        } else {
+          clamdscanConfig.socket = "/var/run/clamd.scan/clamd.sock";
+        }
+        if (process.env.CLAM_HOST && !process.env.CLAM_SOCKET) {
+          clamdscanConfig.host = process.env.CLAM_HOST;
+          clamdscanConfig.port = process.env.CLAM_PORT || '3310';
+        }
         const clamscan = await new NodeClam().init({
           remove_infected: true,
-          clamdscan: {
-            socket: process.env.CLAM_SOCKET || "/var/run/clamd.scan/clamd.sock", // Socket file for connecting via TCP
-          },
+          clamdscan: clamdscanConfig,
           preference: "clamdscan",
         });
 
