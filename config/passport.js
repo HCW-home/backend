@@ -542,174 +542,174 @@ const SamlStrategy = require("passport-saml").Strategy;
 let samlStrategy;
 console.log("env >>>> ", process.env.NODE_ENV);
 
-samlStrategy = new SamlStrategy(
-  {
-    callbackUrl:
-      (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ?   process.env.SAML_CALLBACK : '',
-    path: "/api/v1/login-callback",
-    entryPoint:
-      (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ?
-      process.env.SAML_ENTRY_POINT : '',
-    logoutUrl: process.env.LOGOUT_URL,
-    issuer: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? process.env.SAML_ISSUER : '',
-    cert: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')? process.env.SAML_CERT : '',
-    decryptionPvk: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8")  : '' ,
-    //signingCert: process.env.SAML_CERT,
-    privateKey: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8") : '',
-    //identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
-  },
-  async (profile, cb) => {
-    try {
-      console.log("PROFILE ", profile);
-      if (!profile[process.env.EMAIL_FIELD]) {
-        const err = `Email field ${process.env.EMAIL_FIELD} doesn't exist`;
-        console.error(err);
-        return cb(new Error(err));
-      }
-      let user = await User.findOne({
-        email: profile[process.env.EMAIL_FIELD],
-        role: "doctor",
-      }).populate("allowedQueues");
-
-      if (process.env.AD_ENABLE && process.env.AD_ENABLE !== "false") {
-        console.log(
-          "Sending AD request with filter: ",
-          `${process.env.AD_ATTR_LOGIN}=${profile[process.env.EMAIL_FIELD]}`
-        );
-        console.log("AD_URIS", process.env.AD_URIS);
-        var opts = {
-          filter: `${process.env.AD_ATTR_LOGIN}=${
-            profile[process.env.EMAIL_FIELD]
-          }`,
-          includeMembership: ["user"],
-          includeDeleted: false,
-          attributes: [],
-        };
-        ad.find(opts, async function (err, results) {
-          if (err) {
-            console.error("ERROR: " + JSON.stringify(err));
-            return;
-          }
-
-          if (results.users && results.users.length) {
-            const adUser = results.users[0];
-            console.log("AD USER ", adUser);
-
-            const isHugMember = adUser.groups.find(
-              (g) => g.cn === process.env.AD_DOCTOR_GROUP
-            );
-            if (!isHugMember) {
-              console.log(
-                `user is not a member of ${process.env.AD_DOCTOR_GROUP} group `
-              );
-              return cb(new Error("User not member of Doctors group"));
-            }
-
-            if (!user) {
-              user = await User.create({
-                email: adUser[process.env.AD_ATTR_EMAIL],
-                firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
-                lastName: adUser[process.env.AD_ATTR_LASTNAME],
-                role: sails.config.globals.ROLE_DOCTOR,
-                _function: adUser[process.env.AD_ATTR_FUNCTION],
-                department: adUser[process.env.AD_ATTR_DEPARTMENT],
-              }).fetch();
-            } else {
-              await User.update({ id: user.id }).set({
-                // email: adUser[process.env.AD_ATTR_EMAIL],
-                firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
-                lastName: adUser[process.env.AD_ATTR_LASTNAME],
-                role: sails.config.globals.ROLE_DOCTOR,
-                _function: adUser[process.env.AD_ATTR_FUNCTION],
-                department: adUser[process.env.AD_ATTR_DEPARTMENT],
-              });
-            }
-
-            // remove user from all queues
-            if (user.allowedQueues && user.allowedQueues.length) {
-              await Promise.all(
-                user.allowedQueues.map((queue) =>
-                  User.removeFromCollection(user.id, "allowedQueues", queue.id)
-                )
-              );
-            }
-
-            // if queues
-            const queueNameRgx = new RegExp(process.env.AD_QUEUE_MAP);
-
-            const queueNames = adUser.groups
-              .map((g) =>
-                g.cn.match(queueNameRgx) ? g.cn.match(queueNameRgx)[1] : null
-              )
-              .filter((q) => q);
-
-            console.log("Queues matched from ad ", queueNames);
-            if (queueNames.length) {
-              const db = Consultation.getDatastore().manager;
-              const queuesCollection = db.collection("queue");
-
-              // get queues by names regardless of case
-              const queuesCurs = await queuesCollection.find({
-                name: { $in: queueNames.map((qn) => new RegExp(qn, "i")) },
-              });
-
-              const queues = await queuesCurs.toArray();
-
-              console.log("Got queues from db", queues);
-              await Promise.all(
-                queues.map((queue) => {
-                  return User.addToCollection(
-                    user.id,
-                    "allowedQueues",
-                    queue._id.toString()
-                  );
-                })
-              );
-            }
-
-            const token = jwt.sign(user, sails.config.globals.APP_SECRET);
-            user.token = token;
-            return cb(null, user, { message: "Login Successful" });
-          } else {
-            console.log(
-              "%cpassport.js line:366 couldnt find user in AD",
-              "color: #007acc;",
-              `${process.env.AD_ATTR_LOGIN}=${
-                profile[process.env.AD_ATTR_EMAIL]
-              }`
-            );
-            return cb(new Error("User not found"));
-          }
-        });
-      } else {
-        if (!user) {
-          console.log("Autocreate enabled, create user", profile)
-          if (process.env.SAML_AUTOCREATE_USER && process.env.SAML_AUTOCREATE_USER == 'true') {
-              user = await User.create({
-              email: profile[process.env.EMAIL_FIELD],
-              firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
-              lastName: profile[process.env.SAML_LASTNAME_FIELD],
-              role: sails.config.globals.ROLE_DOCTOR
-            }).fetch()
-          } else {
-            return cb(new Error("User not found"));
-          }
-
+if((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')) {
+  samlStrategy = new SamlStrategy(
+    {
+      callbackUrl:
+        (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? process.env.SAML_CALLBACK : '',
+      path: "/api/v1/login-callback",
+      entryPoint:
+        (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ?
+          process.env.SAML_ENTRY_POINT : '',
+      logoutUrl: process.env.LOGOUT_URL,
+      issuer: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? process.env.SAML_ISSUER : '',
+      cert: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? process.env.SAML_CERT : '',
+      decryptionPvk: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8") : '',
+      //signingCert: process.env.SAML_CERT,
+      privateKey: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8") : '',
+      //identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+    },
+    async (profile, cb) => {
+      try {
+        console.log("PROFILE ", profile);
+        if (!profile[process.env.EMAIL_FIELD]) {
+          const err = `Email field ${ process.env.EMAIL_FIELD } doesn't exist`;
+          console.error(err);
+          return cb(new Error(err));
         }
-        const token = jwt.sign(user, sails.config.globals.APP_SECRET);
-        user.token = token;
+        let user = await User.findOne({
+          email: profile[process.env.EMAIL_FIELD],
+          role: "doctor",
+        }).populate("allowedQueues");
 
-        return cb(null, user, { message: "Login Successful" });
+        if (process.env.AD_ENABLE && process.env.AD_ENABLE !== "false") {
+          console.log(
+            "Sending AD request with filter: ",
+            `${ process.env.AD_ATTR_LOGIN }=${ profile[process.env.EMAIL_FIELD] }`
+          );
+          console.log("AD_URIS", process.env.AD_URIS);
+          var opts = {
+            filter: `${ process.env.AD_ATTR_LOGIN }=${
+              profile[process.env.EMAIL_FIELD]
+            }`,
+            includeMembership: ["user"],
+            includeDeleted: false,
+            attributes: [],
+          };
+          ad.find(opts, async function (err, results) {
+            if (err) {
+              console.error("ERROR: " + JSON.stringify(err));
+              return;
+            }
+
+            if (results.users && results.users.length) {
+              const adUser = results.users[0];
+              console.log("AD USER ", adUser);
+
+              const isHugMember = adUser.groups.find(
+                (g) => g.cn === process.env.AD_DOCTOR_GROUP
+              );
+              if (!isHugMember) {
+                console.log(
+                  `user is not a member of ${ process.env.AD_DOCTOR_GROUP } group `
+                );
+                return cb(new Error("User not member of Doctors group"));
+              }
+
+              if (!user) {
+                user = await User.create({
+                  email: adUser[process.env.AD_ATTR_EMAIL],
+                  firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
+                  lastName: adUser[process.env.AD_ATTR_LASTNAME],
+                  role: sails.config.globals.ROLE_DOCTOR,
+                  _function: adUser[process.env.AD_ATTR_FUNCTION],
+                  department: adUser[process.env.AD_ATTR_DEPARTMENT],
+                }).fetch();
+              } else {
+                await User.update({ id: user.id }).set({
+                  // email: adUser[process.env.AD_ATTR_EMAIL],
+                  firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
+                  lastName: adUser[process.env.AD_ATTR_LASTNAME],
+                  role: sails.config.globals.ROLE_DOCTOR,
+                  _function: adUser[process.env.AD_ATTR_FUNCTION],
+                  department: adUser[process.env.AD_ATTR_DEPARTMENT],
+                });
+              }
+
+              // remove user from all queues
+              if (user.allowedQueues && user.allowedQueues.length) {
+                await Promise.all(
+                  user.allowedQueues.map((queue) =>
+                    User.removeFromCollection(user.id, "allowedQueues", queue.id)
+                  )
+                );
+              }
+
+              // if queues
+              const queueNameRgx = new RegExp(process.env.AD_QUEUE_MAP);
+
+              const queueNames = adUser.groups
+                .map((g) =>
+                  g.cn.match(queueNameRgx) ? g.cn.match(queueNameRgx)[1] : null
+                )
+                .filter((q) => q);
+
+              console.log("Queues matched from ad ", queueNames);
+              if (queueNames.length) {
+                const db = Consultation.getDatastore().manager;
+                const queuesCollection = db.collection("queue");
+
+                // get queues by names regardless of case
+                const queuesCurs = await queuesCollection.find({
+                  name: { $in: queueNames.map((qn) => new RegExp(qn, "i")) },
+                });
+
+                const queues = await queuesCurs.toArray();
+
+                console.log("Got queues from db", queues);
+                await Promise.all(
+                  queues.map((queue) => {
+                    return User.addToCollection(
+                      user.id,
+                      "allowedQueues",
+                      queue._id.toString()
+                    );
+                  })
+                );
+              }
+
+              const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+              user.token = token;
+              return cb(null, user, { message: "Login Successful" });
+            } else {
+              console.log(
+                "%cpassport.js line:366 couldnt find user in AD",
+                "color: #007acc;",
+                `${ process.env.AD_ATTR_LOGIN }=${
+                  profile[process.env.AD_ATTR_EMAIL]
+                }`
+              );
+              return cb(new Error("User not found"));
+            }
+          });
+        } else {
+          if (!user) {
+            console.log("Autocreate enabled, create user", profile)
+            if (process.env.SAML_AUTOCREATE_USER && process.env.SAML_AUTOCREATE_USER == 'true') {
+              user = await User.create({
+                email: profile[process.env.EMAIL_FIELD],
+                firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
+                lastName: profile[process.env.SAML_LASTNAME_FIELD],
+                role: sails.config.globals.ROLE_DOCTOR
+              }).fetch()
+            } else {
+              return cb(new Error("User not found"));
+            }
+
+          }
+          const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+          user.token = token;
+
+          return cb(null, user, { message: "Login Successful" });
+        }
+      } catch (error) {
+        sails.log("error cerating user ", error);
+        return cb(error);
       }
-    } catch (error) {
-      sails.log("error cerating user ", error);
-      return cb(error);
     }
-  }
-);
+  );
 
 passport.use(samlStrategy);
 
-// }
-
+}
 exports.samlStrategy = samlStrategy;
