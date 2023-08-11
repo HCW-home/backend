@@ -554,9 +554,9 @@ samlStrategy = new SamlStrategy(
     logoutUrl: process.env.LOGOUT_URL,
     issuer: process.env.SAML_ISSUER || "de2981db-9607-451a-80ca-4a0a886ca206",
     cert: process.env.SAML_CERT,
-    decryptionPvk: fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8"),
+    decryptionPvk: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8")  : '' ,
     //signingCert: process.env.SAML_CERT,
-    privateKey: fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8"),
+    privateKey: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8") : '',
     //identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
   },
   async (profile, cb) => {
