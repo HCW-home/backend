@@ -151,7 +151,7 @@ module.exports = {
          'http://localhost:4300',
          'http://localhost:4200',
          'http://localhost',
-         'ionic://localhost',
+        //  'ionic://localhost',
        ]
     }
 
