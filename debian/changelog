@@ -1,3 +1,24 @@
+hcw-athome-backend (0.4.9.37) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Adding new docker file
+
+  [ Gor Grigoryan ]
+  * check for login method when requireing SAML_PATH_KEY
+  * changes on samlStrategy
+  * SamlStrategy check
+
+  [ Olivier Bitsch ]
+  * Remove ionic:// scheme from config
+
+  [ Gor Grigoryan ]
+  * add Redis url
+  * add clamdscanConfig
+  * fix CLAM_HOST and CLAM_SOCKET config
+  * add redis host and port
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Aug 2023 16:57:07 +0200
+
 hcw-athome-backend (0.4.9.36) focal; urgency=medium
 
   [ Gor Grigoryan ]
