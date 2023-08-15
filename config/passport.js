@@ -180,8 +180,9 @@ passport.use(
   "sms",
   new CustomStrategy(async (req, cb) => {
     const user = await User.findOne({ id: req.body.user });
+    const {locale} = req.headers || {};
     if (!user) {
-      return cb(null, false, { message: "User not found" });
+      return cb(null, false, { message: sails._t(locale, 'user not found') });
     }
     jwt.verify(
       user.smsVerificationCode,
@@ -189,10 +190,10 @@ passport.use(
       async (err, decoded) => {
         if (err) {
           if (err.name === "TokenExpiredError") {
-            return cb(null, false, { message: "Expired code" });
+            return cb(null, false, { message: sails._t(locale, 'expired code') });
           }
           console.error("error ", err);
-          return cb(null, false, { message: "Invalid token" });
+          return cb(null, false, { message: sails._t(locale, 'invalid token') });
         }
 
         if (decoded.code !== req.body.smsVerificationCode) {
@@ -206,11 +207,11 @@ passport.use(
             await User.updateOne({ id: req.body.user }).set({
               smsAttempts: user.smsAttempts,
             });
-            return cb(null, false, { message: "Invalid verification code" });
+            return cb(null, false, { message: sails._t(locale, 'invalid verification code') });
           }
         }
 
-        return cb(null, user, { message: "SMS Login Successful" });
+        return cb(null, user, { message: sails._t(locale, 'SMS login successful') });
       }
     );
     // bcrypt.compare(req.body.smsVerificationCode, user.smsVerificationCode, (err, res) => {
@@ -227,8 +228,9 @@ passport.use(
   "2FA",
   new CustomStrategy(async (req, cb) => {
     const user = await User.findOne({ id: req.body.user });
+    const {locale} = req.headers || {};
     if (!user) {
-      return cb(null, false, { message: "User not found" });
+      return cb(null, false, { message: sails._t(locale, 'user not found') });
     }
 
     jwt.verify(
@@ -237,14 +239,14 @@ passport.use(
       async (err, decoded) => {
         if (err) {
           if (err.name === "TokenExpiredError") {
-            return cb(null, false, { message: "Expired token" });
+            return cb(null, false, { message: sails._t(locale, 'expired token') });
           }
           console.error("error ", err);
-          return cb(null, false, { message: "Invalid Token" });
+          return cb(null, false, { message: sails._t(locale, 'invalid token') });
         }
 
         if (decoded.id !== user.id) {
-          return cb(null, false, { message: "Invalid Token" });
+          return cb(null, false, { message: sails._t(locale, 'invalid token') });
         }
 
         jwt.verify(
@@ -253,14 +255,14 @@ passport.use(
           async (err, decoded) => {
             if (err) {
               if (err.name === "TokenExpiredError") {
-                return cb(null, false, { message: "Expired token" });
+                return cb(null, false, { message: sails._t(locale, 'expired token') });
               }
               console.error("error ", err);
-              return cb(null, false, { message: "Invalid Token" });
+              return cb(null, false, { message: sails._t(locale, 'invalid token') });
             }
 
             if (decoded.id !== user.id) {
-              return cb(null, false, { message: "Invalid Token" });
+              return cb(null, false, { message: sails._t(locale, 'invalid token') });
             }
 
             const userDetails = getUserDetails(user);
@@ -270,7 +272,7 @@ passport.use(
             );
             userDetails.token = token;
 
-            return cb(null, userDetails, { message: "2FA Login Successful" });
+            return cb(null, userDetails, { message: sails._t(locale, '2FA login successful') });
           }
         );
       }
@@ -282,8 +284,10 @@ passport.use(
     {
       usernameField: "email",
       passportField: "password",
+      passReqToCallback: true
     },
-    (email, password, cb) => {
+    (req, email, password, cb) => {
+      const {locale} = req.headers;
       User.findOne(
         { email: email.toLowerCase(), temporaryAccount: { "!=": true } },
         (err, user) => {
@@ -292,7 +296,7 @@ passport.use(
           }
           if (!user) {
             return cb(null, false, {
-              message: "Email ou mot de passe incorrect",
+              message: sails._t(locale, 'invalid email'),
             });
           }
           bcrypt.compare(password, user.password, (err, res) => {
@@ -302,14 +306,13 @@ passport.use(
 
             if (!res) {
               return cb(null, false, {
-                message: "Email ou mot de passe incorrect",
+                message: sails._t(locale, 'invalid email'),
               });
             }
             if (user.role === "doctor") {
               if (!user.doctorClientVersion) {
                 return cb(null, false, {
-                  message:
-                    "Le cache de votre navigateur n'est pas à jour, vous devez le raffraichir avec CTRL+F5 !",
+                  message: sails._t(locale, 'browser cache'),
                 });
               }
             }
@@ -321,7 +324,7 @@ passport.use(
             );
             userDetails.token = token;
             userDetails.smsVerificationCode = user.smsVerificationCode;
-            return cb(null, userDetails, { message: "Login Successful" });
+            return cb(null, userDetails, { message: sails._t(locale, 'login successful')});
           });
         }
       );
