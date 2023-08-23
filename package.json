@@ -19,6 +19,7 @@
     "dotenv": "^16.1.4",
     "grunt": "1.6.1",
     "install": "^0.13.0",
+    "ioredis": "^5.3.2",
     "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.0",
     "ldapjs": "3.0.2",

@@ -87,6 +87,8 @@ module.exports.routes = {
   'POST /api/v1/translator/refuse/:translationRequestToken': 'TranslatorController.refuseRequest',
   'GET /api/v1/translator/consultation': 'TranslatorController.findConsultation',
 
+  'GET /api/v1/healthcheck': 'HealthCheckController.check',
+
   'GET /api/v1/logout': 'AuthController.logout'
 
   /** *************************************************************************
