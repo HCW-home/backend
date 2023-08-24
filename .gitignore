@@ -133,6 +133,5 @@ lib-cov
 .vscode
 .tmp
 .env
-assets
 #views
 scripts
