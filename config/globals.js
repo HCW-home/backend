@@ -8,7 +8,11 @@
  * For more information on any of these options, check out:
  * https://sailsjs.com/config/globals
  */
+const crypto = require('crypto');
 
+function generateAppSecret() {
+  return crypto.randomBytes(32).toString('hex');
+}
 module.exports.globals = {
 
   /** **************************************************************************
@@ -49,7 +53,7 @@ module.exports.globals = {
 
   sails: true,
 
-  APP_SECRET: process.env.APP_SECRET,
+  APP_SECRET: process.env.APP_SECRET || generateAppSecret(),
 
   ROLE_DOCTOR: 'doctor',
   ROLE_NURSE: 'nurse',

@@ -218,13 +218,14 @@ module.exports = {
 
   // used only for admin
   async loginLocal(req, res) {
+    const {locale} = req.headers || {};
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
-      console.log("Password login is disabled");
       return res.status(400).json({
-        message: "Password login is disabled",
+        message:  sails._t(locale, 'password login is disabled'),
       });
     }
+
 
     const isAdmin = await User.count({ email: req.body.email, role: "admin" });
     if (req.body._version) {
@@ -248,7 +249,7 @@ module.exports = {
       console.log("Authenticate now", err, user);
       if (err) {
         return res.status(500).json({
-          message: info.message || "Server Error",
+          message: info.message || sails._t(locale, 'server error'),
         });
       }
       if (!user) {

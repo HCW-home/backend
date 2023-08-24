@@ -20,6 +20,9 @@ module.exports.policies = {
   DashboardController: {
     get: true
   },
+  HealthCheckController: {
+    '*': true
+  },
   SubscribeToSocketController: {
     subscribe: ['isLoggedIn']
   },
