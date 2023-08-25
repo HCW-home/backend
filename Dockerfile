@@ -10,7 +10,7 @@ COPY . .
 
 EXPOSE 1337
 
-RUN chown node -R /usr/src/app/.tmp && chown node -R /usr/src/app/views
+RUN mkdir -p /usr/src/app/.tmp && chown node -R /usr/src/app/.tmp && chown node -R /usr/src/app/views
 USER node
 
 CMD [ "node", "app.js" ]
