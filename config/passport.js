@@ -340,7 +340,7 @@ passport.use(new OpenIDConnectStrategy({
       clientID: process.env['OPENID_CLIENT_ID'],
       clientSecret: process.env['OPENID_CLIENT_SECRET'],
       callbackURL: process.env['OPENID_CALLBACK_URL'],
-      scope: ['profile'],
+      scope: ['profile', 'email'],
     },
     async (issuer, profile, cb) => {
       try {
