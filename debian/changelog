@@ -1,3 +1,26 @@
+hcw-athome-backend (0.4.9.38) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Improve comment in config
+
+  [ Gor Grigoryan ]
+  * generate AppSecret if not set in env
+  * add some translations
+  * add healthcheck
+
+  [ Olivier Bitsch ]
+  * Adding required assets (even if not effectively used)
+  * Don't ignore asset folder
+  * Fix running as non root user
+  * Fix non-root container issue
+  * Attempt to fix root-less permission issue
+  * refs #6106 - Implement proxy settings
+  * Update scope
+  * Add configurable scope OPENID_SCOPE
+  * Add configurable scope OPENID_SCOPE
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 04 Sep 2023 16:49:53 +0200
+
 hcw-athome-backend (0.4.9.37) focal; urgency=medium
 
   [ Olivier Bitsch ]
