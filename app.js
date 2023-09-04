@@ -35,8 +35,10 @@ if (process.env.NODE_ENV === 'development') {
 // > Note: This is not required in order to lift, but it is a convenient default.
 process.chdir(__dirname);
 
+// #6106 Implement proxy settings for backend
 require('dotenv').config();
-
+const { bootstrap } = require('global-agent')
+bootstrap()
 
 // Attempt to import `sails` dependency, as well as `rc` (for loading `.sailsrc` files).
 let sails;
