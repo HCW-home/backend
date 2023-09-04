@@ -16,6 +16,7 @@
     "buffer": "^6.0.3",
     "clamscan": "^1.0.3",
     "dotenv": "^8.2.0",
+    "global-agent": "^3.0.0",
     "grunt": "^1.0.4",
     "install": "^0.12.2",
     "json2csv": "^5.0.0",
