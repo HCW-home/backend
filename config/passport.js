@@ -483,6 +483,7 @@ passport.use(new OpenIDConnectStrategy({
           const token = jwt.sign(user, sails.config.globals.APP_SECRET);
           user.token = token;
 
+          console.log("JWT INFO", user);
           return cb(null, user, { message: "Login Successful" });
         }
       } catch (error) {
