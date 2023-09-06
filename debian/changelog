@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.39) focal; urgency=medium
+
+  * Adding log on User info
+  * Fix clickatel API
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 06 Sep 2023 13:41:51 +0200
+
 hcw-athome-backend (0.4.9.38) focal; urgency=medium
 
   [ Olivier Bitsch ]
