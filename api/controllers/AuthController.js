@@ -614,8 +614,10 @@ module.exports = {
   },
 
   loginOpenIdReturn(req, res){
+    console.log('HEADERS OPENID', req.headers);
     bodyParser.urlencoded({ extended: false })(req, res, () => {
       passport.authenticate("openidconnect", async (err, user, info = {}) => {
+
         if (err) {
           sails.log("error authenticating ", err);
           return res.view("pages/error", {
