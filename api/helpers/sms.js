@@ -137,7 +137,7 @@ function sendSmsWithSwisscom (phoneNumber, message) {
  */
 function sendSmsWithInLog (phoneNumber, message) {
 
-  console.log("SMS LOG - Phone Number:", message)
+  console.log("SMS LOG - Message:", message)
   phoneNumber = phoneNumber.replace(/^00/, '+');
   console.log("SMS LOG - Phone Number:", phoneNumber)
   return new Promise((resolve) => {
@@ -231,7 +231,7 @@ function sendSmsWithClickatel (phoneNumber, message) {
 function sendSmsWithClickatelAPI (phoneNumber, message) {
   const https = require('https');
 
-  phoneNumber = phoneNumber.replace(/^00/, '+');
+  phoneNumber = phoneNumber.replace(/^00/, '');
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL_API
   };
@@ -267,7 +267,7 @@ function sendSmsWithClickatelAPI (phoneNumber, message) {
         try {
           const parsedData = JSON.parse(rawData);
           console.log('GOT CLICKATEL DATA', parsedData);
-          if (parsedData.messages[0]?.accepted) {
+          if (parsedData.data.messages[0]?.accepted) {
             return resolve();
           }
           console.error(parsedData);
@@ -333,7 +333,7 @@ module.exports = {
     try {
       const { message, phoneNumber } = inputs;
 
-      if ('SMS_DEV_PROFIDER' in process.env) {
+      if ('SMS_DEV_PROVIDER' in process.env) {
         console.log(`Sending an SMS to ${phoneNumber} through LOG`);
         await sendSmsWithInLog(phoneNumber, message);
 
