@@ -1,3 +1,14 @@
+hcw-athome-backend (0.4.9.40) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6110 Test call with OpenID seems log out
+
+  [ Olivier Bitsch ]
+  * Install fake SMS provider
+  * Fix Clickatel SMS expected response
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 06 Sep 2023 22:50:48 +0200
+
 hcw-athome-backend (0.4.9.39) focal; urgency=medium
 
   * Adding log on User info
