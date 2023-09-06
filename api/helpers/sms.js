@@ -129,13 +129,13 @@ function sendSmsWithSwisscom (phoneNumber, message) {
 }
 
 /**
- * Sends an SMS through the Clickatel SMS API.
+ * Sends an SMS through the Clickatel SMS Gateway API
  *
  * @param {string} phoneNumber
  * @param {string} message
  * @returns {void}
  */
- function sendSmsWithClickatel (phoneNumber, message) {
+function sendSmsWithClickatel (phoneNumber, message) {
   const https = require('https');
 
   phoneNumber = phoneNumber.replace(/^00/, '+');
@@ -203,6 +203,82 @@ function sendSmsWithSwisscom (phoneNumber, message) {
 
 }
 
+/**
+ * Sends an SMS through the Clickatel SMS New API
+ *
+ * @param {string} phoneNumber
+ * @param {string} message
+ * @returns {void}
+ */
+function sendSmsWithClickatelAPI (phoneNumber, message) {
+  const https = require('https');
+
+  phoneNumber = phoneNumber.replace(/^00/, '+');
+  const clickATel = {
+    appKey: process.env.SMS_CLICKATEL_API
+  };
+  console.log(clickATel);
+  console.log('Sending SMS...');
+
+  const data = JSON.stringify({
+    text: message,
+    to: [ phoneNumber ]
+  })
+
+
+  const options = {
+    hostname: 'api.clickatell.com',
+    port: 443,
+    path: '/rest/message',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'bearer ' + clickATel.appKey,
+      'X-Version': '1'
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const req = https.request(options, res => {
+      let rawData = '';
+      res.setEncoding('utf8');
+      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('end', () => {
+        console.log('Will get raw data');
+        console.log('raw data', rawData);
+        try {
+          const parsedData = JSON.parse(rawData);
+          console.log('GOT CLICKATEL DATA', parsedData);
+          if (parsedData.messages[0]?.accepted) {
+            return resolve();
+          }
+          console.error(parsedData);
+          return reject(parsedData);
+        } catch (e) {
+          console.error(e.message);
+          return reject(e);
+        }
+      });
+      console.log(`statusCode: ${res.statusCode}`)
+    })
+
+    try {
+      req.on('error', (e) => {
+        console.error('ERROR', e.message);
+        return reject(e);
+      });
+      req.write(data)
+      req.end()
+    } catch (error) {
+        console.log('error write to request ', error);
+        return reject(error);
+    }
+
+  })
+
+}
+
+
 module.exports = {
 
 
@@ -258,6 +334,12 @@ module.exports = {
       } else if ('SMS_CLICKATEL' in process.env) {
         console.log(`Sending an SMS to ${phoneNumber} through Clickatel`);
         await sendSmsWithClickatel(phoneNumber, message);
+
+        return exits.success();
+
+      } else if ('SMS_CLICKATEL_API' in process.env) {
+        console.log(`Sending an SMS to ${phoneNumber} through Clickatel API`);
+        await sendSmsWithClickatelAPI(phoneNumber, message);
 
         return exits.success();
 
