@@ -129,6 +129,24 @@ function sendSmsWithSwisscom (phoneNumber, message) {
 }
 
 /**
+ * Sends an SMS Logs
+ *
+ * @param {string} phoneNumber
+ * @param {string} message
+ * @returns {void}
+ */
+function sendSmsWithInLog (phoneNumber, message) {
+
+  console.log("SMS LOG - Phone Number:", message)
+  phoneNumber = phoneNumber.replace(/^00/, '+');
+  console.log("SMS LOG - Phone Number:", phoneNumber)
+  return new Promise((resolve) => {
+    return resolve();
+  });
+}
+
+
+/**
  * Sends an SMS through the Clickatel SMS Gateway API
  *
  * @param {string} phoneNumber
@@ -234,7 +252,7 @@ function sendSmsWithClickatelAPI (phoneNumber, message) {
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'bearer ' + clickATel.appKey,
-      'X-Version': '1'
+      'X-Version': 1
     }
   }
 
@@ -315,7 +333,12 @@ module.exports = {
     try {
       const { message, phoneNumber } = inputs;
 
-      if ('SMS_OVH_ENDPOINT' in process.env
+      if ('SMS_DEV_PROFIDER' in process.env) {
+        console.log(`Sending an SMS to ${phoneNumber} through LOG`);
+        await sendSmsWithInLog(phoneNumber, message);
+
+        return exits.success();
+      } else if ('SMS_OVH_ENDPOINT' in process.env
         && 'SMS_OVH_APP_KEY' in process.env
         && 'SMS_OVH_APP_SECRET' in process.env
         && 'SMS_OVH_APP_CONSUMER_KEY' in process.env) {
