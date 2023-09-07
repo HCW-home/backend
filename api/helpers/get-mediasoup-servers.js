@@ -59,7 +59,10 @@ module.exports = {
       });
 
       console.log('AVAILABLE SERVERS:: ', JSON.stringify(availableServers));
+
+
       if (!availableServers.length) {
+        console.log('NO AVAILABLE SERVER USING FALLBACK', fallbackMediasoup.url);
         return exits.success([fallbackMediasoup]);
       }
 
