@@ -23,6 +23,9 @@ module.exports.policies = {
   HealthCheckController: {
     '*': true
   },
+  LocaleController: {
+    '*': true
+  },
   SubscribeToSocketController: {
     subscribe: ['isLoggedIn']
   },
