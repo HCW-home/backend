@@ -267,7 +267,7 @@ function sendSmsWithClickatelAPI (phoneNumber, message) {
         try {
           const parsedData = JSON.parse(rawData);
           console.log('GOT CLICKATEL DATA', parsedData);
-          if (parsedData.data.messages[0]?.accepted) {
+          if (parsedData.data.message[0]?.accepted) {
             return resolve();
           }
           console.error(parsedData);
