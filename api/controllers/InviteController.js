@@ -769,11 +769,7 @@ module.exports = {
 
     let shouldSend = true;
     if (!req.body.hasOwnProperty("sendInvite")) {
-      if (req.user.role === "scheduler") {
-        req.body.sendInvite = false;
-      } else {
-        req.body.sendInvite = true;
-      }
+      req.body.sendInvite = req.user.role !== "scheduler";
     }
 
     shouldSend = req.body.sendInvite;
