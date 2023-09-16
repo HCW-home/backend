@@ -123,6 +123,7 @@ module.exports = {
       lastName: req.user.lastName,
       role: req.user.role,
     };
+
     // validate
     if (req.body.isPatientInvite) {
       const errors = validateInviteRequest(req.body);
@@ -309,6 +310,26 @@ module.exports = {
       }
 
       invite = await PublicInvite.create(inviteData).fetch();
+
+
+      const experts = req.body.experts;
+      const expertLink = `${ process.env.PUBLIC_URL }/inv/?invite=${ invite.expertToken }`;
+
+      if (Array.isArray(experts)) {
+        for (const expertEmail of experts) {
+          if (typeof expertEmail === 'string' && expertEmail.includes('@')) {
+            await sails.helpers.email.with({
+              to: expertEmail,
+              subject: "Expert Link",
+              text: `Here is the expert link: ${expertLink}`,
+            });
+          } else {
+            sails.log.error(`Invalid email address: ${expertEmail}`);
+          }
+        }
+      } else {
+        sails.log.error('Experts field should be an array of email addresses.');
+      }
 
       if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
         const guestInviteDate = {

@@ -89,6 +89,8 @@ module.exports.routes = {
 
   'GET /api/v1/languages': 'LocaleController.supportedLanguages',
 
+  'POST /api/v1/send-expert-link': 'ExpertController.sendExpertLink',
+
   'GET /api/v1/healthcheck': 'HealthCheckController.check',
 
   'GET /api/v1/logout': 'AuthController.logout'

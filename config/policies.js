@@ -104,6 +104,9 @@ module.exports.policies = {
   SupportController: {
     supportRequest: ['isLoggedIn']
   },
+  ExpertController: {
+    sendExpertLink: ['isLoggedIn']
+  },
   InviteController: {
     '*': false,
     invite: ['isLoggedIn', 'canInvite', 'setPublicInviteOwner'],
