@@ -316,20 +316,33 @@ module.exports = {
       const expertLink = `${ process.env.PUBLIC_URL }/inv/?invite=${ invite.expertToken }`;
 
       if (Array.isArray(experts)) {
-        for (const expertEmail of experts) {
-          if (typeof expertEmail === 'string' && expertEmail.includes('@')) {
-            await sails.helpers.email.with({
-              to: expertEmail,
-              subject: "Expert Link",
-              text: `Here is the expert link: ${expertLink}`,
-            });
+        for (const expertContact of experts) {
+          if (typeof expertContact === 'string') {
+            const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+            const isEmail = expertContact.includes('@');
+
+            if (isPhoneNumber && !isEmail) {
+              await sails.helpers.sms.with({
+                phoneNumber: expertContact,
+                message: `Here is the expert link: ${expertLink}`,  // Update message as needed
+              });
+            } else if (isEmail && !isPhoneNumber) {
+              await sails.helpers.email.with({
+                to: expertContact,
+                subject: "Expert Link",
+                text: `Here is the expert link: ${expertLink}`,
+              });
+            } else {
+              sails.log.error(`Invalid contact info: ${expertContact}`);
+            }
           } else {
-            sails.log.error(`Invalid email address: ${expertEmail}`);
+            sails.log.error(`Invalid contact info (not a string): ${expertContact}`);
           }
         }
       } else {
-        sails.log.error('Experts field should be an array of email addresses.');
+        sails.log.error('Experts field should be an array of email addresses or phone numbers.');
       }
+
 
       if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
         const guestInviteDate = {
