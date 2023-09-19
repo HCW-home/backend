@@ -1,3 +1,15 @@
+hcw-athome-backend (0.4.9.41) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * add log for FALLBACK
+  * refs #6111 , SMS API ClickAtel is working but don't expect the output format
+  * refs #6112 Have default languages defined by default without the need to create mongo entry
+  * refs #6125, Display proper error if no mediasoup server available
+  * refs #6119, Create modal on Invite Expert button, #6118 Add Invite expert from Invite form
+  * invite expert email or sms
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 19 Sep 2023 09:34:13 +0200
+
 hcw-athome-backend (0.4.9.40) focal; urgency=medium
 
   [ Gor Grigoryan ]
