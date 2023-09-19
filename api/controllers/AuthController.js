@@ -222,7 +222,7 @@ module.exports = {
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
       return res.status(400).json({
-        message:  sails._t(locale, 'password login is disabled'),
+        message: sails._t(locale, 'password login is disabled'),
       });
     }
 

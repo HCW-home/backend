@@ -2,6 +2,7 @@ module.exports = {
   sendExpertLink: async function (req, res) {
     try {
       const { expertLink, to } = req.body;
+      const {locale} = req.headers || {};
 
       if (!expertLink) {
         return res.badRequest({ message: 'expertLink is required' });
@@ -12,7 +13,7 @@ module.exports = {
       if (isPhoneNumber && !isEmail) {
         await sails.helpers.sms.with({
           phoneNumber: to,
-          message: `Here is the expert link: ${expertLink}`,
+          message: sails._t(locale, 'please use this link',{expertLink: expertLink}),
         });
 
         return res.ok({ message: 'SMS sent successfully' });
@@ -20,8 +21,8 @@ module.exports = {
       else if (isEmail && !isPhoneNumber) {
         await sails.helpers.email.with({
           to,
-          subject: "Expert Link",
-          text: `Here is the expert link: ${expertLink}`,
+          subject: sails._t(locale, 'consultation link'),
+          text: sails._t(locale, 'please use this link',{expertLink: expertLink}),
         });
 
         return res.ok({ message: 'Email sent successfully' });

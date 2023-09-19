@@ -58,5 +58,8 @@
   "doctor delay in minutes": "Merci pour votre patience, je vais prendre la téléconsultation dans approximativement %(delay)s minutes.",
   "patient is ready": "Un patient est dans la file d'attente. Vous pouvez lui fournir une estimation de son attente avec le lien suivant %(url)s",
   "forgot password email subject": "Mot de passe oublié",
-  "forgot password email": "Vous nous avez indiqué que vous avez oublié votre mot de passe. Merci de cliquer sur le lien suivant afin de changer votre mot de passe %(url)s . Ce lien ne fonctionnera que 5 minutes."
+  "forgot password email": "Vous nous avez indiqué que vous avez oublié votre mot de passe. Merci de cliquer sur le lien suivant afin de changer votre mot de passe %(url)s . Ce lien ne fonctionnera que 5 minutes.",
+  "consultation link": "Lien de consultation",
+  "please use this link": "Veuillez utiliser ce lien pour rejoindre la consultation: %(expertLink)s",
+  "consultation branding": "Consultation %(branding)s"
 }

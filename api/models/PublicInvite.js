@@ -4,6 +4,7 @@
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
+const ics = require('ics');
 const moment = require("moment-timezone");
 moment.locale("fr");
 
@@ -417,6 +418,74 @@ module.exports = {
       firstReminderMessage,
       secondReminderMessage,
     };
+  },
+
+  async createAndSendICS(invite) {
+    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const inviteTime = moment(invite.scheduledFor);
+    const doctorName =
+      (invite.doctor.firstName || "") + " " + (invite.doctor.lastName || "");
+
+    try {
+      const timestamp = invite.scheduledFor;
+      const date = new Date(timestamp);
+
+      const start = [
+        date.getFullYear(),
+        date.getMonth() + 1,
+        date.getDate(),
+        date.getHours(),
+        date.getMinutes()
+      ];
+
+      const event = {
+        start: start,
+        duration: { hours: 1 },
+        title: sails._t(locale, "consultation branding", {
+          branding: process.env.BRANDING,
+        }),
+        description: '',
+        location: '',
+        organizer: { name: invite.doctor?.firstName + ' ' + invite.doctor?.lastName, email: invite.doctor?.email },
+      };
+
+      console.log('Creating ICS event...');
+      ics.createEvent(event, async (error, value) => {
+
+        // const filePath = 'assets/event.ics';
+        // Save the .ics file data to disk
+        // fs.writeFileSync(filePath, value);
+
+        if (error) {
+          console.error('Error creating ICS event:', error);
+          return;
+        }
+
+        console.log('ICS event created successfully. Sending email...');
+        await sails.helpers.email.with({
+          to: invite.emailAddress,
+          subject: sails._t(locale, "consultation branding", {
+            branding: process.env.BRANDING,
+          }),
+          text: sails._t(locale, "scheduled patient invite", {
+            inviteTime,
+            testingUrl,
+            branding: process.env.BRANDING,
+            doctorName,
+          }),
+          attachments: [
+            {
+              fileName: "consultation.ics",
+              content: Buffer.from(value),
+            },
+          ],
+        });
+
+        console.log('Email sent successfully.');
+      });
+    } catch (err) {
+      console.error('An error occurred:', err);
+    }
   },
 
   async setPatientOrGuestInviteReminders(invite) {

@@ -72,10 +72,7 @@ module.exports = {
     };
 
     if (inputs.attachments) {
-      options.attachments = [{
-        fileName: 'Report.pdf',
-        path: uploadedFiles[0].fd
-      }];
+      options.attachments = inputs.attachments
     }
 
     transporter.sendMail(options, (error, info) => {

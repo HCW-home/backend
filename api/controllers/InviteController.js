@@ -120,6 +120,7 @@ module.exports = {
     const currentUserPublic = {
       id: req.user.id,
       firstName: req.user.firstName,
+      email: req.user.email,
       lastName: req.user.lastName,
       role: req.user.role,
     };
@@ -315,6 +316,8 @@ module.exports = {
       const experts = req.body.experts;
       const expertLink = `${ process.env.PUBLIC_URL }/inv/?invite=${ invite.expertToken }`;
 
+      const doctorLanguage = req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE
+
       if (Array.isArray(experts)) {
         for (const expertContact of experts) {
           if (typeof expertContact === 'string') {
@@ -324,13 +327,13 @@ module.exports = {
             if (isPhoneNumber && !isEmail) {
               await sails.helpers.sms.with({
                 phoneNumber: expertContact,
-                message: `Here is the expert link: ${expertLink}`,  // Update message as needed
+                message: sails._t(doctorLanguage, 'please use this link',{expertLink: expertLink}),
               });
             } else if (isEmail && !isPhoneNumber) {
               await sails.helpers.email.with({
                 to: expertContact,
-                subject: "Expert Link",
-                text: `Here is the expert link: ${expertLink}`,
+                subject: sails._t(doctorLanguage, 'consultation link'),
+                text: sails._t(doctorLanguage, 'please use this link',{expertLink: expertLink}),
               });
             } else {
               sails.log.error(`Invalid contact info: ${expertContact}`);
@@ -439,6 +442,9 @@ module.exports = {
       if (shouldSend) {
         invite.doctor = doctor;
         await PublicInvite.setPatientOrGuestInviteReminders(invite);
+        if (invite.emailAddress) {
+          await PublicInvite.createAndSendICS(invite);
+        }
       }
       if (guestInvite) {
         guestInvite.doctor = doctor;
