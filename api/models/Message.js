@@ -108,10 +108,17 @@ module.exports = {
       id: message.from,
     });
 
+    let roomNames = [message.to || consultation.queue || consultation.doctor, ...consultation.experts]
+    if (user.role === 'expert') {
+      roomNames = consultation.experts.filter((expert) => expert !== user.id);
+      roomNames.push(consultation.doctor);
+      roomNames.push(consultation.owner);
+    }
+
     sails.sockets.broadcast(
-      message.to || consultation.queue || consultation.doctor,
+      roomNames,
       "newMessage",
-      { data: { ...message, from: user }}
+      { data: { ...message, from: user } },
     );
 
     if (message.type === "audioCall" || message.type === "videoCall") {
