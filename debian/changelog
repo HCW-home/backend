@@ -1,3 +1,11 @@
+hcw-athome-backend (0.4.9.42) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6121, Attach ICS file with Email and Add Send to Gmail / Hotmail
+  * socket issue fix
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 25 Sep 2023 09:53:22 +0200
+
 hcw-athome-backend (0.4.9.41) focal; urgency=medium
 
   [ Gor Grigoryan ]
