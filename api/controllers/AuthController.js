@@ -411,12 +411,12 @@ module.exports = {
   },
 
   logout(req, res) {
-    req.sessionStore.client.keys("sess:*", (err, keys) => {
-      keys.forEach(key => {
-        req.sessionStore.client.del(key, (err, res) => {
-        })
-      })
-    });
+    // req.sessionStore.client.keys("sess:*", (err, keys) => {
+    //   keys.forEach(key => {
+    //     req.sessionStore.client.del(key, (err, res) => {
+    //     })
+    //   })
+    // });
     if((process.env.LOGIN_METHOD === 'saml' ||
         process.env.LOGIN_METHOD === "both")
       && process.env.LOGOUT_URL
