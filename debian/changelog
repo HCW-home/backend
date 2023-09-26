@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.43) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix session expire issue
+
+  [ Olivier Bitsch ]
+  * Add build for docker and podman in makefile
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 26 Sep 2023 15:18:18 +0200
+
 hcw-athome-backend (0.4.9.42) focal; urgency=medium
 
   [ Gor Grigoryan ]
