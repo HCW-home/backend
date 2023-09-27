@@ -580,7 +580,7 @@ module.exports = {
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagExpertsOnline: { ...expertsFlags.flagExpertsOnline, [user.id]: isOnline },
           });
-          consultation.flagDoctorOnline = isOnline;
+          consultation.flagExpertsOnline = { ...expertsFlags.flagExpertsOnline, [user.id]: isOnline };
           break;
         default:
           break;
@@ -598,6 +598,7 @@ module.exports = {
                 flagDoctorOnline: consultation.flagDoctorOnline,
                 translator: consultation.translator,
                 guest: consultation.guest,
+                flagExpertsOnline: consultation.flagExpertsOnline
               },
               _id: consultation._id,
               // user
