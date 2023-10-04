@@ -31,7 +31,12 @@ module.exports = {
 
   fn: async function (inputs, exits) {
 
-    const servers = await MediasoupServer.find();
+    const allServers = await MediasoupServer.find();
+    const servers = allServers.filter(server =>
+      server.active === true || !server.hasOwnProperty('active')
+    );
+
+    console.log(servers, 'servers');
 
     try {
       const serversStatues = await Promise.all(servers.map(async server => {

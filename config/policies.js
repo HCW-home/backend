@@ -32,6 +32,11 @@ module.exports.policies = {
   SubscribeToDoctorsController: {
     subscribe: ['isLoggedIn', 'isDoctor']
   },
+  MediasoupserverController: {
+    '*': ['isLoggedIn', 'isAdmin'],
+    'read': 'isLoggedIn',
+    'create': 'isLoggedIn'
+  },
   // '/api/v1/subscribe-to-socket':['isLoggedIn'],
   UserController: {
     '*': false,

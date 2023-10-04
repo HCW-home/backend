@@ -6,6 +6,7 @@
  */
 
 module.exports = {
+  tableName: 'mediasoupserver',
 
   attributes: {
 
@@ -28,11 +29,14 @@ module.exports = {
     password:{
       type: 'string'
     },
-    user:{
+    username:{
       type: 'string'
     },
     maxNumberOfSessions:{
       type: 'number'
+    },
+    active:{
+      type: 'boolean'
     }
   },
 
