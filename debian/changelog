@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.44) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6145, Add mediasoup Administration
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 04 Oct 2023 13:24:43 +0200
+
 hcw-athome-backend (0.4.9.43) focal; urgency=medium
 
   [ Gor Grigoryan ]
