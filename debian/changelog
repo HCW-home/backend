@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.45) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * handle role admin in loginOpenIdReturn
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 05 Oct 2023 18:33:13 +0200
+
 hcw-athome-backend (0.4.9.44) focal; urgency=medium
 
   [ Gor Grigoryan ]
