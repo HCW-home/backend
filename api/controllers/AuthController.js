@@ -637,7 +637,12 @@ module.exports = {
           console.log("error Updating user login type ", error);
         }
 
-        return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
+        if (user.role === sails.config.globals.ROLE_ADMIN) {
+          return res.redirect(`${process.env['ADMIN_URL']}/app?tk=${user.token}`);
+        } else {
+          return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
+        }
+
       })(req, res, (err) => {
         if (err) {
           sails.log("error authenticating ", err);
