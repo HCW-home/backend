@@ -352,10 +352,21 @@ passport.use(new OpenIDConnectStrategy({
           console.error(err);
           return cb(new Error(err));
         }
-        let user = await User.findOne({
+        const searchRoleDoctor = sails.config.globals.ROLE_DOCTOR;
+        const searchRoleAdmin = sails.config.globals.ROLE_ADMIN;
+
+        let query = {
           email,
-          role: "doctor",
-        }).populate("allowedQueues");
+          role: { $in: [searchRoleDoctor, searchRoleAdmin] }
+        };
+
+        let user;
+
+        if (query.role.includes(searchRoleAdmin)) {
+          user = await User.findOne(query);
+        } else {
+          user = await User.findOne(query).populate("allowedQueues");
+        }
 
         if (process.env.AD_ENABLE && process.env.AD_ENABLE !== "false") {
           console.log(
