@@ -332,58 +332,6 @@ passport.use(
   )
 );
 
-passport.use('openidconnect-admin', new OpenIDConnectStrategy({
-    issuer: process.env['OPENID_ISSUER_BASE_URL'],
-    authorizationURL: process.env['OPENID_AUTHORIZATION_URL'],
-    tokenURL: process.env['OPENID_TOKEN_URL'],
-    userInfoURL: process.env['OPENID_USER_INFO_URL'],
-    clientID: process.env['OPENID_CLIENT_ID'],
-    clientSecret: process.env['OPENID_CLIENT_SECRET'],
-    callbackURL: process.env['OPENID_CALLBACK_URL_ADMIN'],
-    scope: process.env.OPENID_SCOPE ? (process.env.OPENID_SCOPE).split(',') : ['profile'],
-  },
-  async (issuer, profile, cb) => {
-    try {
-      console.log("PROFILE ", profile);
-      const email = profile.emails[0].value;
-      const [firstName, lastName] = profile.displayName ? profile.displayName.split(' ') : ''
-      if (!email) {
-        const err = `Email field profile.emails[0].value doesn't exist`;
-        console.error(err);
-        return cb(new Error(err));
-      }
-      let user = await User.findOne({
-        email,
-        role: sails.config.globals.ROLE_ADMIN,
-      }).populate("allowedQueues");
-
-        if (!user) {
-          console.log("Autocreate enabled, create user", profile)
-          if (process.env.OPENID_AUTOCREATE_USER && process.env.OPENID_AUTOCREATE_USER == 'true') {
-            user = await User.create({
-              email: email,
-              firstName: firstName || '',
-              lastName: lastName || '',
-              role: sails.config.globals.ROLE_ADMIN
-            }).fetch()
-          } else {
-            return cb(new Error("User not found"));
-          }
-
-        }
-        const token = jwt.sign(user, sails.config.globals.APP_SECRET);
-        user.token = token;
-
-        console.log("JWT INFO", user);
-        return cb(null, user, { message: "Login Successful" });
-    } catch (error) {
-      sails.log("error cerating user ", error);
-      return cb(error);
-    }
-  }
-))
-
-
 passport.use(new OpenIDConnectStrategy({
       issuer: process.env['OPENID_ISSUER_BASE_URL'],
       authorizationURL: process.env['OPENID_AUTHORIZATION_URL'],

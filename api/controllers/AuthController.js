@@ -613,56 +613,10 @@ module.exports = {
     passport.authenticate('openidconnect')(req, res, next)
   },
 
-  loginOpenIdAdmin(req, res, next) {
-    passport.authenticate('openidconnect-admin')(req, res, next)
-  },
-
   loginOpenIdReturn(req, res){
     console.log('HEADERS OPENID', req.headers);
     bodyParser.urlencoded({ extended: false })(req, res, () => {
       passport.authenticate("openidconnect", async (err, user, info = {}) => {
-
-        if (err) {
-          sails.log("error authenticating ", err);
-          return res.view("pages/error", {
-            error: err,
-          });
-        }
-        if (!user) {
-          return res.json({
-            message: info.message,
-            user,
-          });
-        }
-
-        try {
-          await User.updateOne({ id: user.id }).set({ lastLoginType: "openidconnect" });
-        } catch (error) {
-          console.log("error Updating user login type ", error);
-        }
-
-        if (user.role === sails.config.globals.ROLE_ADMIN) {
-          return res.redirect(`${process.env['ADMIN_URL']}/app?tk=${user.token}`);
-        } else {
-          return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
-        }
-
-      })(req, res, (err) => {
-        if (err) {
-          sails.log("error authenticating ", err);
-          return res.view("pages/error", {
-            error: err,
-          });
-        }
-        res.redirect(`${process.env['DOCTOR_URL']}/app/login`);
-      });
-    });
-  },
-
-  loginOpenIdReturnAdmin(req, res){
-    console.log('HEADERS OPENID', req.headers);
-    bodyParser.urlencoded({ extended: false })(req, res, () => {
-      passport.authenticate("openidconnect-admin", async (err, user, info = {}) => {
 
         if (err) {
           sails.log("error authenticating ", err);
