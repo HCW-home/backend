@@ -1,3 +1,9 @@
+hcw-athome-backend (0.4.9.48) focal; urgency=medium
+
+  * refs #6146 - Fix OperationalError: Preventing .updateOne() error
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 06 Oct 2023 14:19:51 +0200
+
 hcw-athome-backend (0.4.9.47) focal; urgency=medium
 
   [ Gor Grigoryan ]
