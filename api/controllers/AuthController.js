@@ -478,7 +478,10 @@ module.exports = {
                 role: { in: ["doctor", "admin"] },
               }).set({ doctorClientVersion: req.query._version });
             } else {
-              await User.updateOne({ email: decoded.email }).set({
+              await User.updateOne({
+                email: decoded.email,
+                role: { in: ["doctor", "admin"] 
+              } }).set({
                 doctorClientVersion: "invalid",
               });
               // return res.status(400).json({
