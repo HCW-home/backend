@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.47) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix admin url in openid return
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 06 Oct 2023 13:35:13 +0200
+
 hcw-athome-backend (0.4.9.46) focal; urgency=medium
 
   [ Gor Grigoryan ]
