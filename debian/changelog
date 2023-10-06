@@ -1,3 +1,12 @@
+hcw-athome-backend (0.4.9.46) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6146, Fix authentication form
+  * Revert "refs #6146, Fix authentication form"
+  * add check for finding user role admin
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 06 Oct 2023 12:27:05 +0200
+
 hcw-athome-backend (0.4.9.45) focal; urgency=medium
 
   [ Gor Grigoryan ]
