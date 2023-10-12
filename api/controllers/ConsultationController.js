@@ -797,11 +797,11 @@ module.exports = {
           try {
             if (process.env.NODE_ENV !== "development") {
               // eslint-disable-next-line camelcase
-              const { is_infected } =
-                await sails.config.globals.clamscan.is_infected(
+              const { isInfected } =
+                await sails.config.globals.clamscan.isInfected(
                   uploadedFiles[0].fd
                 );
-              if (is_infected) {
+              if (isInfected) {
                 return res.status(400).send(new Error("File is infected"));
               }
             }
