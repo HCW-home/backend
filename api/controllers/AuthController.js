@@ -719,6 +719,7 @@ module.exports = {
         try {
           let user = await User.findOne({
             email: decoded.email,
+            role: "doctor"
           });
           if (!user) {
             user = await User.create({
