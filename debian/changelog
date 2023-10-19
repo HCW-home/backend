@@ -1,3 +1,9 @@
+hcw-athome-backend (0.4.9.50) focal; urgency=medium
+
+  * restrict to role doctor for SHARED JWT
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 19 Oct 2023 18:08:38 +0200
+
 hcw-athome-backend (0.4.9.49) focal; urgency=medium
 
   [ Gor Grigoryan ]
