@@ -1,3 +1,11 @@
+hcw-athome-backend (0.4.9.51) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6158,Clamav error when upload file
+  * requestion consultation from requester intrface
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 23 Oct 2023 14:39:14 +0200
+
 hcw-athome-backend (0.4.9.48) focal; urgency=medium
 
   * refs #6146 - Fix OperationalError: Preventing .updateOne() error

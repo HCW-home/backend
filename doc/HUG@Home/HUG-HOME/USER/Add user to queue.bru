@@ -1,0 +1,16 @@
+meta {
+  name: Add user to queue
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{BASE_URI}}/user/6319a9fe6465f305fd6417c0/allowed-queues
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+  Content-Type: application/json
+}

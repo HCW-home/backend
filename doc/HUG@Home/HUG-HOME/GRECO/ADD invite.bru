@@ -1,0 +1,32 @@
+meta {
+  name: ADD invite
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{BASE_URI}}/invite
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "emailAddress":"olivier.b@iabsis.com",
+    "phoneNumber":"",
+    "scheduledFor":"Mon, 25 Apr 2022 18:53:23 Z",
+    "language":"fr",
+    "doctorLanguage":null,
+    "queue": "Oncologie",
+    "firstName":"Paul",
+    "lastName":"Dupont",
+    "gender":"male",
+    "isPatientInvite":true,
+    "sendInvite": true
+  }
+}

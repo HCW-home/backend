@@ -1,0 +1,15 @@
+meta {
+  name: Get user queues
+  type: http
+  seq: 23
+}
+
+get {
+  url: {{BASE_URI}}/user/621f4e67e0cc18106ddb7a7d/allowedqueues
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+}

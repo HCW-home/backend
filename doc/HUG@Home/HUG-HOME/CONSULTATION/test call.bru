@@ -1,0 +1,15 @@
+meta {
+  name: test call
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{BASE_URI}}/consultation/test-call
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+}

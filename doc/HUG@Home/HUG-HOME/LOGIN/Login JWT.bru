@@ -1,0 +1,17 @@
+meta {
+  name: Login JWT
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{BASE_URI}}/external-auth-callback
+  body: none
+  auth: none
+}
+
+query {
+  token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6Im9saXZpZXIuYkBpYWJzaXMuY29tIiwidGltZXN0YW1wIjoxNjQ2ODE4ODkyfQ.1tNihwa_wyUSVNyOEL2JOskeco2uvYjqqQTav8s4Ses
+  returnUrl: /bla
+  : 
+}

@@ -1,0 +1,33 @@
+meta {
+  name: ADD invite by queue -minimal-
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{BASE_URI}}/invite
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "emailAddress":"olivier.b@iabsis.com",
+      "firstName":"Olivier",
+      "lastName":"Bitsch",
+      "gender":"male",
+  	  "queue": "imad",
+  	  "sendInvite": false,
+      "isPatientInvite":true,
+  		"metadata": {
+  			"note": "SAT",
+  			"Equipe_PGE": "123",
+  			"Mail_PGE": "pge-123@imad.ch"
+  		}
+  }
+}

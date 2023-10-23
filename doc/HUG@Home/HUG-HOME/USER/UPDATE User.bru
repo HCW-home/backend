@@ -1,0 +1,15 @@
+meta {
+  name: UPDATE User
+  type: http
+  seq: 18
+}
+
+patch {
+  url: {{BASE_URI}}/user/63359563a0a6410d1ed79c95
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+}

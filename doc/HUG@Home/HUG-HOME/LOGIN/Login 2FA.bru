@@ -1,0 +1,23 @@
+meta {
+  name: Login 2FA
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{BASE_URI}}/login-2fa
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+   "localLoginToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmEzYjJiY2YwMmM1Nzg1NWMxMGJkZCIsImxvY2FsTG9naW5Ub2tlbiI6dHJ1ZSwic2luZ2xlRmFjdG9yIjp0cnVlLCJpYXQiOjE1ODU3NTE0MDd9.88hEjgJXdkudKjMA9MCdhZ7JA0rDpkvbiB22Y5Dcosc",
+      "user": "5e6a3b2bcf02c57855c10bdd",
+        "smsLoginToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmEzYjJiY2YwMmM1Nzg1NWMxMGJkZCIsInNtc1Rva2VuIjp0cnVlLCJzaW5nbGVGYWN0b3IiOnRydWUsImlhdCI6MTU4NTc1MTQ1MX0.RWBdOfKkiQcXsPLYQP6UdGt3OtMMZJyZqUeDPLv1lk4"
+  }
+}

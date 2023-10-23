@@ -1,0 +1,15 @@
+meta {
+  name: UPDATE translators
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{BASE_URI}}/translator/605220a842a73f0f36ccd80d
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+}

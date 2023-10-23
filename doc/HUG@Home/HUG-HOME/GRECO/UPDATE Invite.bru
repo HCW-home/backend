@@ -1,0 +1,30 @@
+meta {
+  name: UPDATE Invite
+  type: http
+  seq: 11
+}
+
+patch {
+  url: {{BASE_URI}}/invite/6012b0b261d2c33dd631a1d6
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "emailAddress":"olivier.b@iabsis.com",
+      "phoneNumber":"",
+      "scheduledFor":"2021-01-29T16:00:00.000Z",
+      "language":"fr",
+      "doctorEmail": "muhammed.a@iabsis.com",
+      "firstName":"Olivier",
+      "lastName":"Bitsch",
+      "gender":"male",
+      "isPatientInvite":true
+  }
+}

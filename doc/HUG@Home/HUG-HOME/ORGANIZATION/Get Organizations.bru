@@ -1,0 +1,15 @@
+meta {
+  name: Get Organizations
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URI}}/translationOrganization
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+}

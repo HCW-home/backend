@@ -1,0 +1,16 @@
+meta {
+  name: replace user queues
+  type: http
+  seq: 22
+}
+
+put {
+  url: {{BASE_URI}}/user/5cb52379a286b24da029a03a/allowedQueues
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+  Content-Type: application/json
+}

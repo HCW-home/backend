@@ -1,0 +1,15 @@
+meta {
+  name: Delete translator
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{BASE_URI}}/translator/605220a142a73f0f36ccd80c
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ _.TOKEN }}
+}
