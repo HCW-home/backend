@@ -65,6 +65,38 @@ module.exports = {
     return res.status(200).json(user);
   },
 
+  registerNurse: async function(req, res) {
+    try {
+      const { email, firstName, lastName, phoneNumber, organization, country, sex } = req.body;
+
+      const existingUser = await User.findOne({
+        email,
+        role: sails.config.globals.ROLE_NURSE,
+      });
+      if (existingUser) {
+        return res.badRequest({ error: 'Email already in use.' });
+      }
+
+      const newUser = await User.create({
+        email,
+        firstName,
+        lastName,
+        phoneNumber,
+        organization,
+        country,
+        sex,
+        role: sails.config.globals.ROLE_NURSE,
+        status: 'not-approved'
+      }).fetch();
+
+      return res.ok(newUser);
+
+    } catch (error) {
+      return res.serverError(error);
+    }
+  },
+
+
   async updateNotif (req, res) {
     const valuesToUpdate = {};
     if (req.body.enableNotif !== undefined) {
@@ -75,8 +107,31 @@ module.exports = {
     }
     const user = await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
     return res.status(200).json({ success: true });
-  }
+  },
 
+
+  updateStatus: async function(req, res) {
+    try {
+      const userId = req.param('id');
+      const newStatus = req.body.status;
+
+      console.log(userId, 'userId');
+      if (!['approved', 'not-approved'].includes(newStatus)) {
+        return res.badRequest({ error: 'Invalid status value.' });
+      }
+
+      const user = await User.findOne({ id: userId });
+      if (!user) {
+        return res.notFound({ error: 'User not found.' });
+      }
+
+      const updatedUser = await User.updateOne({ id: userId }).set({ status: newStatus });
+
+      return res.ok(updatedUser);
+    } catch (error) {
+      return res.serverError(error);
+    }
+  }
 
   // async count(req, res){
   //   let count

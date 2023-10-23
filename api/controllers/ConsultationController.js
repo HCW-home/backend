@@ -362,12 +362,16 @@ module.exports = {
     Consultation.create(consultationJson)
       .fetch()
       .then(async (consultation) => {
-        console.log(consultation);
         await Consultation.changeOnlineStatus(req.user, true);
         if (!req.body.invitationToken && process.env.DEFAULT_QUEUE_ID) {
           await Consultation.sendPatientReadyToQueue(
             consultation,
             process.env.DEFAULT_QUEUE_ID
+          );
+        } else if (!req.body.invitationToken && consultation.queue) {
+          await Consultation.sendPatientReadyToQueue(
+            consultation,
+            consultation.queue
           );
         } else {
           if (invite && invite.queue && !invite.doctor) {
@@ -375,7 +379,7 @@ module.exports = {
               consultation,
               invite.queue
             );
-          } else if (invite.doctor) {
+          } else if (invite?.doctor) {
             const doctor = await User.findOne({ id: invite.doctor });
             await Consultation.sendPatientReadyToDoctor(consultation, doctor);
           }

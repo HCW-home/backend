@@ -480,7 +480,7 @@ module.exports = {
             } else {
               await User.updateOne({
                 email: decoded.email,
-                role: { in: ["doctor", "admin"] 
+                role: { in: ["doctor", "admin"]
               } }).set({
                 doctorClientVersion: "invalid",
               });
@@ -642,6 +642,8 @@ module.exports = {
 
         if (user.role === sails.config.globals.ROLE_ADMIN) {
           return res.redirect(`${process.env['ADMIN_URL']}/login?tk=${user.token}`);
+        } else if (user.role === sails.config.globals.ROLE_NURSE){
+          return res.redirect(`${process.env['PUBLIC_URL']}/#/request?tk=${user.token}`);
         } else {
           return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
         }

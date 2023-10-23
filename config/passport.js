@@ -289,7 +289,7 @@ passport.use(
     (req, email, password, cb) => {
       const {locale} = req.headers;
       User.findOne(
-        { email: email.toLowerCase(), temporaryAccount: { "!=": true } },
+        { email: email.toLowerCase(), temporaryAccount: { "!=": true }, role: { '!=': sails.config.globals.ROLE_NURSE } },
         (err, user) => {
           if (err) {
             return cb(err);
@@ -354,10 +354,11 @@ passport.use(new OpenIDConnectStrategy({
         }
         const searchRoleDoctor = sails.config.globals.ROLE_DOCTOR;
         const searchRoleAdmin = sails.config.globals.ROLE_ADMIN;
+        const searchNurse = sails.config.globals.ROLE_NURSE;
 
         let user = await User.findOne({
           email,
-          role: { in: [searchRoleDoctor, searchRoleAdmin] }
+          role: { in: [searchRoleDoctor, searchRoleAdmin, searchNurse] }
         });
 
         if (user && user.role === searchRoleDoctor) {
