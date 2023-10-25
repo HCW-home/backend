@@ -643,7 +643,7 @@ module.exports = {
         if (user.role === sails.config.globals.ROLE_ADMIN) {
           return res.redirect(`${process.env['ADMIN_URL']}/login?tk=${user.token}`);
         } else if (user.role === sails.config.globals.ROLE_NURSE){
-          return res.redirect(`${process.env['PUBLIC_URL']}/#/request?tk=${user.token}`);
+          return res.redirect(`${process.env['PUBLIC_URL']}/#/requester?tk=${user.token}`);
         } else {
           return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
         }
