@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.54) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * openid login method for different interfaces
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 26 Oct 2023 17:06:13 +0200
+
 hcw-athome-backend (0.4.9.53) focal; urgency=medium
 
   [ Gor Grigoryan ]
