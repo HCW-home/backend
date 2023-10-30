@@ -228,6 +228,7 @@ Now declare the translation organisations, if none just use
 mongo
 use hcw-at-home
 db.translationorganization.insertOne({ "name" : "Default", "mainEmail" : "", "languages" : [ "fr" ], "canRefuse" : true, "createdAt" : 1645793656770, "updatedAt" : 1645793656770, "reportEmail" : "" })
+~~~
 
 We now can enable and start all services.
 
@@ -247,7 +248,7 @@ systemctl enable --now hcw-athome
 
 ### FAQ
 
-#### I heard about HUG@Home, what is HCW@Home?
+#### I heard about HUG@Home, is it different from HCW@Home?
 
 HUG@Home is the same product than HCW@Home. HUG@Home name is licensed by HUG and cannot be used as Open Source product.
 
