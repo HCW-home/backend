@@ -398,7 +398,6 @@ passport.use('openidconnect_nurse', new OpenIDConnectStrategy({
         role: sails.config.globals.ROLE_NURSE
       });
 
-      console.log(user, 'my admin');
       if (user) {
         user.token = jwt.sign(user, sails.config.globals.APP_SECRET);
         return cb(null, user, { message: "Login Successful" });
