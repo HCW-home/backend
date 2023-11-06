@@ -20,7 +20,11 @@ headers {
 
 body:json {
   {
-  	"email": "{{ EMAIL }}",
-  	"password": "{{PASS}}"
+    "email": "{{ EMAIL }}",
+    "password": "{{PASS}}"
   }
+}
+
+vars:post-response {
+  TOKEN: res.body.user.token
 }

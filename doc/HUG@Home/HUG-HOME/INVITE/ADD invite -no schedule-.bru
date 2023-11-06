@@ -11,7 +11,7 @@ post {
 }
 
 headers {
-  x-access-token: {{ _.TOKEN }}
+  x-access-token: {{ TOKEN }}
   Content-Type: application/json
 }
 
@@ -24,13 +24,13 @@ body:json {
       "firstName":"Olivier",
       "lastName":"Bitsch",
       "gender":"male",
-  	  "patientTZ": "Europe/Paris",
+      "patientTZ": "Europe/Paris",
       "patientContact":"olivier.b@iabsis.com",
-  	  "doctorEmail": "olivier.b@iabsis.com",
-  		 "sendInvite": true,
+      "doctorEmail": "olivier.b@iabsis.com",
+       "sendInvite": true,
       "isPatientInvite":true,
-  		"metadata": {
-  			"note": "SAT"
-  		}
+      "metadata": {
+        "note": "SAT"
+      }
   }
 }

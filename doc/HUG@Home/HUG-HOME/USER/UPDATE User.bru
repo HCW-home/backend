@@ -5,11 +5,17 @@ meta {
 }
 
 patch {
-  url: {{BASE_URI}}/user/63359563a0a6410d1ed79c95
-  body: none
+  url: {{BASE_URI}}/user/6516e4390a7a020698a3f6e4
+  body: json
   auth: none
 }
 
 headers {
-  x-access-token: {{ _.TOKEN }}
+  x-access-token: {{ TOKEN }}
+}
+
+body:json {
+  {
+      "authPhoneNumber": "+41 79 969 26 73"
+  }
 }

@@ -11,7 +11,7 @@ post {
 }
 
 headers {
-  x-access-token: {{ _.TOKEN }}
+  x-access-token: {{ TOKEN }}
   Content-Type: application/json
 }
 
@@ -21,13 +21,13 @@ body:json {
       "firstName":"Olivier",
       "lastName":"Bitsch",
       "gender":"male",
-  	  "queue": "imad",
-  	  "sendInvite": false,
+      "queue": "imad",
+      "sendInvite": false,
       "isPatientInvite":true,
-  		"metadata": {
-  			"note": "SAT",
-  			"Equipe_PGE": "123",
-  			"Mail_PGE": "pge-123@imad.ch"
-  		}
+      "metadata": {
+        "note": "SAT",
+        "Equipe_PGE": "123",
+        "Mail_PGE": "pge-123@imad.ch"
+      }
   }
 }
