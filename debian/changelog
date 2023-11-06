@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.56) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * create invite when nurse is requesting for consultation
+
+  [ Olivier Bitsch ]
+  * Update bruno API doc
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 06 Nov 2023 09:25:55 +0100
+
 hcw-athome-backend (0.4.9.55) focal; urgency=medium
 
   [ Gor Grigoryan ]
