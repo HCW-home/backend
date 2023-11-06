@@ -500,7 +500,7 @@ module.exports = {
 
             if (!user) {
               console.error("No user from a valid token ");
-              res.status(500).json({ message: "UNKNOWN ERROR" });
+              return res.status(500).json({ message: "UNKNOWN ERROR" });
             }
 
             if (user.role === "doctor") {

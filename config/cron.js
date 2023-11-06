@@ -135,7 +135,7 @@ module.exports = {
         ],
       });
 
-      console.log("consultatins to be clsed ", consultationsToBeClosed);
+      console.log("consultations to be closed ", consultationsToBeClosed);
 
       await Promise.all(
         consultationsToBeClosed.map(async (c) => {

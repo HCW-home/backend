@@ -359,6 +359,21 @@ module.exports = {
       }
     }
 
+    if (req.user && req.user.role === sails.config.globals.ROLE_NURSE) {
+      const inviteData = {
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        queue: req.body.queue,
+        gender: req.body.gender,
+        inviteToken: req.body.invitationToken,
+        expertToken: req.body.expertInvitationURL
+      }
+      const newInvite = await PublicInvite.create(inviteData).fetch();
+      consultationJson.id = newInvite.id
+      consultationJson.invitationToken = newInvite.inviteToken;
+      consultationJson.expertInvitationURL = `${ process.env.PUBLIC_URL }/inv/?invite=${ newInvite.expertToken }`;
+    }
+
     Consultation.create(consultationJson)
       .fetch()
       .then(async (consultation) => {
