@@ -4,6 +4,7 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
+const validator = require('validator');
 
 module.exports = {
 
@@ -67,7 +68,18 @@ module.exports = {
 
   registerNurse: async function(req, res) {
     try {
-      const { email, firstName, lastName, phoneNumber, organization, country, sex } = req.body;
+      const email = validator.normalizeEmail(req.body.email);
+      const firstName = validator.escape(req.body.firstName).trim();
+      const lastName = validator.escape(req.body.lastName).trim();
+      const phoneNumber = validator.escape(req.body.phoneNumber).trim();
+      const organization = validator.escape(req.body.organization).trim();
+      const country = validator.escape(req.body.country).trim();
+      const sex = validator.escape(req.body.sex).trim();
+
+
+      if (!validator.isEmail(email)) {
+        return res.badRequest({ error: 'Invalid email address.' });
+      }
 
       const existingUser = await User.findOne({
         email,
