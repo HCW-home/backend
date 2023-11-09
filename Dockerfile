@@ -6,6 +6,7 @@ COPY package*.json ./
 
 RUN npx yarn
 
+COPY .sailsrc .
 COPY app.js .
 COPY api ./api
 COPY config ./config
