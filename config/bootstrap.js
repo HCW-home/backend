@@ -41,7 +41,8 @@ module.exports.bootstrap = async function () {
   await consultationCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 86400 }); // expires after a day
   await messageCollection.createIndex({ consultationClosedAtISO: 1 }, { expireAfterSeconds: 86400 }); // expires after a day
   await userCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 86400 }); // expires after a day
-  await tokenCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 60*60 }); // expires after an hour
+  // await userCollection.createIndex({ email: 1, role: 1 }, { unique: true });
+  await tokenCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 60 * 60 }); // expires after an hour
 
   // check and delete expired files
   setInterval(async () => {

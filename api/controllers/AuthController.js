@@ -632,8 +632,8 @@ module.exports = {
 
   loginOpenIdReturn(req, res) {
     bodyParser.urlencoded({ extended: false })(req, res, () => {
-      console.log(req.query, '333');
-      if (req.query.role === 'admin') {
+
+      if (req.query.role === sails.config.globals.ROLE_ADMIN) {
         passport.authenticate("openidconnect_admin", async (err, user, info = {}) => {
 
           if (err) {
@@ -649,8 +649,6 @@ module.exports = {
             });
           }
           if (user.role === sails.config.globals.ROLE_ADMIN) {
-            console.log(user.token, 'token');
-            console.log(`${ process.env['ADMIN_URL'] }/login?tk=${user.token}`, 'res.redirect')
             return res.redirect(`${ process.env['ADMIN_URL'] }/login?tk=${user.token}`);
           }
         })(req, res, (err) => {
@@ -663,7 +661,7 @@ module.exports = {
         });
       }
 
-      if (req.query.role === 'nurse') {
+      if (req.query.role === sails.config.globals.ROLE_NURSE) {
         passport.authenticate("openidconnect_nurse", async (err, user, info = {}) => {
 
           if (err) {
@@ -679,8 +677,6 @@ module.exports = {
             });
           }
           if (user.role === sails.config.globals.ROLE_NURSE) {
-            console.log(user.token, 'token');
-            console.log(`${ process.env['ADMIN_URL'] }/login?tk=${user.token}`, 'res.redirect')
             return res.redirect(`${process.env['PUBLIC_URL']}/#/requester?tk=${user.token}`);
           }
         })(req, res, (err) => {
@@ -693,7 +689,7 @@ module.exports = {
         });
       }
 
-      if (req.query.role === 'doctor') {
+      if (req.query.role === sails.config.globals.ROLE_DOCTOR) {
         passport.authenticate("openidconnect_doctor", async (err, user, info = {}) => {
 
           if (err) {

@@ -1,17 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Error</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        background-color: #fdfdfd;
+        color: #333;
+        text-align: center;
+        padding-top: 50px;
+      }
+      .error-container {
+        display: inline-block;
+        text-align: left;
+        border: 1px solid #ccc;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      }
+      h1 {
+        color: #e74c3c;
+      }
+      code {
+        background-color: #eee;
+        padding: 2px 5px;
+        border: 1px solid #ddd;
+        display: block;
+        margin: 10px 0;
+        white-space: pre-wrap;
+      }
+      a {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 15px;
+        background-color: #3498db;
+        color: white;
+        text-decoration: none;
+        border-radius: 3px;
+      }
+      a:hover {
+        background-color: #2980b9;
+      }
+    </style>
 </head>
 <body>
 
-<h1>Error </h1>
+<div class="error-container">
+    <h1>An error occurred</h1>
+    <h2><%= error.message %></h2>
+    <% if (error.stack) { %>
+        <p><%= error.stack %></p>
+    <% } %>
+</div>
 
-<h2><%= error.message %></h2>
-<p><%= error.stack %></p>
 </body>
 </html>
-

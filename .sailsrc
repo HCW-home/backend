@@ -1,7 +1,4 @@
 {
-  "hooks": {
-    "views": false
-  },
   "generators": {
     "modules": {}
   },
