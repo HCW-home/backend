@@ -618,7 +618,6 @@ module.exports = {
   },
 
   loginOpenId(req, res, next) {
-    console.log(req.query.role, 'req.query.role');
     if (req.query.role === sails.config.globals.ROLE_DOCTOR) {
       passport.authenticate('openidconnect_doctor')(req, res, next);
     }

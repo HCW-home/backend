@@ -398,9 +398,13 @@ passport.use('openidconnect_nurse', new OpenIDConnectStrategy({
         role: sails.config.globals.ROLE_NURSE
       });
 
-      if (user) {
+      if (!user) {
+        return cb(new Error('User is not allowed to use this app'));
+      } else if (user && user.status === 'approved') {
         user.token = jwt.sign(user, sails.config.globals.APP_SECRET);
         return cb(null, user, { message: "Login Successful" });
+      } else {
+        return cb(new Error('User is not approved'));
       }
 
     } catch (error) {
