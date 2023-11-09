@@ -1,3 +1,9 @@
+hcw-athome-backend (0.4.9.59) focal; urgency=medium
+
+  * Adding required .sailsrc file to manage views
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 09 Nov 2023 12:02:56 +0100
+
 hcw-athome-backend (0.4.9.58) focal; urgency=medium
 
   [ Gor Grigoryan ]
