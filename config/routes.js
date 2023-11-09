@@ -64,6 +64,7 @@ module.exports.routes = {
   'GET /api/v1/external-auth-callback': 'AuthController.externalAuth',
   'GET /api/v1/user/ip': 'UserController.ip',
   'POST /api/v1/user/notif': 'UserController.updateNotif',
+  'PUT /api/v1/user/:id/status': 'UserController.updateStatus',
 
   'POST /mediasoupserver': 'MediasoupserverController.create',
   'GET /mediasoupserver': 'MediasoupserverController.read',
@@ -96,6 +97,8 @@ module.exports.routes = {
   'GET /api/v1/languages': 'LocaleController.supportedLanguages',
 
   'POST /api/v1/send-expert-link': 'ExpertController.sendExpertLink',
+
+  'POST /api/v1/registerNurse': 'UserController.registerNurse',
 
   'GET /api/v1/healthcheck': 'HealthCheckController.check',
 

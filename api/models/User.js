@@ -93,6 +93,21 @@ module.exports = {
     },
     direct: {
       type: 'string'
+    },
+    organization: {
+      type: 'string'
+    },
+    country: {
+      type: 'string'
+    },
+    sex: {
+      type: 'string',
+      isIn: ['male', 'female', 'other'] // or however you want to define this
+    },
+    status: {
+      type: 'string',
+      isIn: ['approved', 'not-approved'],
+      defaultsTo: 'not-approved'
     }
   },
 

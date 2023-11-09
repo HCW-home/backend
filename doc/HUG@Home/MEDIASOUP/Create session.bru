@@ -1,0 +1,16 @@
+meta {
+  name: Create session
+  type: http
+  seq: 5
+}
+
+post {
+  url: https://docker1:3443/session
+  body: none
+  auth: basic
+}
+
+auth:basic {
+  username: abcd
+  password: 1234
+}

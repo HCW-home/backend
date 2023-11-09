@@ -9,7 +9,7 @@ module.exports = {
 
   // retrieve the queue that are allowed for the current user
   async find (req, res) {
-    if (req.user.viewAllQueues || req.user.role === 'admin') {
+    if (req.user.viewAllQueues || req.user.role === 'admin' || req.user.role === 'nurse') {
       const queues = await Queue.find({});
       return res.json(queues);
     }

@@ -1,0 +1,15 @@
+meta {
+  name: GET Consultations
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{BASE_URI}}/consultations-overview?invite=5ff72d748f2e5c552b287ff3
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+}

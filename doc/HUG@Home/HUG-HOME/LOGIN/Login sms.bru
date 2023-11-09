@@ -1,0 +1,17 @@
+meta {
+  name: Login sms
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{BASE_URI}}/login-sms
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  id: {% response 'body', 'req_64d71f1f00354e4985a676e967384b18', 'b64::JC51c2VyLmlk::46b', 'never', 60 %}
+  x-access-token: {% response 'body', 'req_64d71f1f00354e4985a676e967384b18', 'b64::JC51c2VyLnRva2Vu::46b', 'never', 60 %}
+}

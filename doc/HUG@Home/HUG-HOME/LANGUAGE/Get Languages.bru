@@ -1,0 +1,16 @@
+meta {
+  name: Get Languages
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{BASE_URI}}/language
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  x-access-token: {{ TOKEN }}
+}

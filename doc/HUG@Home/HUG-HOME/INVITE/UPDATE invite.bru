@@ -1,0 +1,32 @@
+meta {
+  name: UPDATE invite
+  type: http
+  seq: 13
+}
+
+patch {
+  url: {{BASE_URI}}/invite/607d4d9954cde435454643d8
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "emailAddress":"luis.oliveira@emea.merkleinc.com",
+      "phoneNumber":"1234567",
+      "scheduledFor":"2021-05-08 16:54:59",
+      "language":"",
+      "doctorLanguage":"",
+      "doctorEmail":"olivier.b@iabsis.com",
+      "firstName":"joel",
+      "lastName":"manel",
+      "gender":"male",
+      "isPatientInvite":true,
+      "sendInvite":true
+  }
+}

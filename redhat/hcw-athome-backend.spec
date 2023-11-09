@@ -1,6 +1,6 @@
 Summary: Front end for Hug@Home Backend application
 Name: hcw-athome-backend
-Version: 0.4.9.50
+Version: 0.4.9.59
 Release: 1
 Group: Web Application
 License: HUG
@@ -27,7 +27,7 @@ SPECS version 1
 %{__make}
 ## Create datadir folder
 %{__install} -d -m0755 %{buildroot}/%{_datadir}/hcw-athome/backend/
-%{__cp} -a app.js api config node_modules package.json public tasks views %{buildroot}/%{_datadir}/hcw-athome/backend/
+%{__cp} -a .sailsrc app.js api config node_modules package.json public tasks views %{buildroot}/%{_datadir}/hcw-athome/backend/
 %{__install} -d -m0755 %{buildroot}/lib/systemd/system
 %{__cp} hcw-athome.service %{buildroot}/lib/systemd/system
 ## Create config folder

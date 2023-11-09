@@ -1,0 +1,21 @@
+meta {
+  name: UPDATE User
+  type: http
+  seq: 18
+}
+
+patch {
+  url: {{BASE_URI}}/user/6516e4390a7a020698a3f6e4
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+}
+
+body:json {
+  {
+      "authPhoneNumber": "+41 79 969 26 73"
+  }
+}

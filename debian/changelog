@@ -1,15 +1,62 @@
-hcw-athome-backend (0.4.9.50) focal; urgency=medium
+hcw-athome-backend (0.4.9.59) focal; urgency=medium
 
-  * restrict to role doctor for SHARED JWT
+  * Adding required .sailsrc file to manage views
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 19 Oct 2023 18:08:38 +0200
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 09 Nov 2023 15:19:28 +0100
 
-hcw-athome-backend (0.4.9.49) focal; urgency=medium
+hcw-athome-backend (0.4.9.58) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * validator for checking output
+  * validator for checking output
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 09 Nov 2023 11:53:52 +0100
+
+hcw-athome-backend (0.4.9.57) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * error page
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 09 Nov 2023 09:41:50 +0100
+
+hcw-athome-backend (0.4.9.56) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * create invite when nurse is requesting for consultation
+
+  [ Olivier Bitsch ]
+  * Update bruno API doc
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 06 Nov 2023 09:25:55 +0100
+
+hcw-athome-backend (0.4.9.55) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix get queu users
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 30 Oct 2023 08:59:31 +0100
+
+hcw-athome-backend (0.4.9.54) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * openid login method for different interfaces
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 26 Oct 2023 17:06:13 +0200
+
+hcw-athome-backend (0.4.9.53) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * change openid redirect url for nurse
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 25 Oct 2023 13:30:19 +0200
+
+hcw-athome-backend (0.4.9.51) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * refs #6158,Clamav error when upload file
+  * requestion consultation from requester intrface
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 18 Oct 2023 09:31:51 +0200
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 23 Oct 2023 14:39:14 +0200
 
 hcw-athome-backend (0.4.9.48) focal; urgency=medium
 

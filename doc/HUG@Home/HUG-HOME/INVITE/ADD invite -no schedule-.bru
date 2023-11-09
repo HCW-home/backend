@@ -1,0 +1,36 @@
+meta {
+  name: ADD invite -no schedule-
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{BASE_URI}}/invite
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "emailAddress":"olivier.b@iabsis.com",
+      "phoneNumber":"",
+      "language":"fr",
+      "doctorLanguage":null,
+      "firstName":"Olivier",
+      "lastName":"Bitsch",
+      "gender":"male",
+      "patientTZ": "Europe/Paris",
+      "patientContact":"olivier.b@iabsis.com",
+      "doctorEmail": "olivier.b@iabsis.com",
+       "sendInvite": true,
+      "isPatientInvite":true,
+      "metadata": {
+        "note": "SAT"
+      }
+  }
+}

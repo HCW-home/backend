@@ -53,8 +53,10 @@ module.exports.policies = {
     destroy: ['isLoggedIn', 'isAdmin'],
     remove: ['isLoggedIn', 'isAdmin'],
     replace: ['isLoggedIn', 'isAdmin'],
-    getUser: ['isLoggedIn', 'isDoctorOrAdmin'],
-    updateNotif: ['isLoggedIn', 'isDoctor']
+    getUser: ['isLoggedIn', 'isDoctorOrAdminOrNurse'],
+    updateNotif: ['isLoggedIn', 'isDoctor'],
+    registerNurse: true,
+    updateStatus: true,
   },
   countController: {
     count: ['isLoggedIn', 'isAdmin']
@@ -134,7 +136,7 @@ module.exports.policies = {
 
   QueueController: {
     '*': false,
-    find: ['isLoggedIn', 'isDoctorOrAdmin'],
+    find: ['isLoggedIn', 'isDoctorOrAdminOrNurse'],
     create: ['isLoggedIn', 'isAdmin'],
     destroy: ['isLoggedIn', 'isAdmin'],
     update: ['isLoggedIn', 'isAdmin']

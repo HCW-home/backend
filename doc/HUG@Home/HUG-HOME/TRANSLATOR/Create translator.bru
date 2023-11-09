@@ -1,0 +1,16 @@
+meta {
+  name: Create translator
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{BASE_URI}}/translator
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+  Content-Type: application/json
+}

@@ -1,0 +1,15 @@
+meta {
+  name: GET Stats
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{BASE_URI}}/consultations-csv?limit=10000
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+}

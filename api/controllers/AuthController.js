@@ -11,6 +11,7 @@ const { samlStrategy } = require("../../config/passport");
 const jwt = require("jsonwebtoken");
 
 const SMS_CODE_LIFESPAN = 5 * 60;
+
 function generateVerificationCode() {
   const possible = "0123456789";
   let string = "";
@@ -118,7 +119,7 @@ module.exports = {
       return res.status(401).json({ message: "Email is invalid" });
     }
 
-    const emailRegex = new RegExp(`${req.body.email}`, "i");
+    const emailRegex = new RegExp(`${ req.body.email }`, "i");
     const db = sails.getDatastore().manager;
     const resetPasswordToken = jwt.sign(
       { email: req.body.email.toLowerCase() },
@@ -151,7 +152,7 @@ module.exports = {
         }
       );
 
-      const url = `${process.env.DOCTOR_URL}/app/reset-password?token=${resetPasswordToken}`;
+      const url = `${ process.env.DOCTOR_URL }/app/reset-password?token=${ resetPasswordToken }`;
       const doctorLanguage =
         user.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
       await sails.helpers.email.with({
@@ -218,7 +219,7 @@ module.exports = {
 
   // used only for admin
   async loginLocal(req, res) {
-    const {locale} = req.headers || {};
+    const { locale } = req.headers || {};
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
       return res.status(400).json({
@@ -310,7 +311,7 @@ module.exports = {
         try {
           await sails.helpers.sms.with({
             phoneNumber: user.authPhoneNumber,
-            message: `Votre code de vérification est ${verificationCode}. Ce code est utilisable ${
+            message: `Votre code de vérification est ${ verificationCode }. Ce code est utilisable ${
               SMS_CODE_LIFESPAN / 60
             } minutes`,
           });
@@ -417,27 +418,27 @@ module.exports = {
     //     })
     //   })
     // });
-    if((process.env.LOGIN_METHOD === 'saml' ||
+    if ((process.env.LOGIN_METHOD === 'saml' ||
         process.env.LOGIN_METHOD === "both")
       && process.env.LOGOUT_URL
-    ){
+    ) {
       try {
-        samlStrategy.logout(req, (err)=>{
-          if(err){
-            console.error("Error logging out from saml", err)
+        samlStrategy.logout(req, (err) => {
+          if (err) {
+            console.error("Error logging out from saml", err);
           }
-          console.log('Saml logged out')
+          console.log('Saml logged out');
           req.session.destroy(function (err) {
             res.status(200).send();
           });
-        })
+        });
       } catch (error) {
-        console.error("Error logging out from saml", error)
+        console.error("Error logging out from saml", error);
         req.session.destroy(function (err) {
           res.status(200).send();
         });
       }
-    }else{
+    } else {
       req.session.destroy(function (err) {
         res.status(200).send();
       });
@@ -474,14 +475,18 @@ module.exports = {
           try {
             if (req.query._version) {
               await User.updateOne({
+                id: decoded.id,
                 email: decoded.email,
                 role: { in: ["doctor", "admin"] },
               }).set({ doctorClientVersion: req.query._version });
             } else {
               await User.updateOne({
+                id: decoded.id,
                 email: decoded.email,
-                role: { in: ["doctor", "admin"] 
-              } }).set({
+                role: {
+                  in: ["doctor", "admin"]
+                }
+              }).set({
                 doctorClientVersion: "invalid",
               });
               // return res.status(400).json({
@@ -495,7 +500,7 @@ module.exports = {
 
             if (!user) {
               console.error("No user from a valid token ");
-              res.status(500).json({ message: "UNKNOWN ERROR" });
+              return res.status(500).json({ message: "UNKNOWN ERROR" });
             }
 
             if (user.role === "doctor") {
@@ -599,7 +604,7 @@ module.exports = {
           console.log("error Updating user login type ", error);
         }
 
-        return res.redirect(`/app?tk=${user.token}`);
+        return res.redirect(`/app?tk=${ user.token }`);
       })(req, res, (err) => {
         if (err) {
           sails.log("error authenticating ", err);
@@ -613,48 +618,112 @@ module.exports = {
   },
 
   loginOpenId(req, res, next) {
-    passport.authenticate('openidconnect')(req, res, next)
+    if (req.query.role === sails.config.globals.ROLE_DOCTOR) {
+      passport.authenticate('openidconnect_doctor')(req, res, next);
+    }
+    if (req.query.role === sails.config.globals.ROLE_ADMIN) {
+      passport.authenticate('openidconnect_admin')(req, res, next);
+    }
+    if (req.query.role === sails.config.globals.ROLE_NURSE) {
+      passport.authenticate('openidconnect_nurse')(req, res, next);
+    }
   },
 
-  loginOpenIdReturn(req, res){
-    console.log('HEADERS OPENID', req.headers);
+  loginOpenIdReturn(req, res) {
     bodyParser.urlencoded({ extended: false })(req, res, () => {
-      passport.authenticate("openidconnect", async (err, user, info = {}) => {
 
-        if (err) {
-          sails.log("error authenticating ", err);
-          return res.view("pages/error", {
-            error: err,
-          });
-        }
-        if (!user) {
-          return res.json({
-            message: info.message,
-            user,
-          });
-        }
+      if (req.query.role === sails.config.globals.ROLE_ADMIN) {
+        passport.authenticate("openidconnect_admin", async (err, user, info = {}) => {
 
-        try {
-          await User.updateOne({ id: user.id }).set({ lastLoginType: "openidconnect" });
-        } catch (error) {
-          console.log("error Updating user login type ", error);
-        }
+          if (err) {
+            sails.log("error authenticating ", err);
+            return res.view("pages/error", {
+              error: err,
+            });
+          }
+          if (!user) {
+            return res.status(403).json({
+              message: info.message,
+              user,
+            });
+          }
+          if (user.role === sails.config.globals.ROLE_ADMIN) {
+            return res.redirect(`${ process.env['ADMIN_URL'] }/login?tk=${user.token}`);
+          }
+        })(req, res, (err) => {
+          if (err) {
+            sails.log("error authenticating ", err);
+            return res.view("pages/error", {
+              error: err,
+            });
+          }
+        });
+      }
 
-        if (user.role === sails.config.globals.ROLE_ADMIN) {
-          return res.redirect(`${process.env['ADMIN_URL']}/login?tk=${user.token}`);
-        } else {
-          return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
-        }
+      if (req.query.role === sails.config.globals.ROLE_NURSE) {
+        passport.authenticate("openidconnect_nurse", async (err, user, info = {}) => {
 
-      })(req, res, (err) => {
-        if (err) {
-          sails.log("error authenticating ", err);
-          return res.view("pages/error", {
-            error: err,
-          });
-        }
-        res.redirect(`${process.env['DOCTOR_URL']}/app/login`);
-      });
+          if (err) {
+            sails.log("error authenticating ", err);
+            return res.view("pages/error", {
+              error: err,
+            });
+          }
+          if (!user) {
+            return res.status(403).json({
+              message: info.message,
+              user,
+            });
+          }
+          if (user.role === sails.config.globals.ROLE_NURSE) {
+            return res.redirect(`${process.env['PUBLIC_URL']}/#/requester?tk=${user.token}`);
+          }
+        })(req, res, (err) => {
+          if (err) {
+            sails.log("error authenticating ", err);
+            return res.view("pages/error", {
+              error: err,
+            });
+          }
+        });
+      }
+
+      if (req.query.role === sails.config.globals.ROLE_DOCTOR) {
+        passport.authenticate("openidconnect_doctor", async (err, user, info = {}) => {
+
+          if (err) {
+            sails.log("error authenticating ", err);
+            return res.view("pages/error", {
+              error: err,
+            });
+          }
+          if (!user) {
+            return res.json({
+              message: info.message,
+              user,
+            });
+          }
+
+          try {
+            await User.updateOne({ id: user.id }).set({ lastLoginType: "openidconnect" });
+          } catch (error) {
+            console.log("error Updating user login type ", error);
+          }
+
+          if (user.role === sails.config.globals.ROLE_DOCTOR) {
+            return res.redirect(`${ process.env['DOCTOR_URL'] }/app?tk=${ user.token }`);
+          }
+
+
+        })(req, res, (err) => {
+          if (err) {
+            sails.log("error authenticating ", err);
+            return res.view("pages/error", {
+              error: err,
+            });
+          }
+        });
+      }
     });
   },
 
@@ -743,10 +812,9 @@ module.exports = {
             },
             sails.config.globals.APP_SECRET
           );
-          // console.log('login', `${process.env.DOCTOR_URL}/app?tk=${nativeToken}`)
           return res.redirect(
-            `${process.env.DOCTOR_URL}/app?tk=${nativeToken}${
-              req.query.returnUrl ? `&returnUrl=${req.query.returnUrl}` : ""
+            `${ process.env.DOCTOR_URL }/app?tk=${ nativeToken }${
+              req.query.returnUrl ? `&returnUrl=${ req.query.returnUrl }` : ""
             }`
           );
         } catch (error) {

@@ -1,0 +1,16 @@
+meta {
+  name: Remove user from queue
+  type: http
+  seq: 20
+}
+
+delete {
+  url: {{BASE_URI}}/user/6087e075989616240b524aa1/allowed-queues
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+  Content-Type: application/json
+}

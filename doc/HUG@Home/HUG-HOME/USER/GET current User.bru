@@ -1,0 +1,15 @@
+meta {
+  name: GET current User
+  type: http
+  seq: 16
+}
+
+get {
+  url: {{BASE_URI}}/current-user
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+}

@@ -1,0 +1,15 @@
+meta {
+  name: DELETE Invite
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{BASE_URI}}/invite/628ba3bc06371d932ae6f366
+  body: none
+  auth: none
+}
+
+headers {
+  x-access-token: {{ TOKEN }}
+}

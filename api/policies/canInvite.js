@@ -1,4 +1,4 @@
-const roles = ['admin', 'doctor', 'scheduler']
+const roles = ['admin', 'doctor', 'scheduler', 'nurse']
 module.exports = function (req, res, proceed) {
 
 
