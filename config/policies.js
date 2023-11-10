@@ -78,7 +78,7 @@ module.exports.policies = {
     attachment: ['isLoggedIn', 'isConsultationOwner'],
     sendReport: ['isLoggedIn', 'isDoctor', 'isConsultationOwner'],
     call: ['isLoggedIn', 'isConsultationOwner'],
-    rejectCall: ['isLoggedIn', 'isConsultationParticipant'],
+    rejectCall: ['isLoggedIn'],
     acceptCall: ['isLoggedIn', 'isConsultationParticipant'],
     patientFeedback: ['isLoggedIn', 'isNurseOrPatient'],
     doctorFeedback: ['isLoggedIn', 'isConsultationOwner'],
