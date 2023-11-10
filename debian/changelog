@@ -1,3 +1,11 @@
+hcw-athome-backend (0.4.9.66) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix consultation participant policy
+  * fix socket issue on creating consultation
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 10 Nov 2023 16:58:04 +0100
+
 hcw-athome-backend (0.4.9.65) focal; urgency=medium
 
   [ Gor Grigoryan ]
