@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.65) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * quick fix for reject forbiden
+
+  [ Olivier Bitsch ]
+  * Adding do-release action in Makefile
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 10 Nov 2023 14:54:20 +0100
+
 hcw-athome-backend (0.4.9.64) focal; urgency=medium
 
   [ Gor Grigoryan ]
