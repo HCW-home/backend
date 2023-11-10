@@ -11,6 +11,7 @@ const jwt = require("jsonwebtoken");
 const uuid = require('uuid');
 
 const _ = require("@sailshq/lodash");
+const validator = require('validator');
 
 const db = Consultation.getDatastore().manager;
 
@@ -848,8 +849,9 @@ module.exports = {
 
 
   async attachment(req, res) {
+    const attachment = validator.escape(req.params.attachment).trim();
     const msg = await Message.findOne({
-      id: req.params.attachment,
+      id: attachment,
     });
 
     if (
