@@ -39,7 +39,7 @@
     "passport-openidconnect": "^0.1.1",
     "passport-saml": "^3.2.4",
     "passport-trusted-header": "^1.1.0",
-    "sails": "^1.5.4",
+    "sails": "1.5",
     "sails-hook-grunt": "^5.0.0",
     "sails-hook-orm": "^4.0.2",
     "sails-hook-sockets": "^2.0.3",
