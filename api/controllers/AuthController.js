@@ -710,7 +710,7 @@ module.exports = {
             console.log("error Updating user login type ", error);
           }
 
-          if (user.role === sails.config.globals.ROLE_DOCTOR) {
+          if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
             return res.redirect(`${ process.env['DOCTOR_URL'] }/app?tk=${ user.token }`);
           }
 

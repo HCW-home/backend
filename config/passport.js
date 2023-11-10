@@ -434,11 +434,8 @@ passport.use('openidconnect_doctor', new OpenIDConnectStrategy({
         console.error(err);
         return cb(new Error(err));
       }
-      const searchRoleDoctor = sails.config.globals.ROLE_DOCTOR;
-      // const searchRoleAdmin = sails.config.globals.ROLE_ADMIN;
-      // const searchNurse = sails.config.globals.ROLE_NURSE;
-
-      let user = await User.findOne({
+      let user
+      user = await User.findOne({
         email,
         role: sails.config.globals.ROLE_DOCTOR
       });
@@ -446,6 +443,14 @@ passport.use('openidconnect_doctor', new OpenIDConnectStrategy({
       if (user && user.role === sails.config.globals.ROLE_DOCTOR) {
         user = await User.findOne({ id: user.id }).populate("allowedQueues");
       }
+
+      if (!user) {
+        user = await User.findOne({
+          email,
+          role: sails.config.globals.ROLE_ADMIN
+        });
+      }
+
 
       if (process.env.AD_ENABLE && process.env.AD_ENABLE !== "false") {
         console.log(
