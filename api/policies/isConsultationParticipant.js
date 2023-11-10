@@ -22,7 +22,7 @@ module.exports = async function (req, res, proceed) {
       owner: req.user.id
     });
 
-  } else if (req.user.role === 'doctor') {
+  } else if (req.user.role === 'doctor' || req.user.role === 'admin') {
 
     consultation = await Consultation.count({
       id: consultationId,
