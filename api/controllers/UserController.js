@@ -124,10 +124,9 @@ module.exports = {
 
   updateStatus: async function(req, res) {
     try {
-      const userId = req.param('id');
+      const userId = validator.escape(req.param('id')).trim();
       const newStatus = req.body.status;
 
-      console.log(userId, 'userId');
       if (!['approved', 'not-approved'].includes(newStatus)) {
         return res.badRequest({ error: 'Invalid status value.' });
       }
