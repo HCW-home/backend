@@ -30,7 +30,7 @@ module.exports.policies = {
     subscribe: ['isLoggedIn']
   },
   SubscribeToDoctorsController: {
-    subscribe: ['isLoggedIn', 'isDoctor']
+    subscribe: ['isLoggedIn', 'isDoctorOrAdmin']
   },
   MediasoupserverController: {
     '*': ['isLoggedIn', 'isAdmin'],
@@ -76,9 +76,9 @@ module.exports.policies = {
     destroy: ['isLoggedIn', 'isNurseOrPatient'],
     uploadFile: ['isLoggedIn', 'setMessageDestination'],
     attachment: ['isLoggedIn', 'isConsultationOwner'],
-    sendReport: ['isLoggedIn', 'isDoctor', 'isConsultationOwner'],
+    sendReport: ['isLoggedIn', 'isConsultationOwner'],
     call: ['isLoggedIn', 'isConsultationOwner'],
-    rejectCall: ['isLoggedIn'],
+    rejectCall: ['isLoggedIn', 'isConsultationParticipant'],
     acceptCall: ['isLoggedIn', 'isConsultationParticipant'],
     patientFeedback: ['isLoggedIn', 'isNurseOrPatient'],
     doctorFeedback: ['isLoggedIn', 'isConsultationOwner'],

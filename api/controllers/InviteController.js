@@ -221,7 +221,7 @@ module.exports = {
           });
       }
       // a
-    } else if (req.user.role === "doctor") {
+    } else if (req.user.role === "doctor" || req.user.role === "admin") {
       doctor = currentUserPublic;
     }
 

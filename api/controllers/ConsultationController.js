@@ -1138,8 +1138,7 @@ module.exports = {
         type: "text",
         to: consultation.owner,
       }).fetch();
-      await Message.afterCreate(message, (err, message) => {
-      });
+      await Message.afterCreate(message, (err, message) => {});
 
       return res.status(200).json({
         message: "success",
