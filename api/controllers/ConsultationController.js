@@ -46,6 +46,11 @@ module.exports = {
       match = [{ experts: req.user.id }];
     }
 
+    if (req.user && req.user.role === "admin") {
+      match = [{ invitedBy: ObjectId(req.user.id) }];
+    }
+
+
     if (req.user.viewAllQueues) {
       const queues = (await Queue.find({})).map(
         (queue) => new ObjectId(queue.id)

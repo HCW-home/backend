@@ -70,8 +70,8 @@ module.exports.policies = {
   ConsultationController: {
     '*': false,
     consultationOverview: ['isLoggedIn'],
-    acceptConsultation: ['isLoggedIn', 'isDoctor', 'isAssignedTo'],
-    closeConsultation: ['isLoggedIn',  'isConsultationOwner'],
+    acceptConsultation: ['isLoggedIn', 'isDoctorOrAdmin'],
+    closeConsultation: ['isLoggedIn', 'isDoctorOrAdmin'],
     create: ['isLoggedIn', 'setConsultationOwner'],
     destroy: ['isLoggedIn', 'isNurseOrPatient'],
     uploadFile: ['isLoggedIn', 'setMessageDestination'],

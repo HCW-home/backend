@@ -3,7 +3,7 @@ module.exports = async function (req, res, proceed) {
 
   let consultation;
   const { user } = req;
-  if (user.role === sails.config.globals.ROLE_DOCTOR) {
+  if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
     // doctors can respond to pending consultation
     consultation = await Consultation.findOne({
       or: [

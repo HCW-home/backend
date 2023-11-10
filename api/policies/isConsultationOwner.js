@@ -15,7 +15,7 @@ module.exports = async function (req, res, proceed) {
       owner: req.user.id
     });
 
-  } else if (role === 'doctor') {
+  } else if (role === 'doctor' || role === 'admin') {
 
     consultation = await Consultation.count({
       id: consultationId,
