@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.69) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix consultation overview for admin
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 14 Nov 2023 16:26:10 +0100
+
 hcw-athome-backend (0.4.9.68) focal; urgency=medium
 
   [ Gor Grigoryan ]
