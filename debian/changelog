@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.68) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * subsciption to doctor's socket
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 14 Nov 2023 13:55:48 +0100
+
 hcw-athome-backend (0.4.9.67) focal; urgency=medium
 
   [ Gor Grigoryan ]
