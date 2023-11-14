@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.67) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6210, fix error on role
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 14 Nov 2023 10:59:34 +0100
+
 hcw-athome-backend (0.4.9.66) focal; urgency=medium
 
   [ Gor Grigoryan ]
