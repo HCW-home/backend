@@ -32,7 +32,7 @@ module.exports = {
 
 
     if (!req.user) {return res.forbidden();}
-    if (req.user.role !== 'doctor' || res.user.role !== 'admin') {
+    if (req.user.role !== 'doctor' || req.user.role !== 'admin') {
       return res.forbidden();
     }
 
