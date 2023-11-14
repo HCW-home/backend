@@ -51,7 +51,7 @@ module.exports = {
     }
 
 
-    if (req.user.viewAllQueues) {
+    if (req.user.viewAllQueues || req.user.role === sails.config.globals.ROLE_ADMIN) {
       const queues = (await Queue.find({})).map(
         (queue) => new ObjectId(queue.id)
       );
