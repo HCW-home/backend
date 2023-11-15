@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.70) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6211, Forbidden request as admin
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 Nov 2023 12:10:34 +0100
+
 hcw-athome-backend (0.4.9.69) focal; urgency=medium
 
   [ Gor Grigoryan ]
