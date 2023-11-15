@@ -47,7 +47,14 @@ module.exports = {
     }
 
     if (req.user && req.user.role === "admin") {
-      match = [{ invitedBy: ObjectId(req.user.id) }];
+      match = [
+        {
+          acceptedBy: new ObjectId(req.user.id),
+        },
+        {
+          doctor: new ObjectId(req.user.id),
+        },
+      ];
     }
 
 
@@ -429,7 +436,7 @@ module.exports = {
       return res.notFound();
     }
 
-    Consultation.getConsultationParticipants(consultation).forEach(
+    (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
         sails.sockets.broadcast(participant, "consultationAccepted", {
           data: {
@@ -1107,7 +1114,7 @@ module.exports = {
         id: consultationId,
       }).populate("invite");
 
-      Consultation.getConsultationParticipants(consultation).forEach(
+      (await Consultation.getConsultationParticipants(consultation)).forEach(
         (participant) => {
           sails.sockets.broadcast(participant, "consultationAccepted", {
             data: {

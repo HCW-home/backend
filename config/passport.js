@@ -126,13 +126,13 @@ passport.use(
       });
 
       await Consultation.findOne({ invitationToken: patientInvite.inviteToken })
-        .then(consultation => {
+        .then( async (consultation) => {
 
           if (consultation) {
             consultation.status = 'active';
             consultation.experts.push(user.id);
 
-            Consultation.getConsultationParticipants(consultation).forEach(
+            (await Consultation.getConsultationParticipants(consultation)).forEach(
               (participant) => {
                 console.log('participant', participant);
                 sails.sockets.broadcast(participant, "consultationUpdated", {
@@ -161,7 +161,7 @@ passport.use(
           .set({ guest: user.id })
           .fetch();
         if (consultation) {
-          Consultation.getConsultationParticipants(consultation).forEach(
+          (await Consultation.getConsultationParticipants(consultation)).forEach(
             (participant) => {
               sails.sockets.broadcast(participant, "consultationUpdated", {
                 data: { consultation },

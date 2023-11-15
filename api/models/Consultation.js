@@ -219,7 +219,7 @@ module.exports = {
     const translator = await User.findOne({ id: consultation.translator });
     const guest = await User.findOne({ id: consultation.guest });
 
-    Consultation.getConsultationParticipants(consultation).forEach(
+    (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
         sails.sockets.broadcast(participant, "newConsultation", {
           event: "newConsultation",
@@ -235,8 +235,14 @@ module.exports = {
       }
     );
   },
-  getConsultationParticipants(consultation) {
-    const consultationParticipants = [consultation.owner];
+  async getConsultationParticipants(consultation) {
+    let users = await User.find({
+      where: {
+        role: sails.config.globals.ROLE_ADMIN
+      }
+    });
+    const adminUserIds = users.map(user => user.id);
+    const consultationParticipants = [consultation.owner, ...adminUserIds];
     if (consultation.translator) {
       consultationParticipants.push(consultation.translator);
     }
@@ -389,9 +395,9 @@ module.exports = {
 
     return anonymousConsultation;
   },
-  sendConsultationClosed(consultation) {
+  async sendConsultationClosed(consultation) {
     // emit consultation closed event with the consultation
-    Consultation.getConsultationParticipants(consultation).forEach(
+    (await  Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
         sails.sockets.broadcast(participant, "consultationClosed", {
           data: {
@@ -485,7 +491,7 @@ module.exports = {
     consultation.closedAt = closedAt.getTime();
 
     // emit consultation closed event with the consultation
-    Consultation.sendConsultationClosed(consultation);
+    await Consultation.sendConsultationClosed(consultation);
   },
 
   async getUserConsultationsFilter(user) {
@@ -548,7 +554,7 @@ module.exports = {
     const result = await consultationCollection.find({ $or: match });
     const userConsultations = await result.toArray();
 
-    userConsultations.forEach(async (consultation) => {
+    for (const consultation of userConsultations) {
       switch (user.role) {
         case "patient":
         case "nurse":
@@ -585,7 +591,7 @@ module.exports = {
         default:
           break;
       }
-      Consultation.getConsultationParticipants(consultation).forEach(
+      (await Consultation.getConsultationParticipants(consultation)).forEach(
         (participant) => {
           // don't echo the event
           if (participant === user.id) return;
@@ -606,7 +612,7 @@ module.exports = {
           });
         }
       );
-    });
+    }
   },
   getConsultationReport(consultation) {
     if (consultation.owner) {

@@ -87,7 +87,7 @@ module.exports = {
     });
 
     const consultationParticipants =
-      Consultation.getConsultationParticipants(consultation);
+      await Consultation.getConsultationParticipants(consultation);
 
     consultationParticipants.forEach((participant) => {
       sails.sockets.broadcast(participant, "endCall", {
