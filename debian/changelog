@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.71) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6214, fix consultation update on websocket
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 Nov 2023 13:58:50 +0100
+
 hcw-athome-backend (0.4.9.70) focal; urgency=medium
 
   [ Gor Grigoryan ]
