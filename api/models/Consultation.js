@@ -252,6 +252,9 @@ module.exports = {
     if (consultation.guest) {
       consultationParticipants.push(consultation.guest);
     }
+    if (consultation.owner) {
+      consultationParticipants.push(consultation.owner);
+    }
     if (consultation.status === "pending" && consultation.queue) {
       consultationParticipants.push(consultation.queue);
     }
