@@ -24,6 +24,8 @@
   "translation request email": "Dear interpreter, \n\nWe have received a request from a caregiver for an interpreter on the %(branding)s platform: \nCaregiver language: %(doctorLanguage)s \nPatient language: %(patientLanguage)s \nDate: as soon as possible \nIn order to confirm or your availability or not, please click on the link below %(url)s \n\nIf, after 48 hours, no one confirms their availability, we will assume that no one is available. \n\n\nThank you",
   "scheduled translation request email": "Dear interpreter, \n\nWe have received a request from a caregiver for an interpreter on the %(branding)s platform: \nCaregiver language: %(doctorLanguage)s \nPatient language: %(patientLanguage)s \nDate: %(inviteTime)s \n\nTo confirm your availability or not, please click on the link below \n%(url)s \n\nIf, after 48 hours, no one confirms availability, we will assume that no one is available. \n\nThank you",
   "translator login link email subject": "Your tele-consultation link %(branding)s",
+  "notification for offline action subject": "%(branding)s Update on consultation while offline",
+  "notification for offline action text": "There was an update on your consultation. You will not receive anymore update until you reach your consultation again. You can use this link to continue %(url)s",
   "translator login link email": "Please click here to join the consultation %(url)s",
   "invalid invite": "This invitation link is invalid",
   "invite have been accepted": "This invitation has already been accepted.",

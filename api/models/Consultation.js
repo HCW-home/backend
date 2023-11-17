@@ -71,6 +71,14 @@ module.exports = {
       type: "string",
       required: false,
     },
+    flagPatientNotified: {
+      type: "boolean",
+      required: false,
+    },
+    flagDoctorNotified: {
+      type: "boolean",
+      required: false,
+    },
     experts: {
       type: 'json',
       columnType: 'array',
@@ -563,8 +571,10 @@ module.exports = {
         case "nurse":
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagPatientOnline: isOnline,
+            flagPatientNotified: false,
           });
           consultation.flagPatientOnline = isOnline;
+          consultation.flagPatientNotified = false;
           break;
         case "guest":
           await Consultation.update({ id: consultation._id.toString() }).set({
@@ -581,8 +591,10 @@ module.exports = {
         case "doctor":
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagDoctorOnline: isOnline,
+            flagDoctorNotified: false,
           });
           consultation.flagDoctorOnline = isOnline;
+          consultation.flagDoctorNotified = false;
           break;
         case "expert":
           const expertsFlags = await Consultation.findOne({ id: consultation._id.toString() });

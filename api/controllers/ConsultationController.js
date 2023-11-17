@@ -575,6 +575,34 @@ module.exports = {
       const patientMsg = Object.assign({}, msg);
       patientMsg.token = patientToken;
 
+      const publicInvite = await PublicInvite.findOne({ inviteToken: consultation.invitationToken });
+
+      if (publicInvite && !consultation.flagPatientOnline && !consultation.flagPatientNotified) {
+        await PublicInvite.updateOne({ inviteToken: consultation.invitationToken }).set({ status: "SENT" });
+
+        const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
+        const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+
+        if (publicInvite.emailAddress) {
+          await sails.helpers.email.with({
+            to: publicInvite.emailAddress,
+            subject: sails._t(locale, "notification for offline action subject", { branding: process.env.BRANDING }),
+            text: sails._t(locale, "notification for offline action text", { url })
+          });
+
+          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
+        }
+
+        if (publicInvite.phoneNumber) {
+          await sails.helpers.sms.with({
+            phoneNumber: publicInvite.phoneNumber,
+            message: sails._t(locale, "notification for offline action text", { url }),
+          });
+
+          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
+        }
+      }
+
       console.log("SEND CALL TO", calleeId);
       sails.sockets.broadcast(calleeId, "newCall", {
         data: {
