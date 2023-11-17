@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.72) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6213, Send notification if doctor or patient is offline
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 17 Nov 2023 14:08:18 +0100
+
 hcw-athome-backend (0.4.9.71) focal; urgency=medium
 
   [ Gor Grigoryan ]
