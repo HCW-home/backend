@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.76) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * New release 0.4.9.75
+
+  [ Gor Grigoryan ]
+  * upload file issues for content type
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 20 Nov 2023 15:04:13 +0100
+
 hcw-athome-backend (0.4.9.75) focal; urgency=medium
 
   [ Olivier Bitsch ]
