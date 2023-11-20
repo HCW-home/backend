@@ -1,3 +1,19 @@
+hcw-athome-backend (0.4.9.75) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * New release 0.4.9.74
+
+  [ Gilles Hemmerlé ]
+  * Added more security checks to the mediasoup entrypoints
+  * Added null check before using toUser object
+  * P021417-01 - Implemented form validation for the message creation, preventing users from forging file path and getting sensitive data
+  * P021417-01 - Implemented form validation for the message creation, preventing users from forging file path and getting sensitive data
+
+  [ Olivier Bitsch ]
+  * Fix missing header in nginx
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 20 Nov 2023 13:06:58 +0100
+
 hcw-athome-backend (0.4.9.74) focal; urgency=medium
 
   [ Olivier Bitsch ]
