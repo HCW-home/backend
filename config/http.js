@@ -47,12 +47,19 @@ module.exports.http = {
     paginate: require('../api/middlewares/count'),
     handleDeserializeUserError: function(err, req, res, next) {
       if (err && err.message === 'Failed to deserialize user out of session') {
-          req.logout(); // So deserialization won't continue to fail.
-          req.session.destroy(function(err) {
-            res.status(200).send()
-          })
+        req.logout(function (logoutErr) {
+          if (logoutErr) {
+            return next(logoutErr)
+          }
+          req.session.destroy(function(sessionErr) {
+            if (sessionErr) {
+              return next(sessionErr);
+            }
+            res.status(200).send();
+          });
+        });
       } else {
-          next();
+        next();
       }
     },
     order: [
