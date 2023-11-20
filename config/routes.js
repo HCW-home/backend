@@ -97,7 +97,7 @@ module.exports.routes = {
 
   'POST /api/v1/send-expert-link': 'ExpertController.sendExpertLink',
 
-  'POST /api/v1/registerNurse': 'UserController.registerNurse',
+  'POST /api/v1/register-nurse': 'UserController.registerNurse',
 
   'GET /api/v1/healthcheck': 'HealthCheckController.check',
 
