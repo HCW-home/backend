@@ -1,3 +1,17 @@
+hcw-athome-backend (0.4.9.74) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Cleanup info
+  * Update gitignore
+
+  [ Gor Grigoryan ]
+  * handleDeserializeUserError logout issue
+
+  [ Olivier Bitsch ]
+  * Remove unless PDF report endpoint function
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 20 Nov 2023 11:13:20 +0100
+
 hcw-athome-backend (0.4.9.73) focal; urgency=medium
 
   [ Gor Grigoryan ]
