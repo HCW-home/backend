@@ -119,8 +119,19 @@ module.exports = {
       return res.status(401).json({ message: "Email is invalid" });
     }
 
-    const emailRegex = new RegExp(`${req.body.email}`, "i");
-    const db = sails.getDatastore().manager;
+    const db = User.getDatastore().manager;
+    const userCollection = db.collection("user");
+    const user = (
+      await userCollection
+        .find({
+          email: req.body.email,
+          role: { $in: ["admin", "doctor", "nurse"] },
+        })
+        .collation({ locale: "en", strength: 1 })
+        .limit(1)
+        .toArray()
+    )[0];
+
     const resetPasswordToken = jwt.sign(
       { email: req.body.email.toLowerCase() },
       sails.config.globals.APP_SECRET,
@@ -132,18 +143,10 @@ module.exports = {
       success: true,
     });
 
-    const user = await db.collection("user").findOne({
-      email: {
-        $regex: emailRegex,
-      },
-    });
-
     if (user) {
       await db.collection("user").update(
         {
-          email: {
-            $regex: emailRegex,
-          },
+          _id: user._id,
         },
         {
           $set: {
