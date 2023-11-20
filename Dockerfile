@@ -11,7 +11,6 @@ COPY app.js .
 COPY api ./api
 COPY config ./config
 COPY public ./public
-COPY tasks ./tasks
 COPY views ./views
 
 FROM node:16
