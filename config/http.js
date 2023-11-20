@@ -10,7 +10,9 @@
  */
 
 const express = require('express');
-module.exports.http = {
+const bodyParser = require("body-parser");
+var skipper = require('skipper');
+  module.exports.http = {
 
   /** **************************************************************************
   *                                                                           *
@@ -41,7 +43,6 @@ module.exports.http = {
     //   'favicon',
     // ],
 
-
     passportInit: require('passport').initialize(),
     passportSession: require('passport').session(),
     paginate: require('../api/middlewares/count'),
@@ -70,6 +71,7 @@ module.exports.http = {
       'passportSession',
       'handleDeserializeUserError',
       'bodyParser',
+      'handleBodyParserError',
       'compress',
       'poweredBy',
       'router',
@@ -87,13 +89,15 @@ module.exports.http = {
     *                                                                          *
     ***************************************************************************/
 
-    // bodyParser: (function _configureBodyParser(){
-    //   var skipper = require('skipper');
-    //   var middlewareFn = skipper({ strict: true });
-    //   return middlewareFn;
-    // })(),
+    bodyParser: (function _configureBodyParser(){
+      var skipper = require('skipper');
+      var middlewareFn = skipper({ strict: true });
+      return middlewareFn;
+    })(),
+
 
   },
+
 
   trustProxy : true
 

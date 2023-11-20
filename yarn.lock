@@ -7700,7 +7700,7 @@ skipper-disk@^0.5.12, skipper-disk@~0.5.6:
     debug "3.1.0"
     fs-extra "0.30.0"
 
-skipper@^0.9.0-0:
+skipper@^0.9.0-0, skipper@^0.9.4:
   version "0.9.4"
   resolved "https://registry.yarnpkg.com/skipper/-/skipper-0.9.4.tgz#29d55ebbd5de6d464c9e8479043d13e5c515c8c9"
   integrity sha512-+VaLLr4Pu658D2a+WD00miu/ZK0APJgSWqI1qfWqrks1jLKqfI0fFryUZ95MuCkhmlg2O7Ky5rIFkXe3IhFCCQ==

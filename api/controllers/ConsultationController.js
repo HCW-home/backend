@@ -856,56 +856,58 @@ module.exports = {
   },
 
   uploadFile(req, res) {
-    const fileId = uuid.v4();
-    const filePath = `${req.params.consultation}_${fileId}${
-      req.headers["mime-type"].split("/")[1]
-        ? `.${req.headers["mime-type"].split("/")[1]}`
-        : ""
-    }`;
-    req.file("attachment").upload(
-      {
-        dirname: sails.config.globals.attachmentsDir,
-        saveAs: filePath,
-      },
-      async function whenDone(err, uploadedFiles) {
-        if (err) {
-          return res.status(500).send(err);
-        } else {
-          sails.log("uploaded ", uploadedFiles);
-          if (!uploadedFiles[0]) {
-            return res.status(400);
-          }
-          try {
-            if (process.env.NODE_ENV !== "development") {
-              // eslint-disable-next-line camelcase
-              const { isInfected } =
-                await sails.config.globals.clamscan.isInfected(
-                  uploadedFiles[0].fd
-                );
-              if (isInfected) {
-                return res.status(400).send(new Error("File is infected"));
-              }
-            }
-          } catch (error) {
-            sails.log("Error scanning", error);
-            return res.serverError();
-          }
-          const message = await Message.create({
-            type: "attachment",
-            mimeType: req.headers["mime-type"],
-            fileName: decodeURIComponent(req.headers["filename"]),
-            filePath,
-            consultation: req.params.consultation,
-            to: req.body.to || null,
-            from: req.user.id,
-          }).fetch();
-          return res.send({
-            message,
-            textParams: req.params,
-          });
+    sails.log.debug("Upload request received", req.allParams());
+    const maxFileSize = 10 * 1024 * 1024;
+
+    req.file('attachment').upload({
+      dirname: sails.config.globals.attachmentsDir,
+      maxBytes: maxFileSize,
+    }, async function whenDone(err, uploadedFiles) {
+      if (err) {
+        if (err.code === 'E_EXCEEDS_UPLOAD_LIMIT') {
+          return res.status(413).send('File size exceeds the limit of 10 MB');
         }
+        return res.status(500).send(err);
       }
-    );
+      if (!uploadedFiles.length) {
+        return res.status(400).send('No file uploaded');
+      }
+
+      const uploadedFile = uploadedFiles[0];
+
+      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      if (!allowedMimeTypes.includes(uploadedFile.type)) {
+        return res.status(400).send('Invalid file type. Only PDF, JPEG, and PNG files are allowed.');
+      }
+
+      const fileId = uuid.v4();
+      const fileExtension = uploadedFile.type.split("/").pop();
+      const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
+
+      try {
+        if (process.env.NODE_ENV !== 'development') {
+          const { isInfected } = await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
+          if (isInfected) {
+            return res.status(400).send(new Error('File is infected'));
+          }
+        }
+
+        const message = await Message.create({
+          type: 'attachment',
+          mimeType: uploadedFile.type,
+          fileName: uploadedFile.filename,
+          filePath,
+          consultation: req.params.consultation,
+          to: req.body.to || null,
+          from: req.user.id,
+        }).fetch();
+
+        return res.ok({ message });
+      } catch (error) {
+        sails.log('Error processing file upload: ', error);
+        return res.serverError();
+      }
+    });
   },
 
 
