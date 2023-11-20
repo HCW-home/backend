@@ -76,7 +76,6 @@ module.exports.policies = {
     destroy: ['isLoggedIn', 'isNurseOrPatient'],
     uploadFile: ['isLoggedIn', 'setMessageDestination'],
     attachment: ['isLoggedIn', 'isConsultationOwner'],
-    sendReport: ['isLoggedIn', 'isConsultationOwner'],
     call: ['isLoggedIn', 'isConsultationOwner'],
     rejectCall: ['isLoggedIn', 'isConsultationParticipant'],
     acceptCall: ['isLoggedIn', 'isConsultationParticipant'],

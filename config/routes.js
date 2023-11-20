@@ -43,7 +43,6 @@ module.exports.routes = {
   'post /api/v1/consultation/:consultation/:message/reject-call': 'ConsultationController.rejectCall',
   'post /api/v1/consultation/:consultation/:message/accept-call': 'ConsultationController.acceptCall',
   'post /api/v1/consultation/:consultation/upload-file': 'ConsultationController.uploadFile',
-  'post /api/v1/consultation/:consultation/send-report': 'ConsultationController.sendReport',
   'get /api/v1/consultation/:consultation/attachment/:attachment': 'ConsultationController.attachment',
   'POST /api/v1/consultation/:consultation/patientFeedback': 'ConsultationController.patientFeedback',
   'POST /api/v1/consultation/:consultation/doctorFeedback': 'ConsultationController.doctorFeedback',

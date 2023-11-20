@@ -935,37 +935,6 @@ module.exports = {
     readStream.pipe(res);
   },
 
-  sendReport(req, res) {
-    const filePath = `${uuid.v4()}.pdf`;
-    req.file("report").upload(
-      {
-        dirname: "./.tmp",
-        saveAs: filePath,
-      },
-      async function whenDone(err, uploadedFiles) {
-        if (err) {
-          return res.status(500).send(err);
-        } else {
-          try {
-            await sails.helpers.email.with({
-              to: "aapozaid@gmail.com",
-              subject: "Report",
-              text: "PDF report ",
-              attachments: [
-                {
-                  fileName: "Report.pdf",
-                  path: uploadedFiles[0].fd,
-                },
-              ],
-            });
-          } catch (error) {
-            res.send(500);
-          }
-        }
-      }
-    );
-  },
-
   async patientFeedback(req, res) {
     try {
       await Consultation.updateOne({
