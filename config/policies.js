@@ -16,79 +16,78 @@ module.exports.policies = {
    *                                                                          *
    ***************************************************************************/
 
-  '*': false,
+  "*": false,
   DashboardController: {
-    get: true
+    get: true,
   },
   HealthCheckController: {
-    '*': true
+    "*": true,
   },
   LocaleController: {
-    '*': true
+    "*": true,
   },
   SubscribeToSocketController: {
-    subscribe: ['isLoggedIn']
+    subscribe: ["isLoggedIn"],
   },
   SubscribeToDoctorsController: {
-    subscribe: ['isLoggedIn', 'isDoctorOrAdmin']
+    subscribe: ["isLoggedIn", "isDoctorOrAdmin"],
   },
   MediasoupserverController: {
-    '*': ['isLoggedIn', 'isAdmin'],
-    'read': 'isLoggedIn',
-    'create': 'isLoggedIn'
+    "*": ["isLoggedIn", "isAdmin"],
+    read: ["isLoggedIn", "isAdmin"],
+    create: ["isLoggedIn", "isAdmin"],
   },
   // '/api/v1/subscribe-to-socket':['isLoggedIn'],
   UserController: {
-    '*': false,
-    ip: ['isLoggedIn'],
-    find: ['isLoggedIn', 'isAdmin'],
-    findOne: ['isLoggedIn', 'isAdmin'],
-    populate: ['isLoggedIn', 'isAdmin'],
-    create: ['isLoggedIn', 'isAdmin'],
-    update: ['isLoggedIn', 'isAdmin'],
-    addDoctorToQueue: ['isLoggedIn', 'isAdmin'],
-    removeDoctorFromQueue: ['isLoggedIn', 'isAdmin'],
-    getDoctorQueues: ['isLoggedIn', 'isAdmin'],
-    add: ['isLoggedIn', 'isAdmin'],
-    destroy: ['isLoggedIn', 'isAdmin'],
-    remove: ['isLoggedIn', 'isAdmin'],
-    replace: ['isLoggedIn', 'isAdmin'],
-    getUser: ['isLoggedIn', 'isDoctorOrAdminOrNurse'],
-    updateNotif: ['isLoggedIn', 'isDoctorOrAdmin'],
+    "*": false,
+    ip: ["isLoggedIn"],
+    find: ["isLoggedIn", "isAdmin"],
+    findOne: ["isLoggedIn", "isAdmin"],
+    populate: ["isLoggedIn", "isAdmin"],
+    create: ["isLoggedIn", "isAdmin"],
+    update: ["isLoggedIn", "isAdmin"],
+    addDoctorToQueue: ["isLoggedIn", "isAdmin"],
+    removeDoctorFromQueue: ["isLoggedIn", "isAdmin"],
+    getDoctorQueues: ["isLoggedIn", "isAdmin"],
+    add: ["isLoggedIn", "isAdmin"],
+    destroy: ["isLoggedIn", "isAdmin"],
+    remove: ["isLoggedIn", "isAdmin"],
+    replace: ["isLoggedIn", "isAdmin"],
+    getUser: ["isLoggedIn", "isDoctorOrAdminOrNurse"],
+    updateNotif: ["isLoggedIn", "isDoctorOrAdmin"],
     registerNurse: true,
     updateStatus: true,
   },
   countController: {
-    count: ['isLoggedIn', 'isAdmin']
+    count: ["isLoggedIn", "isAdmin"],
   },
   MessageController: {
-    '*': false,
-    create: ['isLoggedIn', 'setMessageDestination'],
-    find: ['isLoggedIn', 'isConsultationOwner'],
-    readMessages: ['isLoggedIn', 'isConsultationOwner']
+    "*": false,
+    create: ["isLoggedIn", "setMessageDestination"],
+    find: ["isLoggedIn", "isConsultationOwner"],
+    readMessages: ["isLoggedIn", "isConsultationOwner"],
   },
   ConsultationController: {
-    '*': false,
-    consultationOverview: ['isLoggedIn'],
-    acceptConsultation: ['isLoggedIn', 'isDoctorOrAdmin'],
-    closeConsultation: ['isLoggedIn', 'isDoctorOrAdmin'],
-    create: ['isLoggedIn', 'setConsultationOwner'],
-    destroy: ['isLoggedIn', 'isNurseOrPatient'],
-    uploadFile: ['isLoggedIn', 'setMessageDestination'],
-    attachment: ['isLoggedIn', 'isConsultationOwner'],
-    sendReport: ['isLoggedIn', 'isConsultationOwner'],
-    call: ['isLoggedIn', 'isConsultationOwner'],
-    rejectCall: ['isLoggedIn', 'isConsultationParticipant'],
-    acceptCall: ['isLoggedIn', 'isConsultationParticipant'],
-    patientFeedback: ['isLoggedIn', 'isNurseOrPatient'],
-    doctorFeedback: ['isLoggedIn', 'isConsultationOwner'],
-    consultationsCSV: ['isLoggedIn', 'isAdmin'],
+    "*": false,
+    consultationOverview: ["isLoggedIn"],
+    acceptConsultation: ["isLoggedIn", "isDoctorOrAdmin"],
+    closeConsultation: ["isLoggedIn", "isDoctorOrAdmin"],
+    create: ["isLoggedIn", "setConsultationOwner"],
+    destroy: ["isLoggedIn", "isNurseOrPatient"],
+    uploadFile: ["isLoggedIn", "setMessageDestination"],
+    attachment: ["isLoggedIn", "isConsultationOwner"],
+    sendReport: ["isLoggedIn", "isConsultationOwner"],
+    call: ["isLoggedIn", "isConsultationOwner"],
+    rejectCall: ["isLoggedIn", "isConsultationParticipant"],
+    acceptCall: ["isLoggedIn", "isConsultationParticipant"],
+    patientFeedback: ["isLoggedIn", "isNurseOrPatient"],
+    doctorFeedback: ["isLoggedIn", "isConsultationOwner"],
+    consultationsCSV: ["isLoggedIn", "isAdmin"],
     testCall: true,
-    getCurrentCall: ['isLoggedIn', 'isConsultationParticipant'],
+    getCurrentCall: ["isLoggedIn", "isConsultationParticipant"],
     getConsultationFromToken: true,
     planConsultation: true,
     // findOne: ['isLoggedIn', 'isConsultationOwnerOrTranslator']
-
   },
   AuthController: {
     loginLocal: true,
@@ -109,66 +108,71 @@ module.exports.policies = {
     externalAuth: true,
   },
   SupportController: {
-    supportRequest: ['isLoggedIn']
+    supportRequest: ["isLoggedIn"],
   },
   ExpertController: {
-    sendExpertLink: ['isLoggedIn']
+    sendExpertLink: ["isLoggedIn"],
   },
   InviteController: {
-    '*': false,
-    invite: ['isLoggedIn', 'canInvite', 'setPublicInviteOwner'],
-    resend: ['isLoggedIn', 'canInvite'],
-    revoke: ['isLoggedIn', 'canInvite'],
-    findByConsultation: ['isLoggedIn', 'isConsultationOwner'],
-    getConsultation: ['isLoggedIn', 'isInviteOwner'],
-    getInvite: ['isLoggedIn', 'canInvite','isInviteOwner'],
-    update: ['isLoggedIn', 'canInvite','isInviteOwner'],
-    closeConsultation: ['isLoggedIn', 'canInvite', 'isScheduler' ,'isInviteOwner'],
-    findByToken: true
+    "*": false,
+    invite: ["isLoggedIn", "canInvite", "setPublicInviteOwner"],
+    resend: ["isLoggedIn", "canInvite"],
+    revoke: ["isLoggedIn", "canInvite"],
+    findByConsultation: ["isLoggedIn", "isConsultationOwner"],
+    getConsultation: ["isLoggedIn", "isInviteOwner"],
+    getInvite: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    update: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    closeConsultation: [
+      "isLoggedIn",
+      "canInvite",
+      "isScheduler",
+      "isInviteOwner",
+    ],
+    findByToken: true,
   },
 
   PublicInviteController: {
-    '*': false,
-    find: ['isLoggedIn', 'canInvite', 'isInviteOwner'],
-    destroy: ['isLoggedIn', 'canInvite','isInviteOwner'],
-    findOne: ['isLoggedIn', 'canInvite','isInviteOwner'],
+    "*": false,
+    find: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    destroy: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    findOne: ["isLoggedIn", "canInvite", "isInviteOwner"],
   },
 
   QueueController: {
-    '*': false,
-    find: ['isLoggedIn', 'isDoctorOrAdminOrNurse'],
-    create: ['isLoggedIn', 'isAdmin'],
-    destroy: ['isLoggedIn', 'isAdmin'],
-    update: ['isLoggedIn', 'isAdmin']
+    "*": false,
+    find: ["isLoggedIn", "isDoctorOrAdminOrNurse"],
+    create: ["isLoggedIn", "isAdmin"],
+    destroy: ["isLoggedIn", "isAdmin"],
+    update: ["isLoggedIn", "isAdmin"],
   },
 
   TranslationOrganizationController: {
-    '*': false,
-    find: ['isLoggedIn', 'isDoctorOrAdmin'],
-    create: ['isLoggedIn', 'isAdmin'],
-    destroy: ['isLoggedIn', 'isAdmin'],
-    update: ['isLoggedIn', 'isAdmin']
+    "*": false,
+    find: ["isLoggedIn", "isDoctorOrAdmin"],
+    create: ["isLoggedIn", "isAdmin"],
+    destroy: ["isLoggedIn", "isAdmin"],
+    update: ["isLoggedIn", "isAdmin"],
   },
 
   Translator: {
-    '*': ['isLoggedIn', 'isDoctorOrAdmin']
+    "*": ["isLoggedIn", "isDoctorOrAdmin"],
   },
   TranslatorController: {
-    '*': false,
+    "*": false,
     acceptRequest: true,
     refuseRequest: true,
-    findConsultation: ['isLoggedIn'],
-    find:['isLoggedIn', 'isAdmin'],
-    findOne:['isLoggedIn', 'isAdmin'],
-    update:['isLoggedIn', 'isAdmin'],
-    create:['isLoggedIn', 'isAdmin'],
-    destroy: ['isLoggedIn', 'isAdmin'],
+    findConsultation: ["isLoggedIn"],
+    find: ["isLoggedIn", "isAdmin"],
+    findOne: ["isLoggedIn", "isAdmin"],
+    update: ["isLoggedIn", "isAdmin"],
+    create: ["isLoggedIn", "isAdmin"],
+    destroy: ["isLoggedIn", "isAdmin"],
   },
   Language: {
-    '*': false,
-    find: ['isLoggedIn', 'isDoctorOrAdmin'],
-    create: ['isLoggedIn', 'isAdmin'],
-    destroy: ['isLoggedIn', 'isAdmin'],
-    update: ['isLoggedIn', 'isAdmin']
-  }
+    "*": false,
+    find: ["isLoggedIn", "isDoctorOrAdmin"],
+    create: ["isLoggedIn", "isAdmin"],
+    destroy: ["isLoggedIn", "isAdmin"],
+    update: ["isLoggedIn", "isAdmin"],
+  },
 };
