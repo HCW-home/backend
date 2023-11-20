@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.78) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Remove capital letter in backend
+
+  [ Gilles Hemmerlé ]
+  * P021417-04 - Updated the policies for isConsultationOwner
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 20 Nov 2023 15:50:38 +0100
+
 hcw-athome-backend (0.4.9.77) focal; urgency=medium
 
   [ Gilles Hemmerlé ]
