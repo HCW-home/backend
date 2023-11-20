@@ -26,6 +26,8 @@
   "translator login link email subject": "Your tele-consultation link %(branding)s",
   "notification for offline action subject": "%(branding)s Update on consultation while offline",
   "notification for offline action text": "There was an update on your consultation. You will not receive anymore update until you reach your consultation again. You can use this link to continue %(url)s",
+  "notification for offline action text for nurse": "There was an update on your consultation. You will not receive anymore update until you reach your consultation again.",
+  "notification for offline action text for doctor": "There was an update on your consultation. You will not receive anymore update until you reach your consultation again.",
   "translator login link email": "Please click here to join the consultation %(url)s",
   "invalid invite": "This invitation link is invalid",
   "invite have been accepted": "This invitation has already been accepted.",

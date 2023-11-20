@@ -535,7 +535,18 @@ module.exports = {
       match = [{ experts: user.id }];
     }
 
-    if (user.viewAllQueues) {
+    if (user && user.role === "admin") {
+      match = [
+        {
+          acceptedBy: new ObjectId(user.id),
+        },
+        {
+          doctor: new ObjectId(user.id),
+        },
+      ];
+    }
+
+    if (user.viewAllQueues || user.role === sails.config.globals.ROLE_ADMIN) {
       const queues = (await Queue.find({})).map(
         (queue) => new ObjectId(queue.id)
       );
@@ -588,6 +599,7 @@ module.exports = {
           });
           consultation.flagTranslatorOnline = isOnline;
           break;
+        case "admin":
         case "doctor":
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagDoctorOnline: isOnline,
