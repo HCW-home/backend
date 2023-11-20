@@ -31,7 +31,7 @@ module.exports = {
    */
   async create(req, res) {
     // Only text and consultation are allowed in the post
-    const msgBody = _.pick(req.body, ["text", "consultation"]);
+    const msgBody = _.pick(req.body, ["text", "consultation", "to"]);
 
     // Message sent are only textual and "from" is the current authenticated user
     msgBody.type = "text";

@@ -35,6 +35,8 @@ module.exports = async function (req, res, proceed) {
   }
 
   req.body.from = user.id;
+  // Ignore the "to" sent through the api
+  req.body.to = null;
   // a doctor is sending the message
   if (consultation.acceptedBy === user.id && consultation.status !== 'pending') {
     req.body.to = consultation.owner;

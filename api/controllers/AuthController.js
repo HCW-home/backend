@@ -77,8 +77,8 @@ module.exports = {
     const invite = await PublicInvite.findOne({
       or: [
         { inviteToken: req.body.inviteToken },
-        { expertToken: req.body.inviteToken }
-      ]
+        { expertToken: req.body.inviteToken },
+      ],
     });
     const isExpert = invite.expertToken === req.body.inviteToken;
 
@@ -119,7 +119,7 @@ module.exports = {
       return res.status(401).json({ message: "Email is invalid" });
     }
 
-    const emailRegex = new RegExp(`${ req.body.email }`, "i");
+    const emailRegex = new RegExp(`${req.body.email}`, "i");
     const db = sails.getDatastore().manager;
     const resetPasswordToken = jwt.sign(
       { email: req.body.email.toLowerCase() },
@@ -152,7 +152,7 @@ module.exports = {
         }
       );
 
-      const url = `${ process.env.DOCTOR_URL }/app/reset-password?token=${ resetPasswordToken }`;
+      const url = `${process.env.DOCTOR_URL}/app/reset-password?token=${resetPasswordToken}`;
       const doctorLanguage =
         user.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
       await sails.helpers.email.with({
@@ -223,10 +223,9 @@ module.exports = {
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
       return res.status(400).json({
-        message: sails._t(locale, 'password login is disabled'),
+        message: sails._t(locale, "password login is disabled"),
       });
     }
-
 
     const isAdmin = await User.count({ email: req.body.email, role: "admin" });
     if (req.body._version) {
@@ -250,7 +249,7 @@ module.exports = {
       console.log("Authenticate now", err, user);
       if (err) {
         return res.status(500).json({
-          message: info.message || sails._t(locale, 'server error'),
+          message: info.message || sails._t(locale, "server error"),
         });
       }
       if (!user) {
@@ -311,7 +310,7 @@ module.exports = {
         try {
           await sails.helpers.sms.with({
             phoneNumber: user.authPhoneNumber,
-            message: `Votre code de vérification est ${ verificationCode }. Ce code est utilisable ${
+            message: `Votre code de vérification est ${verificationCode}. Ce code est utilisable ${
               SMS_CODE_LIFESPAN / 60
             } minutes`,
           });
@@ -418,16 +417,17 @@ module.exports = {
     //     })
     //   })
     // });
-    if ((process.env.LOGIN_METHOD === 'saml' ||
-        process.env.LOGIN_METHOD === "both")
-      && process.env.LOGOUT_URL
+    if (
+      (process.env.LOGIN_METHOD === "saml" ||
+        process.env.LOGIN_METHOD === "both") &&
+      process.env.LOGOUT_URL
     ) {
       try {
         samlStrategy.logout(req, (err) => {
           if (err) {
             console.error("Error logging out from saml", err);
           }
-          console.log('Saml logged out');
+          console.log("Saml logged out");
           req.session.destroy(function (err) {
             res.status(200).send();
           });
@@ -443,7 +443,6 @@ module.exports = {
         res.status(200).send();
       });
     }
-
   },
 
   /**
@@ -484,8 +483,8 @@ module.exports = {
                 id: decoded.id,
                 email: decoded.email,
                 role: {
-                  in: ["doctor", "admin"]
-                }
+                  in: ["doctor", "admin"],
+                },
               }).set({
                 doctorClientVersion: "invalid",
               });
@@ -604,7 +603,7 @@ module.exports = {
           console.log("error Updating user login type ", error);
         }
 
-        return res.redirect(`/app?tk=${ user.token }`);
+        return res.redirect(`/app?tk=${user.token}`);
       })(req, res, (err) => {
         if (err) {
           sails.log("error authenticating ", err);
@@ -619,38 +618,41 @@ module.exports = {
 
   loginOpenId(req, res, next) {
     if (req.query.role === sails.config.globals.ROLE_DOCTOR) {
-      passport.authenticate('openidconnect_doctor')(req, res, next);
+      passport.authenticate("openidconnect_doctor")(req, res, next);
     }
     if (req.query.role === sails.config.globals.ROLE_ADMIN) {
-      passport.authenticate('openidconnect_admin')(req, res, next);
+      passport.authenticate("openidconnect_admin")(req, res, next);
     }
     if (req.query.role === sails.config.globals.ROLE_NURSE) {
-      passport.authenticate('openidconnect_nurse')(req, res, next);
+      passport.authenticate("openidconnect_nurse")(req, res, next);
     }
   },
 
   loginOpenIdReturn(req, res) {
     bodyParser.urlencoded({ extended: false })(req, res, () => {
-
       if (req.query.role === sails.config.globals.ROLE_ADMIN) {
-        passport.authenticate("openidconnect_admin", async (err, user, info = {}) => {
-
-          if (err) {
-            sails.log("error authenticating ", err);
-            return res.view("pages/error", {
-              error: err,
-            });
+        passport.authenticate(
+          "openidconnect_admin",
+          async (err, user, info = {}) => {
+            if (err) {
+              sails.log("error authenticating ", err);
+              return res.view("pages/error", {
+                error: err,
+              });
+            }
+            if (!user) {
+              return res.status(403).json({
+                message: info.message,
+                user,
+              });
+            }
+            if (user.role === sails.config.globals.ROLE_ADMIN) {
+              return res.redirect(
+                `${process.env["ADMIN_URL"]}/login?tk=${user.token}`
+              );
+            }
           }
-          if (!user) {
-            return res.status(403).json({
-              message: info.message,
-              user,
-            });
-          }
-          if (user.role === sails.config.globals.ROLE_ADMIN) {
-            return res.redirect(`${ process.env['ADMIN_URL'] }/login?tk=${user.token}`);
-          }
-        })(req, res, (err) => {
+        )(req, res, (err) => {
           if (err) {
             sails.log("error authenticating ", err);
             return res.view("pages/error", {
@@ -661,24 +663,28 @@ module.exports = {
       }
 
       if (req.query.role === sails.config.globals.ROLE_NURSE) {
-        passport.authenticate("openidconnect_nurse", async (err, user, info = {}) => {
-
-          if (err) {
-            sails.log("error authenticating ", err);
-            return res.view("pages/error", {
-              error: err,
-            });
+        passport.authenticate(
+          "openidconnect_nurse",
+          async (err, user, info = {}) => {
+            if (err) {
+              sails.log("error authenticating ", err);
+              return res.view("pages/error", {
+                error: err,
+              });
+            }
+            if (!user) {
+              return res.status(403).json({
+                message: info.message,
+                user,
+              });
+            }
+            if (user.role === sails.config.globals.ROLE_NURSE) {
+              return res.redirect(
+                `${process.env["PUBLIC_URL"]}/#/requester?tk=${user.token}`
+              );
+            }
           }
-          if (!user) {
-            return res.status(403).json({
-              message: info.message,
-              user,
-            });
-          }
-          if (user.role === sails.config.globals.ROLE_NURSE) {
-            return res.redirect(`${process.env['PUBLIC_URL']}/#/requester?tk=${user.token}`);
-          }
-        })(req, res, (err) => {
+        )(req, res, (err) => {
           if (err) {
             sails.log("error authenticating ", err);
             return res.view("pages/error", {
@@ -689,33 +695,40 @@ module.exports = {
       }
 
       if (req.query.role === sails.config.globals.ROLE_DOCTOR) {
-        passport.authenticate("openidconnect_doctor", async (err, user, info = {}) => {
+        passport.authenticate(
+          "openidconnect_doctor",
+          async (err, user, info = {}) => {
+            if (err) {
+              sails.log("error authenticating ", err);
+              return res.view("pages/error", {
+                error: err,
+              });
+            }
+            if (!user) {
+              return res.json({
+                message: info.message,
+                user,
+              });
+            }
 
-          if (err) {
-            sails.log("error authenticating ", err);
-            return res.view("pages/error", {
-              error: err,
-            });
+            try {
+              await User.updateOne({ id: user.id }).set({
+                lastLoginType: "openidconnect",
+              });
+            } catch (error) {
+              console.log("error Updating user login type ", error);
+            }
+
+            if (
+              user.role === sails.config.globals.ROLE_DOCTOR ||
+              user.role === sails.config.globals.ROLE_ADMIN
+            ) {
+              return res.redirect(
+                `${process.env["DOCTOR_URL"]}/app?tk=${user.token}`
+              );
+            }
           }
-          if (!user) {
-            return res.json({
-              message: info.message,
-              user,
-            });
-          }
-
-          try {
-            await User.updateOne({ id: user.id }).set({ lastLoginType: "openidconnect" });
-          } catch (error) {
-            console.log("error Updating user login type ", error);
-          }
-
-          if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
-            return res.redirect(`${ process.env['DOCTOR_URL'] }/app?tk=${ user.token }`);
-          }
-
-
-        })(req, res, (err) => {
+        )(req, res, (err) => {
           if (err) {
             sails.log("error authenticating ", err);
             return res.view("pages/error", {
@@ -746,7 +759,9 @@ module.exports = {
       androidStoreTitle: process.env.ANDROID_STORE_TITLE,
       logo: process.env.LOGO,
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
-      metadata: process.env.DISPLAY_META ? (process.env.DISPLAY_META).split(',') : '', //! sending metadata to the front in config
+      metadata: process.env.DISPLAY_META
+        ? process.env.DISPLAY_META.split(",")
+        : "", //! sending metadata to the front in config
     });
   },
   externalAuth(req, res) {
@@ -788,7 +803,7 @@ module.exports = {
         try {
           let user = await User.findOne({
             email: decoded.email,
-            role: "doctor"
+            role: "doctor",
           });
           if (!user) {
             user = await User.create({
@@ -813,8 +828,8 @@ module.exports = {
             sails.config.globals.APP_SECRET
           );
           return res.redirect(
-            `${ process.env.DOCTOR_URL }/app?tk=${ nativeToken }${
-              req.query.returnUrl ? `&returnUrl=${ req.query.returnUrl }` : ""
+            `${process.env.DOCTOR_URL}/app?tk=${nativeToken}${
+              req.query.returnUrl ? `&returnUrl=${req.query.returnUrl}` : ""
             }`
           );
         } catch (error) {
