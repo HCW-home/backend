@@ -636,7 +636,7 @@ passport.use(
   })
 );
 
-const SamlStrategy = require("passport-saml").Strategy;
+const SamlStrategy = require("@node-saml/passport-saml").Strategy;
 let samlStrategy;
 console.log("env >>>> ", process.env.NODE_ENV);
 
