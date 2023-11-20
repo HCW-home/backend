@@ -135,3 +135,6 @@ lib-cov
 .env
 #views
 scripts
+
+
+doc/HUG@Home/environments/*
