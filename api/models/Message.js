@@ -184,7 +184,7 @@ module.exports = {
       if ((user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_PATIENT) && !consultation.flagDoctorOnline && !consultation.flagDoctorNotified) {
         const doctorLang = publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
-        if (toUser.email) {
+        if (toUser?.email) {
           await sails.helpers.email.with({
             to: toUser.email,
             subject: sails._t(doctorLang, "notification for offline action subject", { branding: process.env.BRANDING }),
@@ -194,9 +194,9 @@ module.exports = {
           await Consultation.updateOne({ id: consultation.id }).set({ flagDoctorNotified: true });
         }
 
-        if (toUser.enableNotif && toUser.notifPhoneNumber) {
+        if (toUser?.enableNotif && toUser?.notifPhoneNumber) {
           await sails.helpers.sms.with({
-            phoneNumber: toUser.notifPhoneNumber,
+            phoneNumber: toUser?.notifPhoneNumber,
             message: sails._t(doctorLang, "notification for offline action text for doctor"),
           });
 
