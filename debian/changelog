@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.79) focal; urgency=medium
+
+  [ Gilles Hemmerlé ]
+  * Fixed dot removed from gmail addresses
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 20 Nov 2023 16:33:06 +0100
+
 hcw-athome-backend (0.4.9.78) focal; urgency=medium
 
   [ Olivier Bitsch ]
