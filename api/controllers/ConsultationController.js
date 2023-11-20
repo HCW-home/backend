@@ -6,6 +6,7 @@
  */
 const ObjectId = require("mongodb").ObjectID;
 const fs = require("fs");
+const path = require("path");
 const Json2csvParser = require("json2csv").Parser;
 const jwt = require("jsonwebtoken");
 const uuid = require('uuid');
@@ -858,10 +859,16 @@ module.exports = {
   uploadFile(req, res) {
     sails.log.debug("Upload request received", req.allParams());
     const maxFileSize = 10 * 1024 * 1024;
+    const fileId = uuid.v4();
 
     req.file('attachment').upload({
       dirname: sails.config.globals.attachmentsDir,
       maxBytes: maxFileSize,
+      saveAs: function (__newFileStream, cb) {
+        const fileExtension = __newFileStream.filename.split(".").pop();
+        const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
+        cb(null, filePath);
+      },
     }, async function whenDone(err, uploadedFiles) {
       if (err) {
         if (err.code === 'E_EXCEEDS_UPLOAD_LIMIT') {
@@ -880,7 +887,6 @@ module.exports = {
         return res.status(400).send('Invalid file type. Only PDF, JPEG, and PNG files are allowed.');
       }
 
-      const fileId = uuid.v4();
       const fileExtension = uploadedFile.type.split("/").pop();
       const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
 
@@ -925,6 +931,10 @@ module.exports = {
       res.setHeader(
         "Content-disposition",
         `attachment; filename=${ msg.fileName }`
+      );
+      res.setHeader(
+        "content-type",
+        "application/pdf"
       );
     }
     const filePath = `${ sails.config.globals.attachmentsDir }/${ msg.filePath }`;
