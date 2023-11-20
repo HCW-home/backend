@@ -1,3 +1,19 @@
+hcw-athome-backend (0.4.9.80) focal; urgency=medium
+
+  [ Gilles Hemmerlé ]
+  * P021417-07 - Removed regex search which is useless for a basic insensitive search
+
+  [ Gor Grigoryan ]
+  * fix download pdf
+
+  [ Olivier Bitsch ]
+  * Updating and clean of packages
+  * Cleanup and remove outdated package
+  * Remove grunt
+  * Update yarn.lock file
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 20 Nov 2023 17:27:25 +0100
+
 hcw-athome-backend (0.4.9.79) focal; urgency=medium
 
   [ Gilles Hemmerlé ]
