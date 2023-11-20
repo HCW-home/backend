@@ -13,42 +13,40 @@ module.exports = async function (req, res, proceed) {
       owner: req.user.id,
     });
   } else if (role === "doctor" || role === "admin") {
-    consultation = await Consultation.count({
-      id: consultationId,
-      or: [
-        { acceptedBy: req.user.id, _id: consultationId },
-        { acceptedBy: null },
-      ],
-    });
-
     // Check if the user does have access to this specific consultation
     consultation = null;
+    let acceptedByMyselfOrDoctor = 0;
+    let acceptedBySomeoneElse = 0;
     // If the authenticated account accepted it, allow access...
-    consultation = await Consultation.count({
+    acceptedByMyselfOrDoctor = await Consultation.count({
       id: consultationId,
-      acceptedBy: req.user.id,
+      or: [{ acceptedBy: req.user.id }, { doctor: req.user.id }],
     });
 
-    if (!consultation) {
+    if (acceptedByMyselfOrDoctor) {
+      consultation = 1;
+    } else {
       // If accepted by someone else, not allow read it
-      consultation = await Consultation.count({
+      acceptedBySomeoneElse = await Consultation.count({
         id: consultationId,
         and: [
           { acceptedBy: { "!=": null } },
           { acceptedBy: { "!=": req.user.id } },
         ],
       });
-    }
 
-    // Check if the consultation is in an accessible queue and not accepted yet
-    if (!consultation) {
-      const myQueues = req.user.allowedQueues;
-      if (myQueues) {
-        consultation = await Consultation.count({
-          id: consultationId,
-          acceptedBy: null,
-          queue: { in: myQueues.map((q) => q.id) },
-        });
+      if (acceptedBySomeoneElse) {
+        consultation = 0;
+      } else {
+        // Check if the consultation is in an accessible queue and not accepted yet
+        const myQueues = req.user.allowedQueues;
+        if (myQueues) {
+          consultation = await Consultation.count({
+            id: consultationId,
+            acceptedBy: null,
+            queue: { in: myQueues.map((q) => q.id) },
+          });
+        }
       }
     }
   } else if (role === "scheduler") {
