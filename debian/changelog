@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.81) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update rebuild
+
+  [ Gor Grigoryan ]
+  * session management
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 21 Nov 2023 12:10:06 +0100
+
 hcw-athome-backend (0.4.9.80) focal; urgency=medium
 
   [ Gilles Hemmerlé ]
