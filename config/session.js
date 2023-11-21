@@ -54,8 +54,9 @@ module.exports.session = {
   //   return !!req.path.match(req._sails.LOOKS_LIKE_ASSET_RX);
   // },
   cookie: {
-    secure: process.env.NODE_ENV === 'development' ? false : true,
+    httpOnly: process.env.NODE_ENV !== 'development',
+    secure: process.env.NODE_ENV !== 'development',
     sameSite: process.env.NODE_ENV === 'development' ? undefined : 'none',
-    maxAge: 24 * 60 * 60 * 1000
+    maxAge: 24 * 60 * 60 * 1000,
   }
 };

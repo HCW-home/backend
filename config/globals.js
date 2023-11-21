@@ -54,6 +54,9 @@ module.exports.globals = {
   sails: true,
 
   APP_SECRET: process.env.APP_SECRET || generateAppSecret(),
+  REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET || generateAppSecret(),
+  ACCESS_TOKEN_LIFE: process.env.ACCESS_TOKEN_LIFE || '15m',
+  REFRESH_TOKEN_LIFE: process.env.REFRESH_TOKEN_LIFE || '18h',
 
   ROLE_DOCTOR: 'doctor',
   ROLE_NURSE: 'nurse',

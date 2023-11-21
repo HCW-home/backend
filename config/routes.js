@@ -59,6 +59,7 @@ module.exports.routes = {
   'POST /api/v1/login-2fa': 'AuthController.login2FA',
   'GET /api/v1/current-user': 'AuthController.getCurrentUser',
   'GET /api/v1/config': 'AuthController.getConfig',
+  'POST /api/v1/refresh-token': 'AuthController.refreshToken',
   'POST /api/v1/external-auth-callback': 'AuthController.externalAuth',
   'GET /api/v1/external-auth-callback': 'AuthController.externalAuth',
   'GET /api/v1/user/ip': 'UserController.ip',

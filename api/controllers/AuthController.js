@@ -101,7 +101,10 @@ module.exports = {
           console.log("Error login in ", err);
           return res.status(500).send();
         }
-        user.token = jwt.sign(user, sails.config.globals.APP_SECRET);
+
+        const { token, refreshToken } = TokenService.generateToken(user);
+        user.token = token;
+        user.refreshToken = refreshToken;
 
         return res.json({
           user,
@@ -413,38 +416,60 @@ module.exports = {
     });
   },
 
+  refreshToken: async function(req, res) {
+    const refreshToken = req.body.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: 'Refresh token is required' });
+    }
+
+    try {
+      const decoded = await TokenService.verifyToken(refreshToken, true);
+      const user = await User.findOne({ id: decoded.id });
+      if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+      }
+
+      const tokens = TokenService.generateToken(user);
+      return res.json(tokens);
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+  },
+
   logout(req, res) {
-    // req.sessionStore.client.keys("sess:*", (err, keys) => {
-    //   keys.forEach(key => {
-    //     req.sessionStore.client.del(key, (err, res) => {
-    //     })
-    //   })
-    // });
-    if (
-      (process.env.LOGIN_METHOD === "saml" ||
-        process.env.LOGIN_METHOD === "both") &&
-      process.env.LOGOUT_URL
-    ) {
+    const performLogout = () => {
+      req.logout((err) => {
+        if (err) {
+          console.error("Error during req.logout", err);
+          return res.status(500).send();
+        }
+        req.session.destroy((err) => {
+          if (err) {
+            console.error("Error destroying session", err);
+            return res.status(500).send();
+          }
+          res.status(200).send();
+        });
+      });
+    };
+
+    if ((process.env.LOGIN_METHOD === "saml" || process.env.LOGIN_METHOD === "both") && process.env.LOGOUT_URL) {
       try {
         samlStrategy.logout(req, (err) => {
           if (err) {
-            console.error("Error logging out from saml", err);
+            console.error("Error logging out from SAML", err);
+            return performLogout();
           }
-          console.log("Saml logged out");
-          req.session.destroy(function (err) {
-            res.status(200).send();
-          });
+          console.log("SAML logged out");
+          performLogout();
         });
       } catch (error) {
-        console.error("Error logging out from saml", error);
-        req.session.destroy(function (err) {
-          res.status(200).send();
-        });
+        console.error("Error logging out from SAML", error);
+        performLogout();
       }
     } else {
-      req.session.destroy(function (err) {
-        res.status(200).send();
-      });
+      performLogout();
     }
   },
 
@@ -513,8 +538,9 @@ module.exports = {
               }
             }
 
-            const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+            const { token, refreshToken } = TokenService.generateToken(user);
             user.token = token;
+            user.refreshToken = refreshToken;
             if (!req.user) {
               req.logIn(user, function (err) {
                 if (err) {
@@ -539,8 +565,10 @@ module.exports = {
     } else {
       const user = Object.assign({}, req.user);
 
-      const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+      const { token, refreshToken } = TokenService.generateToken(user);
+
       user.token = token;
+      user.refreshToken = refreshToken;
 
       return res.json({ user });
     }
@@ -761,6 +789,7 @@ module.exports = {
       androidStoreUrl: process.env.ANDROID_STORE_URL,
       androidStoreTitle: process.env.ANDROID_STORE_TITLE,
       logo: process.env.LOGO,
+      openIdLogoutUri: process.env.OPENID_LOGOUT_URL,
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
@@ -772,6 +801,7 @@ module.exports = {
     if (!token) {
       return res.badRequest();
     }
+    console.log(5555555);
     jwt.verify(
       token,
       process.env.SHARED_EXTERNAL_AUTH_SECRET,
@@ -821,17 +851,10 @@ module.exports = {
             }).fetch();
           }
 
-          const nativeToken = jwt.sign(
-            {
-              id: user.id,
-              email: user.email,
-              firstName: user.firstName,
-              lastName: user.lastName,
-            },
-            sails.config.globals.APP_SECRET
-          );
+          const { token } = TokenService.generateToken(user);
+
           return res.redirect(
-            `${process.env.DOCTOR_URL}/app?tk=${nativeToken}${
+            `${process.env.DOCTOR_URL}/app?tk=${token}${
               req.query.returnUrl ? `&returnUrl=${req.query.returnUrl}` : ""
             }`
           );

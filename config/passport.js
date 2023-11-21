@@ -266,11 +266,9 @@ passport.use(
             }
 
             const userDetails = getUserDetails(user);
-            const token = jwt.sign(
-              userDetails,
-              sails.config.globals.APP_SECRET
-            );
+            const { token, refreshToken } = TokenService.generateToken(userDetails) || {};
             userDetails.token = token;
+            userDetails.refreshToken = refreshToken;
 
             return cb(null, userDetails, { message: sails._t(locale, '2FA login successful') });
           }
@@ -322,11 +320,10 @@ passport.use(
             }
             const userDetails = getUserDetails(user);
 
-            const token = jwt.sign(
-              userDetails,
-              sails.config.globals.APP_SECRET
-            );
+            const { token, refreshToken } = TokenService.generateToken(userDetails) || {};
+
             userDetails.token = token;
+            userDetails.refreshToken = refreshToken;
             userDetails.smsVerificationCode = user.smsVerificationCode;
             return cb(null, userDetails, { message: sails._t(locale, 'login successful') });
           });
@@ -360,9 +357,11 @@ passport.use('openidconnect_admin', new OpenIDConnectStrategy({
         role: sails.config.globals.ROLE_ADMIN
       });
 
-      console.log(user, 'my admin');
       if (user) {
-        user.token = jwt.sign(user, sails.config.globals.APP_SECRET);
+        const { token, refreshToken } = TokenService.generateToken(user) || {};
+
+        user.token = token;
+        user.refreshToken = refreshToken;
         return cb(null, user, { message: "Login Successful" });
 
       }
@@ -401,7 +400,9 @@ passport.use('openidconnect_nurse', new OpenIDConnectStrategy({
       if (!user) {
         return cb(new Error('User is not allowed to use this app'));
       } else if (user && user.status === 'approved') {
-        user.token = jwt.sign(user, sails.config.globals.APP_SECRET);
+        const { token, refreshToken } = TokenService.generateToken(user) || {};
+        user.token = token;
+        user.refreshToken = refreshToken;
         return cb(null, user, { message: "Login Successful" });
       } else {
         return cb(new Error('User is not approved'));
@@ -546,7 +547,10 @@ passport.use('openidconnect_doctor', new OpenIDConnectStrategy({
               );
             }
 
-            user.token = jwt.sign(user, sails.config.globals.APP_SECRET);
+            const { token, refreshToken } = TokenService.generateToken(user) || {};
+
+            user.token = token;
+            user.refreshToken = refreshToken;
             return cb(null, user, { message: "Login Successful" });
           } else {
             console.log(
@@ -574,8 +578,10 @@ passport.use('openidconnect_doctor', new OpenIDConnectStrategy({
           }
 
         }
-        const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+        const { token, refreshToken } = TokenService.generateToken(user) || {};
+
         user.token = token;
+        user.refreshToken = refreshToken;
 
         console.log("JWT INFO", user);
         return cb(null, user, { message: "Login Successful" });
@@ -626,8 +632,10 @@ passport.use(
         }
       }
 
-      const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+      const { token, refreshToken } = TokenService.generateToken(user) || {};
+
       user.token = token;
+      user.refreshToken = refreshToken;
 
       return cb(null, user, { message: "Login Successful" });
     } else {
@@ -766,8 +774,10 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
                 );
               }
 
-              const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+              const { token, refreshToken } = TokenService.generateToken(user) || {};
+
               user.token = token;
+              user.refreshToken = refreshToken;
               return cb(null, user, { message: "Login Successful" });
             } else {
               console.log(
@@ -795,8 +805,10 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
             }
 
           }
-          const token = jwt.sign(user, sails.config.globals.APP_SECRET);
+          const { token, refreshToken } = TokenService.generateToken(user) || {};
+
           user.token = token;
+          user.refreshToken = refreshToken;
 
           return cb(null, user, { message: "Login Successful" });
         }
