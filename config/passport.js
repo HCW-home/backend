@@ -363,7 +363,8 @@ passport.use('openidconnect_admin', new OpenIDConnectStrategy({
         user.token = token;
         user.refreshToken = refreshToken;
         return cb(null, user, { message: "Login Successful" });
-
+      } else {
+        return cb(new Error('User not found'));
       }
 
     } catch (error) {
