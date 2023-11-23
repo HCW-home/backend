@@ -858,12 +858,11 @@ module.exports = {
 
   uploadFile(req, res) {
     sails.log.debug("Upload request received", req.allParams());
-    const maxFileSize = 10 * 1024 * 1024;
     const fileId = uuid.v4();
+    const {locale} = req.headers || {};
 
     req.file('attachment').upload({
       dirname: sails.config.globals.attachmentsDir,
-      maxBytes: maxFileSize,
       saveAs: function (__newFileStream, cb) {
         const fileExtension = __newFileStream.filename.split(".").pop();
         const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
@@ -872,19 +871,19 @@ module.exports = {
     }, async function whenDone(err, uploadedFiles) {
       if (err) {
         if (err.code === 'E_EXCEEDS_UPLOAD_LIMIT') {
-          return res.status(413).send('File size exceeds the limit of 10 MB');
+          return res.status(413).send(sails._t(locale, 'max file size'));
         }
         return res.status(500).send(err);
       }
       if (!uploadedFiles.length) {
-        return res.status(400).send('No file uploaded');
+        return res.status(400).send(sails._t(locale, 'no file'));
       }
 
       const uploadedFile = uploadedFiles[0];
 
       const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
       if (!allowedMimeTypes.includes(uploadedFile.type)) {
-        return res.status(400).send('Invalid file type. Only PDF, JPEG, and PNG files are allowed.');
+        return res.status(400).send(sails._t(locale, 'invalid file type'));
       }
 
       const fileExtension = uploadedFile.type.split("/").pop();
@@ -894,7 +893,7 @@ module.exports = {
         if (process.env.NODE_ENV !== 'development') {
           const { isInfected } = await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
           if (isInfected) {
-            return res.status(400).send(new Error('File is infected'));
+            return res.status(400).send(new Error(sails._t(locale, 'infected file')));
           }
         }
 
