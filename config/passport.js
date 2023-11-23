@@ -364,7 +364,7 @@ passport.use('openidconnect_admin', new OpenIDConnectStrategy({
         user.refreshToken = refreshToken;
         return cb(null, user, { message: "Login Successful" });
       } else {
-        return cb(new Error('User not found'));
+        return cb(new Error('Access is denied'));
       }
 
     } catch (error) {
