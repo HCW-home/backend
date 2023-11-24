@@ -11,7 +11,7 @@ moment.locale("fr");
 const FIRST_INVITE_REMINDER = 24 * 60 * 60 * 1000;
 const SECOND_INVITE_REMINDER = 60 * 1000;
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
-const testingUrl = `${process.env.PUBLIC_URL}/#test-call`;
+const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
 const crypto = require("crypto");
 
 async function generateToken() {
