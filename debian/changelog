@@ -1,3 +1,17 @@
+hcw-athome-backend (0.4.9.83) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update english translation
+  * Rename folder
+  * Update folder names
+  * Update Bruno
+  * Update Bruno doc
+
+  [ Gor Grigoryan ]
+  * remove # from patient app redirection
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 27 Nov 2023 11:44:31 +0100
+
 hcw-athome-backend (0.4.9.82) focal; urgency=medium
 
   [ Gor Grigoryan ]
