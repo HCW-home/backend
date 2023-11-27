@@ -161,18 +161,18 @@ module.exports = {
 
 
     if (valuesToSet.email) {
-      let existing = false;
-      if(valuesToSet.id){
-        existing = await User.findOne({ email: valuesToSet.email, id: { '!=': valuesToSet.id } });
-      }else{
-        existing = await User.findOne({ email: valuesToSet.email });
+      const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
+
+      if (currentUser && currentUser.email === valuesToSet.email) {
+        return proceed();
       }
 
+      const existing = await User.findOne({ email: valuesToSet.email, id: { '!=': valuesToSet.id } });
+
       if (existing) {
-        const err = new Error('Email have already been used ');
+        const err = new Error('Email have already been used');
         err.name = 'DUPLICATE_EMAIL';
         err.code = 400;
-
         return proceed(err);
       }
     }
