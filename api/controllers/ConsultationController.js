@@ -710,7 +710,7 @@ module.exports = {
       });
     } catch (error) {
       console.error(error);
-      return res.json(error);
+      return res.status(400).json({ error: 'An error occurred', details: error.message });
     }
   },
 
