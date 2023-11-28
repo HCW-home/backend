@@ -565,7 +565,7 @@ module.exports = {
         from: req.user.id,
         to: calleeId,
         participants: [req.user.id],
-        isConferenceCall: !!(consultation.translator || consultation.guest),
+        isConferenceCall: !!(consultation.translator || consultation.guest || consultation.experts?.length),
         status: "ringing",
         mediasoupURL: mediasoupServer.url,
       }).fetch();
