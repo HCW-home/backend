@@ -226,6 +226,7 @@ module.exports = {
     const nurse = await User.findOne({ id: consultation.owner });
     const translator = await User.findOne({ id: consultation.translator });
     const guest = await User.findOne({ id: consultation.guest });
+    const queue = await Queue.findOne({ id: consultation.queue });
 
     (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
@@ -238,6 +239,7 @@ module.exports = {
             nurse,
             translator,
             guest,
+            queue
           },
         });
       }
