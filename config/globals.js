@@ -58,6 +58,9 @@ module.exports.globals = {
   ACCESS_TOKEN_LIFE: process.env.ACCESS_TOKEN_LIFE || '15m',
   REFRESH_TOKEN_LIFE: process.env.REFRESH_TOKEN_LIFE || '18h',
 
+  MATOMO_URL: process.env.MATOMO_URL,
+  MATOMO_ID: process.env.MATOMO_ID,
+
   ROLE_DOCTOR: 'doctor',
   ROLE_NURSE: 'nurse',
   ROLE_PATIENT: 'patient',

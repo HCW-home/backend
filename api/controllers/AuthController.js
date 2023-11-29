@@ -791,6 +791,8 @@ module.exports = {
       logo: process.env.LOGO,
       openIdLogoutUri: process.env.OPENID_LOGOUT_URL,
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
+      matomoUrl: sails.config.globals.MATOMO_URL,
+      matomoId: sails.config.globals.MATOMO_ID,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
         : "", //! sending metadata to the front in config
