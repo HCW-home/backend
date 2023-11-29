@@ -1168,6 +1168,7 @@ module.exports = {
         "doctor delay in minutes",
         { delay, patientLanguage, branding: process.env.BRANDING }
       );
+
       const message = await Message.create({
         text: doctorDelayMsg,
         consultation: consultationId,

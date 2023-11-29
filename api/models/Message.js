@@ -75,6 +75,10 @@ module.exports = {
     mediasoupURL: {
       type: "string",
     },
+    fromUserDetail: {
+      type: 'json',
+      defaultsTo: {},
+    },
   },
   async endCall(message, consultation, reason) {
     console.log("End call");
@@ -99,6 +103,25 @@ module.exports = {
       });
     });
   },
+
+  async beforeCreate(message, proceed) {
+    try {
+      const user = await User.findOne({ id: message.from });
+      if (user) {
+        message.fromUserDetail = {
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          id: user.id
+        };
+      }
+      return proceed();
+    } catch (error) {
+      console.error('Error in beforeCreate: ', error.message);
+      return proceed(error);
+    }
+  },
+
   async afterCreate(message, proceed) {
     const consultation = await Consultation.findOne({
       id: message.consultation,
@@ -118,11 +141,17 @@ module.exports = {
       roomNames.push(consultation.doctor);
       roomNames.push(consultation.owner);
     }
+    const fromUserDetail = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      id: user.id
+    };
 
     sails.sockets.broadcast(
       roomNames,
       "newMessage",
-      { data: { ...message, from: user } },
+      { data: { ...message, fromUserDetail } },
     );
 
     if (message.type === "audioCall" || message.type === "videoCall") {
@@ -148,7 +177,6 @@ module.exports = {
       const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
       if ((user.role === sails.config.globals.ROLE_ADMIN || user.role === sails.config.globals.ROLE_DOCTOR) && !consultation.flagPatientOnline && !consultation.flagPatientNotified) {
         await PublicInvite.updateOne({ inviteToken: consultation.invitationToken }).set({ status: "SENT" });
-        console.log(user, 'user');
 
         const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
