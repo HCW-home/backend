@@ -145,6 +145,37 @@ function sendSmsWithInLog (phoneNumber, message) {
   });
 }
 
+/**
+ * Sends an SMS through the Twillo SMS Gateway API
+ *
+ * @param {string} message
+ * @param {string} phoneNumber
+ * @returns {void}
+ */
+
+function sendSmsWithTwilio(phoneNumber, message) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+  const client = require('twilio')(accountSid, authToken);
+
+  return new Promise((resolve, reject) => {
+    client.messages
+      .create({
+        body: message,
+        from: twilioPhoneNumber,
+        to: phoneNumber
+      })
+      .then(message => {
+        console.log('Twilio SMS sent:', message.sid);
+        resolve(message.sid);
+      })
+      .catch(error => {
+        console.error('Error sending Twilio SMS:', error);
+        reject(error);
+      });
+  });
+}
 
 /**
  * Sends an SMS through the Clickatel SMS Gateway API
@@ -338,6 +369,13 @@ module.exports = {
         await sendSmsWithInLog(phoneNumber, message);
 
         return exits.success();
+      } else if ('TWILIO_ACCOUNT_SID' in process.env
+        && 'TWILIO_AUTH_TOKEN' in process.env
+        && 'TWILIO_PHONE_NUMBER' in process.env) {
+        console.log(`Sending an SMS to ${phoneNumber} through TWILIO`);
+        await sendSmsWithTwilio(phoneNumber, message);
+
+        return exits.success();
       } else if ('SMS_OVH_ENDPOINT' in process.env
         && 'SMS_OVH_APP_KEY' in process.env
         && 'SMS_OVH_APP_SECRET' in process.env
@@ -346,7 +384,7 @@ module.exports = {
         await sendSmsWithOvh(phoneNumber, message);
 
         return exits.success();
-      } else if ('SMS_SWISSCOM_ACCOUNT' in process.env
+      }  else if ('SMS_SWISSCOM_ACCOUNT' in process.env
         && 'SMS_SWISSCOM_PASSWORD' in process.env
         && 'SMS_SWISSCOM_SENDER' in process.env) {
         console.log(`Sending an SMS to ${phoneNumber} through Swisscom`);
