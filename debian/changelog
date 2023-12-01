@@ -1,9 +1,9 @@
-hcw-athome-backend (0.4.9.85) focal; urgency=medium
+hcw-athome-backend (0.4.9.86) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * refs #6249, If expert close browser, the consultation hang up
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 01 Dec 2023 08:28:42 +0100
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 01 Dec 2023 08:49:53 +0100
 
 hcw-athome-backend (0.4.9.84) focal; urgency=medium
 
