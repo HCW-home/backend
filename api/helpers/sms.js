@@ -327,16 +327,35 @@ function sendSmsWithClickatelAPI (phoneNumber, message) {
 
 }
 
+const whitelistedPrefixes = {
+  'OVH': process.env.SMS_OVH_WL_PREFIX,
+  'SWISSCOM': process.env.SMS_SWISSCOM_WL_PREFIX,
+  'CLICKATEL': process.env.SMS_CLICKATEL_WL_PREFIX,
+  'CLICKATEL_API': process.env.SMS_CLICKATEL_API_WL_PREFIX,
+  'TWILIO': process.env.SMS_TWILLO_WL_PREFIX,
+};
+
+function isWhitelistedForProvider(provider, phoneNumber) {
+  const prefixString = whitelistedPrefixes[provider];
+
+  if (!prefixString) {
+    console.log(`No whitelisted prefixes defined for provider: ${provider}, skipping...`);
+    return false;
+  }
+
+  if (prefixString === '*') {
+    return true;
+  }
+
+  const prefixes = prefixString.split(',');
+  return prefixes.some(prefix => phoneNumber.startsWith(prefix));
+}
+
 
 module.exports = {
 
-
   friendlyName: 'SMS',
-
-
   description: 'Send SMS.',
-
-
   inputs: {
     phoneNumber: {
       type: 'string',
@@ -348,10 +367,7 @@ module.exports = {
     }
 
   },
-
-
   exits: {
-
     success: {
       description: 'All done.'
     }
@@ -359,63 +375,59 @@ module.exports = {
   },
 
 
-  async fn (inputs, exits) {
-
+  async  fn(inputs, exits) {
     try {
       const { message, phoneNumber } = inputs;
-
-      if ('SMS_DEV_PROVIDER' in process.env) {
-        console.log(`Sending an SMS to ${phoneNumber} through LOG`);
+      if (process.env.NODE_ENV === 'development') {
         await sendSmsWithInLog(phoneNumber, message);
-
         return exits.success();
-      } else if ('TWILIO_ACCOUNT_SID' in process.env
-        && 'TWILIO_AUTH_TOKEN' in process.env
-        && 'TWILIO_PHONE_NUMBER' in process.env) {
-        console.log(`Sending an SMS to ${phoneNumber} through TWILIO`);
-        await sendSmsWithTwilio(phoneNumber, message);
+      }
 
-        return exits.success();
-      } else if ('SMS_OVH_ENDPOINT' in process.env
-        && 'SMS_OVH_APP_KEY' in process.env
-        && 'SMS_OVH_APP_SECRET' in process.env
-        && 'SMS_OVH_APP_CONSUMER_KEY' in process.env) {
-        console.log(`Sending an SMS to ${phoneNumber} through OVH`);
-        await sendSmsWithOvh(phoneNumber, message);
+      const isAnyPrefixDefined = Object.values(whitelistedPrefixes).some(prefix => prefix);
+      const providers = sails.config.globals.SMS_PROVIDER_ORDER.split(',');
 
-        return exits.success();
-      }  else if ('SMS_SWISSCOM_ACCOUNT' in process.env
-        && 'SMS_SWISSCOM_PASSWORD' in process.env
-        && 'SMS_SWISSCOM_SENDER' in process.env) {
-        console.log(`Sending an SMS to ${phoneNumber} through Swisscom`);
-        await sendSmsWithSwisscom(phoneNumber, message);
+      for (const provider of providers) {
+        if (isAnyPrefixDefined ? isWhitelistedForProvider(provider, phoneNumber) : true) {
+          try {
+            console.log(`Sending an SMS to ${phoneNumber} through ${provider}`);
 
-        return exits.success();
+            switch(provider) {
+              case 'TWILIO':
+                await sendSmsWithTwilio(phoneNumber, message);
+                break;
+              case 'OVH':
+                await sendSmsWithOvh(phoneNumber, message);
+                break;
+              case 'SWISSCOM':
+                await sendSmsWithSwisscom(phoneNumber, message);
+                break;
+              case 'CLICKATEL':
+                await sendSmsWithClickatel(phoneNumber, message);
+                break;
+              case 'CLICKATEL_API':
+                await sendSmsWithClickatelAPI(phoneNumber, message);
+                break;
+              default:
+                console.error(`Provider ${provider} not recognized`);
+                continue;
+            }
 
-      } else if ('SMS_CLICKATEL' in process.env) {
-        console.log(`Sending an SMS to ${phoneNumber} through Clickatel`);
-        await sendSmsWithClickatel(phoneNumber, message);
+            return exits.success();
 
-        return exits.success();
-
-      } else if ('SMS_CLICKATEL_API' in process.env) {
-        console.log(`Sending an SMS to ${phoneNumber} through Clickatel API`);
-        await sendSmsWithClickatelAPI(phoneNumber, message);
-
-        return exits.success();
-
-      } else {
-        console.error('No SMS gateway configured');
-        if (process.env.NODE_ENV === 'development') {
-          console.log('SENDING SMS ', message, ' to ', phoneNumber);
-
-          exits.success();
+          } catch (error) {
+            console.error(`Failed to send SMS through ${provider}:`, error);
+          }
         }
       }
+
+      console.error('No SMS provider succeeded or phone number not whitelisted');
+      exits.error(new Error('SMS sending failed'));
+
     } catch (error) {
       exits.error(error);
     }
-
   }
+
+
 };
 
