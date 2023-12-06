@@ -881,7 +881,7 @@ module.exports = {
 
       const uploadedFile = uploadedFiles[0];
 
-      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
       if (!allowedMimeTypes.includes(uploadedFile.type)) {
         return res.status(400).send(sails._t(locale, 'invalid file type'));
       }
