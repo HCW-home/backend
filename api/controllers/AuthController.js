@@ -678,9 +678,15 @@ module.exports = {
               });
             }
             if (user.role === sails.config.globals.ROLE_ADMIN) {
-              return res.redirect(
-                `${process.env["ADMIN_URL"]}/login?tk=${user.token}`
-              );
+              if (process.env.NODE_ENV === 'development') {
+                return res.redirect(
+                  `${process.env["ADMIN_URL"]}/login?tk=${user.token}`
+                );
+              } else {
+                return res.redirect(
+                  `/login?tk=${user.token}`
+                );
+              }
             }
           }
         )(req, res, (err) => {
@@ -710,9 +716,15 @@ module.exports = {
               });
             }
             if (user.role === sails.config.globals.ROLE_NURSE) {
-              return res.redirect(
-                `${process.env["PUBLIC_URL"]}/requester?tk=${user.token}`
-              );
+              if (process.env.NODE_ENV === 'development') {
+                return res.redirect(
+                  `${process.env["PUBLIC_URL"]}/requester?tk=${user.token}`
+                );
+              } else {
+                return res.redirect(
+                  `/requester?tk=${user.token}`
+                );
+              }
             }
           }
         )(req, res, (err) => {
@@ -754,9 +766,15 @@ module.exports = {
               user.role === sails.config.globals.ROLE_DOCTOR ||
               user.role === sails.config.globals.ROLE_ADMIN
             ) {
-              return res.redirect(
-                `${process.env["DOCTOR_URL"]}/app?tk=${user.token}`
-              );
+              if (process.env.NODE_ENV === 'development') {
+                return res.redirect(
+                  `${process.env["DOCTOR_URL"]}/app?tk=${user.token}`
+                );
+              } else {
+                return res.redirect(
+                  `/app?tk=${user.token}`
+                );
+              }
             }
           }
         )(req, res, (err) => {
