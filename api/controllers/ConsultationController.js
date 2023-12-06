@@ -857,7 +857,6 @@ module.exports = {
   },
 
   uploadFile(req, res) {
-    sails.log.debug("Upload request received", req.allParams());
     const fileId = uuid.v4();
     const {locale} = req.headers || {};
 
@@ -886,8 +885,7 @@ module.exports = {
         return res.status(400).send(sails._t(locale, 'invalid file type'));
       }
 
-      const fileExtension = uploadedFile.type.split("/").pop();
-      const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
+      const filePath = `${req.params.consultation}_${fileId}.${uploadedFile.filename.split(".").pop()}`;
 
       try {
         if (process.env.NODE_ENV !== 'development') {
