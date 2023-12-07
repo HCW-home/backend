@@ -725,7 +725,7 @@ module.exports = {
       }).populate("currentParticipants");
 
       // if conference remove them from participants
-      if (message.isConferenceCall) {
+      if (message.isConferenceCall || consultation.experts?.length) {
         if (!message.currentParticipants.length || message.status === "ended") {
           return res.json({
             status: 200,
