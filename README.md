@@ -1,6 +1,8 @@
 # Health Care Worker @Home
 
-Simple & Secure remote consultations
+HCW@Home is a fork of HUG@Home solution co-developped by Hôpital Universitaire de Genève and Iabsis SARL.
+
+HCW@Home is a scalable, institution-level secure teleconsultation system for typical telemedicine scenarios, achieved through close collaboration with healthcare professionals. It is fully open-source and offers integrated features for chat, audio, and video calls using WebRTC.
 
 ### Feature
 
