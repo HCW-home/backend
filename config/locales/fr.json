@@ -62,8 +62,8 @@
   "consultation link": "Lien de consultation",
   "please use this link": "Veuillez utiliser ce lien pour rejoindre la consultation: %(expertLink)s",
   "consultation branding": "Consultation %(branding)s",
-  "notification for offline action subject": "%(branding)s Update on consultation while offline",
-  "notification for offline action text": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform. To connect back, you can use the following link %(url)s",
+  "notification for offline action subject": "%(branding)s Message reçu hors ligne",
+  "notification for offline action text": "Vous recevez ce message car vous êtes hors ligne et une tierce personne a envoyé une mise à jour dans une consultation. Vous ne recevrez plus ce message jusqu'a ce que vous vous connectez à nouveau sur la plateforme. Pour vous connectez, vous pouvez utiliser ce lien %(url)s",
   "notification for offline action text for nurse": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform.",
   "notification for offline action text for doctor": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform."
 }
