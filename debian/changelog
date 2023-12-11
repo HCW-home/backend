@@ -1,3 +1,10 @@
+hcw-athome-backend (0.4.9.93) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * verify token fix
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 11 Dec 2023 17:31:30 +0100
+
 hcw-athome-backend (0.4.9.92) focal; urgency=medium
 
   [ Olivier Bitsch ]
