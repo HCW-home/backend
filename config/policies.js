@@ -106,6 +106,7 @@ module.exports.policies = {
     logout: true,
     externalAuth: true,
     refreshToken: true,
+    verifyRefreshToken: true,
   },
   SupportController: {
     supportRequest: ["isLoggedIn"],

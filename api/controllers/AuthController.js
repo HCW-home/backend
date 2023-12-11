@@ -437,6 +437,22 @@ module.exports = {
     }
   },
 
+  verifyRefreshToken: async function(req, res) {
+    const refreshToken = req.body.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: 'Refresh token is required' });
+    }
+
+    try {
+      const decoded = await TokenService.verifyToken(refreshToken, true);
+      return res.status(200).json({ message: 'Token is valid', userId: decoded.id });
+    } catch (error) {
+      return res.status(401).json({ error: 'Invalid refresh token' });
+    }
+  },
+
+
   logout(req, res) {
     const performLogout = () => {
       req.logout((err) => {
