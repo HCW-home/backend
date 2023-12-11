@@ -446,9 +446,15 @@ module.exports = {
 
     try {
       const decoded = await TokenService.verifyToken(refreshToken, true);
-      return res.status(200).json({ message: 'Token is valid', userId: decoded.id });
+      return res.status(200).json({ message: 'Token is valid' });
     } catch (error) {
-      return res.status(401).json({ error: 'Invalid refresh token' });
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token expired' });
+      } else if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ error: 'Invalid refresh token' });
+      } else {
+        throw error;
+      }
     }
   },
 

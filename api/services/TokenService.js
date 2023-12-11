@@ -12,7 +12,7 @@ module.exports = {
     try {
       return jwt.verify(token, secret);
     } catch (error) {
-      return null;
+      throw error;
     }
   }
 };
