@@ -1,3 +1,15 @@
+hcw-athome-backend (0.4.9.92) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update README
+  * Update translation and add new var in config
+  * Add message to deprecate other auth method than openid
+
+  [ Gor Grigoryan ]
+  * verify refresh token
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 11 Dec 2023 13:51:33 +0100
+
 hcw-athome-backend (0.4.9.91) focal; urgency=medium
 
   [ Olivier Bitsch ]
