@@ -2,7 +2,8 @@ FROM node:16 AS builder
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
+COPY package.json ./
+COPY yarn.lock ./
 
 RUN npx yarn
 
