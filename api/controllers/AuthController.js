@@ -830,6 +830,7 @@ module.exports = {
       androidStoreTitle: process.env.ANDROID_STORE_TITLE,
       logo: process.env.LOGO,
       doctorAppPrimaryColor: process.env.DOCTOR_APP_PRIMARY_COLOR,
+      patientAppPrimaryColor: process.env.PATIENT_APP_PRIMARY_COLOR,
       openIdLogoutUri: process.env.OPENID_LOGOUT_URL,
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
       matomoUrl: sails.config.globals.MATOMO_URL,
