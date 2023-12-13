@@ -1,3 +1,13 @@
+hcw-athome-backend (0.4.9.94) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Add missing yarn.lock during docker/podman build
+
+  [ Gor Grigoryan ]
+  * fix mimeType upload issues
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 13 Dec 2023 09:06:03 +0100
+
 hcw-athome-backend (0.4.9.93) focal; urgency=medium
 
   [ Gor Grigoryan ]
