@@ -10,6 +10,7 @@ const path = require("path");
 const Json2csvParser = require("json2csv").Parser;
 const jwt = require("jsonwebtoken");
 const uuid = require('uuid');
+const fileType = require('file-type');
 
 const _ = require("@sailshq/lodash");
 const validator = require('validator');
@@ -879,9 +880,12 @@ module.exports = {
       }
 
       const uploadedFile = uploadedFiles[0];
+      const buffer = fs.readFileSync(uploadedFile.fd);
+      const type = await fileType.fromBuffer(buffer);
 
       const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
-      if (!allowedMimeTypes.includes(uploadedFile.type)) {
+      if (!allowedMimeTypes.includes(type?.mime)) {
+        fs.unlinkSync(uploadedFile.fd);
         return res.status(400).send(sails._t(locale, 'invalid file type'));
       }
 
@@ -891,6 +895,7 @@ module.exports = {
         if (process.env.NODE_ENV !== 'development') {
           const { isInfected } = await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
           if (isInfected) {
+            fs.unlinkSync(uploadedFile.fd);
             return res.status(400).send(new Error(sails._t(locale, 'infected file')));
           }
         }
@@ -908,6 +913,12 @@ module.exports = {
         return res.ok({ message });
       } catch (error) {
         sails.log('Error processing file upload: ', error);
+        try {
+          fs.unlinkSync(uploadedFile.fd);
+        } catch (deleteError) {
+          sails.log('Error deleting file: ', deleteError);
+        }
+
         return res.serverError();
       }
     });
@@ -921,18 +932,16 @@ module.exports = {
     });
 
     if (
-      !msg.mimeType.startsWith("audio") &&
-      !msg.mimeType.endsWith("jpeg") &&
-      !msg.mimeType.endsWith("png")
+      !msg.mimeType.startsWith("audio")
     ) {
       res.setHeader(
         "Content-disposition",
         `attachment; filename=${ msg.fileName }`
       );
-      res.setHeader(
-        "content-type",
-        "application/pdf"
-      );
+      // res.setHeader(
+      //   "content-type",
+      //   "application/pdf"
+      // );
     }
     const filePath = `${ sails.config.globals.attachmentsDir }/${ msg.filePath }`;
 
