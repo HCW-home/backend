@@ -1,3 +1,9 @@
+hcw-athome-backend (5.0.0) focal; urgency=medium
+
+  * Release 5.0.0
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 15 Dec 2023 08:30:43 +0100
+
 hcw-athome-backend (0.4.9.95) focal; urgency=medium
 
   [ Gor Grigoryan ]
