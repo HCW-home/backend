@@ -1,3 +1,15 @@
+hcw-athome-backend (5.0.1) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * openidconnect strategy require if login method is openid
+
+  [ Olivier Bitsch ]
+  * Update readme
+  * Add comment for CLAM_HOST
+  * Update config comments
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 15 Dec 2023 13:19:07 +0100
+
 hcw-athome-backend (5.0.0) focal; urgency=medium
 
   * Release 5.0.0
