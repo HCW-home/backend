@@ -246,13 +246,7 @@ module.exports = {
     );
   },
   async getConsultationParticipants(consultation) {
-    let users = await User.find({
-      where: {
-        role: sails.config.globals.ROLE_ADMIN
-      }
-    });
-    const adminUserIds = users.map(user => user.id);
-    const consultationParticipants = [consultation.owner, ...adminUserIds];
+    const consultationParticipants = [consultation.owner];
     if (consultation.translator) {
       consultationParticipants.push(consultation.translator);
     }
