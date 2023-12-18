@@ -1,3 +1,13 @@
+hcw-athome-backend (5.0.2) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * queue for admins
+
+  [ Olivier Bitsch ]
+  * Update bruno requests
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 18 Dec 2023 15:26:17 +0100
+
 hcw-athome-backend (5.0.1) focal; urgency=medium
 
   [ Gor Grigoryan ]
