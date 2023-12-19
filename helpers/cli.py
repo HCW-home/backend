@@ -36,8 +36,6 @@ class User:
 
     def create(self):
 
-        password = self.generate_password(10)
-
         try:
             user_email = sys.argv[2]
         except:
@@ -57,6 +55,9 @@ class User:
             user_role = sys.argv[5]
         except:
             user_role = self.define_role()
+
+        password = self.generate_password(10)
+        print(f"Generated password: {password}")
 
         salt = bcrypt.gensalt(10)
         hashed_password = bcrypt.hashpw(
