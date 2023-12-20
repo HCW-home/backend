@@ -998,8 +998,9 @@ module.exports = {
     if(isExpert){
       expertBody.status = null;
       expertBody.isExpert = true;
+      expertBody.expertToken = publicinvite.expertToken;
     }
-    res.json({ ...publicinvite, ...expertBody });
+    res.json({ ...publicinvite, expertToken: '' , ...expertBody });
   },
 
   async getConsultation(req, res) {
