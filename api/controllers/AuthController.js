@@ -830,6 +830,8 @@ module.exports = {
       androidStoreTitle: process.env.ANDROID_STORE_TITLE,
       logo: process.env.LOGO,
       doctorAppPrimaryColor: process.env.DOCTOR_APP_PRIMARY_COLOR,
+      nurseExternalLink: process.env.NURSE_EXTERNAL_LINK,
+      doctorExternalLink: process.env.DOCTOR_EXTERNAL_LINK,
       patientAppPrimaryColor: process.env.PATIENT_APP_PRIMARY_COLOR,
       openIdLogoutUri: process.env.OPENID_LOGOUT_URL,
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
