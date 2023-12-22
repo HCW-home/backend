@@ -1,3 +1,14 @@
+hcw-athome-backend (5.0.3) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Create helper script
+
+  [ Gor Grigoryan ]
+  * refs #6287, Expert token is exposed on patient interface API
+  * add doctor and nurse external links
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 22 Dec 2023 13:18:42 +0100
+
 hcw-athome-backend (5.0.2) focal; urgency=medium
 
   [ Gor Grigoryan ]
