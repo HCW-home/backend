@@ -46,5 +46,5 @@ override_dh_auto_install:
 	cp -a nginx/hcw-athome-patient.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
 	cp -a nginx/hcw-athome-scheduler.conf debian/hcw-athome-backend/usr/share/doc/hcw-athome-backend/nginx-samples/
 	mkdir debian/hcw-athome-backend/usr/bin/
-	cp helper/cli.py debian/hcw-athome-backend/usr/bin/hcw
+	cp helpers/cli.py debian/hcw-athome-backend/usr/bin/hcw
 	chmod +x debian/hcw-athome-backend/usr/bin/hcw
