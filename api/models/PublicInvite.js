@@ -489,36 +489,46 @@ module.exports = {
   },
 
   async setPatientOrGuestInviteReminders(invite) {
-    if (invite.phoneNumber) {
-      if (invite.scheduledFor - Date.now() > FIRST_INVITE_REMINDER) {
-        await sails.helpers.schedule.with({
-          name: "FIRST_INVITE_REMINDER_SMS",
-          data: { invite },
-          time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
-        });
-      }
-      await sails.helpers.schedule.with({
-        name: "SECOND_INVITE_REMINDER_SMS",
-        data: { invite },
-        time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
-      });
-    }
+    const currentTime = Date.now();
+    const timeUntilScheduled = invite.scheduledFor - currentTime;
 
-    if (invite.emailAddress) {
-      if (invite.scheduledFor - Date.now() > FIRST_INVITE_REMINDER) {
-        await sails.helpers.schedule.with({
-          name: "FIRST_INVITE_REMINDER_EMAIL",
-          data: { invite },
-          time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
-        });
+    if (timeUntilScheduled > TRANSLATOR_REQUEST_TIMEOUT) {
+      if (invite.phoneNumber) {
+        if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
+          await sails.helpers.schedule.with({
+            name: "FIRST_INVITE_REMINDER_SMS",
+            data: { invite },
+            time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
+          });
+        }
+        if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
+          await sails.helpers.schedule.with({
+            name: "SECOND_INVITE_REMINDER_SMS",
+            data: { invite },
+            time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+          });
+        }
       }
-      await sails.helpers.schedule.with({
-        name: "SECOND_INVITE_REMINDER_EMAIL",
-        data: { invite },
-        time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
-      });
+
+      if (invite.emailAddress) {
+        if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
+          await sails.helpers.schedule.with({
+            name: "FIRST_INVITE_REMINDER_EMAIL",
+            data: { invite },
+            time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
+          });
+        }
+        if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
+          await sails.helpers.schedule.with({
+            name: "SECOND_INVITE_REMINDER_EMAIL",
+            data: { invite },
+            time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+          });
+        }
+      }
     }
   },
+
   async destroyPatientInvite(invite) {
     const db = Consultation.getDatastore().manager;
     const userCollection = db.collection("user");
