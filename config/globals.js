@@ -63,6 +63,9 @@ module.exports.globals = {
   MATOMO_URL: process.env.MATOMO_URL,
   MATOMO_ID: process.env.MATOMO_ID,
 
+  EXTRA_MIME_TYPES: process.env.EXTRA_MIME_TYPES,
+  DEFAULT_MIME_TYPES: "application/pdf,image/jpeg,image/png,image/gif",
+
   ROLE_DOCTOR: 'doctor',
   ROLE_NURSE: 'nurse',
   ROLE_PATIENT: 'patient',

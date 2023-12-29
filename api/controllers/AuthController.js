@@ -837,6 +837,7 @@ module.exports = {
       accessibilityMode: process.env.ACCESSIBILITY_MODE,
       matomoUrl: sails.config.globals.MATOMO_URL,
       matomoId: sails.config.globals.MATOMO_ID,
+      extraMimeTypes: !!sails.config.globals.EXTRA_MIME_TYPES,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
         : "", //! sending metadata to the front in config

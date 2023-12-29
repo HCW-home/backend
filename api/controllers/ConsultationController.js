@@ -882,8 +882,10 @@ module.exports = {
       const uploadedFile = uploadedFiles[0];
       const buffer = fs.readFileSync(uploadedFile.fd);
       const type = await fileType.fromBuffer(buffer);
+      const extraMimeTypes = sails.config.globals.EXTRA_MIME_TYPES;
+      const defaultMimeTypes = sails.config.globals.DEFAULT_MIME_TYPES;
+      const allowedMimeTypes = extraMimeTypes && extraMimeTypes.length > 0 ? extraMimeTypes : defaultMimeTypes;
 
-      const allowedMimeTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif'];
       if (!allowedMimeTypes.includes(type?.mime)) {
         fs.unlinkSync(uploadedFile.fd);
         return res.status(400).send(sails._t(locale, 'invalid file type'));
