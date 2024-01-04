@@ -475,7 +475,7 @@ module.exports = {
           }),
           attachments: [
             {
-              fileName: "consultation.ics",
+              filename: "consultation.ics",
               content: Buffer.from(value),
             },
           ],
