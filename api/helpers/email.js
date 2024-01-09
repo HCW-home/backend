@@ -13,13 +13,32 @@ if (process.env.MAIL_SMTP_PASSWORD) {
   mailerConfig.auth.pass = process.env.MAIL_SMTP_PASSWORD;
 }
 const transporter = nodemailer.createTransport(mailerConfig);
+
+const emailQueue = [];
+let isProcessingQueue = false;
+
+function processQueue() {
+  if (isProcessingQueue) {
+    return;
+  }
+
+  const task = emailQueue.shift();
+  if (!task) {
+    isProcessingQueue = false;
+    return;
+  }
+
+  isProcessingQueue = true;
+  transporter.sendMail(task.options, (error, info) => {
+    task.callback(error, info);
+    isProcessingQueue = false;
+    processQueue();
+  });
+}
+
 module.exports = {
-
-
   friendlyName: 'Email',
-
   description: 'Sends Emails.',
-
 
   inputs: {
     to: {
@@ -28,7 +47,6 @@ module.exports = {
     },
     subject: {
       type: 'string',
-
       required: true
     },
     text: {
@@ -38,23 +56,15 @@ module.exports = {
     attachments: {
       type: 'ref'
     }
-
   },
 
-
   exits: {
-
     success: {
       description: 'All done.'
     }
-
   },
 
-
-  // eslint-disable-next-line require-await
-  async fn (inputs, exits) {
-
-
+  async fn(inputs, exits) {
     if (process.env.NODE_ENV === 'development') {
       console.log('Email not sent because of development env', inputs);
       console.log('Sending email>', inputs.text);
@@ -63,34 +73,27 @@ module.exports = {
 
     const html = "<p>".concat(inputs.text.replace(/(http[s]?\:\/\/[^ ]*)/, '<a href="$1">$1</a>'));
 
-    const options = {
-      from: process.env.MAIL_SMTP_SENDER,
-      to: inputs.to,
-      subject: inputs.subject,
-      text: inputs.text,
-      html: html
+    const emailTask = {
+      options: {
+        from: process.env.MAIL_SMTP_SENDER,
+        to: inputs.to,
+        subject: inputs.subject,
+        text: inputs.text,
+        html: html,
+        attachments: inputs.attachments || []
+      },
+      callback: (error, info) => {
+        if (error) {
+          sails.log('error sending email ', error);
+          exits.error(error);
+        } else {
+          sails.log('email sent successfully ');
+          exits.success();
+        }
+      }
     };
 
-    if (inputs.attachments) {
-      options.attachments = inputs.attachments
-    }
-
-    transporter.sendMail(options, (error, info) => {
-      if (error) {
-        // ...
-
-        sails.log('error sending email ', error);
-        exits.error(error);
-      } else {
-        // ...
-        sails.log('email send successfully ');
-        exits.success();
-      }
-
-      // fs.unlinkSync(uploadedFiles[0].fd);
-    });
+    emailQueue.push(emailTask);
+    processQueue();
   }
-
-
 };
-
