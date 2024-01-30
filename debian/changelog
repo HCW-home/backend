@@ -1,3 +1,19 @@
+hcw-athome-backend (0.5.0.4) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update comments
+  * Fix helper install path
+
+  [ Gor Grigoryan ]
+  * refs #6280, Update 404 backend error
+  * refs #6266, Not send reminder email/SMS of consultation is planned less 24h before.
+  * refs #6268, Add new allowed mimetype parameters in backend
+  * refs #6121, Attach ICS file with Email and Add Send to Gmail / Hotmail
+  * refs #6168, Issue sending email
+  * updates
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 30 Jan 2024 23:21:53 +0100
+
 hcw-athome-backend (5.0.3) focal; urgency=medium
 
   [ Olivier Bitsch ]
