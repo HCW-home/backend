@@ -13,7 +13,7 @@
     "server error": "Erreur du serveur",
     "patient invite": "Cliquez ici pour accéder à votre téléconsultation %(branding)s : %(url)s",
     "guest invite": "Cliquez ici pour accéder à votre téléconsultation %(branding)s : %(url)s",
-    "scheduled patient invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous conseillons d'ores et déjà de tester la compatibilité de votre appareil avec le lien suivant.\n %(testingUrl)s",
+    "scheduled patient invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous conseillons d'ores et déjà de tester la compatibilité de votre appareil avec le lien suivant.\n\n %(testingUrl)s",
     "scheduled guest invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous conseillons d'ores et déjà de tester la compatibilité de votre appareil.\n %(testingUrl)s",
     "first invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain le %(inviteTime)s. Un lien vous parviendra une minute avant votre rendez-vous.",
     "second invite reminder": "Votre téléconsultation démarre dans une minute : %(url)s",
