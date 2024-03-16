@@ -141,7 +141,7 @@ module.exports.policies = {
 
   QueueController: {
     "*": false,
-    find: ["isLoggedIn", "isDoctorOrAdminOrNurse"],
+    find: ["isLoggedIn", "isDoctorOrAdminOrNurseOrScheduler"],
     create: ["isLoggedIn", "isAdmin"],
     destroy: ["isLoggedIn", "isAdmin"],
     update: ["isLoggedIn", "isAdmin"],
