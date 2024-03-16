@@ -1,3 +1,29 @@
+hcw-athome-backend (5.0.5) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Add missing EXTRA_MIME_TYPES variable into template config file
+
+  [ Ricardo Mirón ]
+  * Create CODE_OF_CONDUCT.md
+
+  [ Weblate Admin ]
+  * Translated using Weblate (French)
+  * Translated using Weblate (Italian)
+  * Translated using Weblate (French)
+  * Added translation using Weblate (Korean)
+  * Deleted translation using Weblate (Korean)
+
+  [ Olivier Bitsch ]
+  * Translated using Weblate (French)
+
+  [ Pavel Chigrin ]
+  * Translated using Weblate (Russian)
+
+  [ Gor Grigoryan ]
+  * refs #6553, Permit scheduler role to get queue list
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Sat, 16 Mar 2024 11:24:07 +0100
+
 hcw-athome-backend (5.0.4) focal; urgency=medium
 
   [ Olivier Bitsch ]
