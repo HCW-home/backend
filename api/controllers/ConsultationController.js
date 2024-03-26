@@ -652,7 +652,7 @@ module.exports = {
               locale,
               "notification for offline action text for nurse"
             ),
-            senderEmail: consultation.doctor.email,
+            senderEmail: publicInvite?.doctor?.email,
           });
 
           await Consultation.updateOne({ id: consultation.id }).set({
@@ -664,7 +664,7 @@ module.exports = {
             message: sails._t(locale, "notification for offline action text", {
               url,
             }),
-            senderEmail: consultation.doctor.email,
+            senderEmail: publicInvite?.doctor?.email,
           });
 
           await Consultation.updateOne({ id: consultation.id }).set({

@@ -190,7 +190,7 @@ function sendSmsWithTwilio(phoneNumber, message) {
  * @param {string} senderEmail
  * @returns {void}
  */
-function sendSmsWithOdoo(phoneNumber, message, sender_email) {
+function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
   const https = require("https");
 
   phoneNumber = phoneNumber.replace(/^00/, "+");
@@ -206,13 +206,14 @@ function sendSmsWithOdoo(phoneNumber, message, sender_email) {
   });
 
   const options = {
-    hostname: process.env.ODOO_SMS_URL,
+    hostname: 'https://' + process.env.ODOO_SMS_HOST,
     port: 443,
     path: "/sendsms",
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "X-Auth-API": OdooAPI.appKey,
+      host: process.env.ODOO_SMS_HOST
     },
   };
 
@@ -224,18 +225,15 @@ function sendSmsWithOdoo(phoneNumber, message, sender_email) {
         rawData += chunk;
       });
       res.on("end", () => {
-        console.log("Will get raw data");
-        console.log("raw data", rawData);
+
         try {
           const parsedData = JSON.parse(rawData);
-          console.log("GOT CLICKATEL DATA", parsedData);
-          if (parsedData.messages[0]?.accepted) {
-            return resolve();
+          if (parsedData?.result?.error) {
+              return reject(new Error(parsedData.result.error));
+            } else {
+              return resolve();
           }
-          console.error(parsedData);
-          return reject(parsedData);
         } catch (e) {
-          console.error(e.message);
           return reject(e);
         }
       });
@@ -409,7 +407,7 @@ const whitelistedPrefixes = {
   CLICKATEL: process.env.SMS_CLICKATEL_WL_PREFIX,
   CLICKATEL_API: process.env.SMS_CLICKATEL_API_WL_PREFIX,
   TWILIO: process.env.SMS_TWILLO_WL_PREFIX,
-  ODOO_SMS: process.env.ODOO_SMS_WL_PREFIX,
+  ODOO_SMS: process.env.SMS_ODOO_WL_PREFIX,
 };
 
 function isWhitelistedForProvider(provider, phoneNumber) {
@@ -492,7 +490,12 @@ module.exports = {
                 await sendSmsWithClickatelAPI(phoneNumber, message);
                 break;
               case "ODOO_SMS":
-                await sendSmsWithOdoo(phoneNumber, message, senderEmail);
+                try {
+                  await sendSmsWithOdoo(phoneNumber, message, senderEmail);
+                } catch (odooError) {
+                  console.error(`Failed to send SMS through Odoo:`, odooError.message);
+                  return exits.error(new Error(odooError.message)); // Pass the specific error from Odoo
+                }
                 break;
               default:
                 console.error(`Provider ${provider} not recognized`);

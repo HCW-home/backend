@@ -692,7 +692,7 @@ module.exports = {
       await sails.helpers.sms.with({
         phoneNumber: doctor.notifPhoneNumber,
         message: sails._t(doctorLanguage, "patient is ready", { url }),
-        senderEmail: undefined, // TODO: fix here
+        senderEmail: doctor?.email,
       });
     }
   },

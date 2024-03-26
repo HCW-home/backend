@@ -1,8 +1,12 @@
 module.exports = {
   sendExpertLink: async function (req, res) {
     try {
-      const { expertLink, to } = req.body;
+      const { expertLink, to, consultationId } = req.body;
       const { locale } = req.headers || {};
+
+      let consultation = await Consultation.findOne({
+        id: consultationId,
+      }).populate("doctor")
 
       if (!expertLink) {
         return res.badRequest({ message: "expertLink is required" });
@@ -16,7 +20,7 @@ module.exports = {
           message: sails._t(locale, "please use this link", {
             expertLink: expertLink,
           }),
-          senderEmail: undefined, // TODO: fix here
+          senderEmail: consultation.doctor?.email,
         });
 
         return res.ok({ message: "SMS sent successfully" });

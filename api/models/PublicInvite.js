@@ -317,7 +317,7 @@ module.exports = {
         await sails.helpers.sms.with({
           phoneNumber: invite.phoneNumber,
           message,
-          senderEmail: invite.doctor.email,
+          senderEmail: invite?.doctor?.email,
         });
       } catch (error) {
         console.log("ERROR SENDING SMS>>>>>>>> ", error);
@@ -378,7 +378,7 @@ module.exports = {
         await sails.helpers.sms.with({
           phoneNumber: invite.phoneNumber,
           message,
-          senderEmail: invite.doctor.email,
+          senderEmail: invite.doctor?.email,
         });
       } catch (error) {
         console.log("ERROR SENDING SMS>>>>>>>> ", error);

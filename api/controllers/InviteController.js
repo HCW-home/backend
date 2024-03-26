@@ -290,6 +290,7 @@ module.exports = {
       };
       if (doctor) {
         inviteData.doctor = doctor.id;
+        inviteData.doctorData = { email:  doctor.email };
       }
       if (queue) {
         inviteData.queue = queue.id;
@@ -322,13 +323,13 @@ module.exports = {
             const isEmail = expertContact.includes("@");
 
             if (isPhoneNumber && !isEmail) {
-              await sails.helpers.sms.with({
-                phoneNumber: expertContact,
-                message: sails._t(doctorLanguage, "please use this link", {
-                  expertLink: expertLink,
-                }),
-                senderEmail: undefined, // TODO: fix here
-              });
+                await sails.helpers.sms.with({
+                  phoneNumber: expertContact,
+                  message: sails._t(doctorLanguage, "please use this link", {
+                    expertLink: expertLink,
+                  }),
+                  senderEmail: inviteData.doctorData?.email,
+                });
             } else if (isEmail && !isPhoneNumber) {
               await sails.helpers.email.with({
                 to: expertContact,
@@ -346,10 +347,6 @@ module.exports = {
             );
           }
         }
-      } else {
-        sails.log.error(
-          "Experts field should be an array of email addresses or phone numbers."
-        );
       }
 
       if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
@@ -424,6 +421,8 @@ module.exports = {
     }
 
     shouldSend = req.body.sendInvite;
+    const doctorLanguage =
+      req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
     try {
       if (shouldSend) {
@@ -439,7 +438,7 @@ module.exports = {
       await PublicInvite.destroyOne({ id: invite.id });
       return res.status(500).json({
         error: true,
-        message: "Error sending Invite",
+        message: error?.message  || sails._t(doctorLanguage, "invite error"),
       });
     }
 

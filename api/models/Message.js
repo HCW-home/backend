@@ -189,7 +189,6 @@ module.exports = {
         const locale =
           publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
-        console.log(publicInvite.emailAddress, "publicInvite.emailAddress");
         if (
           toUser &&
           toUser.email &&
@@ -239,7 +238,7 @@ module.exports = {
               locale,
               "notification for offline action text for nurse"
             ),
-            senderEmail: consultation.doctor.email,
+            senderEmail: publicInvite?.doctor?.email,
           });
 
           await Consultation.updateOne({ id: consultation.id }).set({
@@ -283,6 +282,7 @@ module.exports = {
               doctorLang,
               "notification for offline action text for doctor"
             ),
+            senderEmail: toUser?.email,
           });
 
           await Consultation.updateOne({ id: consultation.id }).set({

@@ -15,6 +15,7 @@ module.exports = {
           message:
             sails.models.publicinvite.getReminderMessage(invite)
               .firstReminderMessage,
+          senderEmail: invite?.doctor?.email,
         });
       },
       SECOND_INVITE_REMINDER_SMS: async (invite) => {
@@ -23,7 +24,7 @@ module.exports = {
           message:
             sails.models.publicinvite.getReminderMessage(invite)
               .secondReminderMessage,
-          senderEmail: invite.doctor.email,
+          senderEmail: invite?.doctor?.email,
         });
       },
       FIRST_INVITE_REMINDER_EMAIL: async (invite) => {

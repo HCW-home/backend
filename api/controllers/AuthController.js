@@ -319,6 +319,7 @@ module.exports = {
             message: `Votre code de vérification est ${verificationCode}. Ce code est utilisable ${
               SMS_CODE_LIFESPAN / 60
             } minutes`,
+            senderEmail: user?.email
           });
         } catch (err) {
           return res.status(500).json({
