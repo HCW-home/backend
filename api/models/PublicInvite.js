@@ -4,7 +4,7 @@
  * @description :: A model definition represents a database table/collection.
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
-const ics = require('ics');
+const ics = require("ics");
 const moment = require("moment-timezone");
 moment.locale("fr");
 
@@ -117,13 +117,13 @@ module.exports = {
     patientTZ: {
       type: "string",
     },
-    metadata:{
+    metadata: {
       type: "json",
-      required: false
-    }
+      required: false,
+    },
   },
   customToJSON() {
-    return _.omit(this, ["inviteToken", 'expertToken']);
+    return _.omit(this, ["inviteToken", "expertToken"]);
   },
   async beforeCreate(obj, proceed) {
     obj.inviteToken = await generateToken();
@@ -317,6 +317,7 @@ module.exports = {
         await sails.helpers.sms.with({
           phoneNumber: invite.phoneNumber,
           message,
+          senderEmail: invite.doctor.email,
         });
       } catch (error) {
         console.log("ERROR SENDING SMS>>>>>>>> ", error);
@@ -377,6 +378,7 @@ module.exports = {
         await sails.helpers.sms.with({
           phoneNumber: invite.phoneNumber,
           message,
+          senderEmail: invite.doctor.email,
         });
       } catch (error) {
         console.log("ERROR SENDING SMS>>>>>>>> ", error);
@@ -435,7 +437,7 @@ module.exports = {
         date.getMonth() + 1,
         date.getDate(),
         date.getHours(),
-        date.getMinutes()
+        date.getMinutes(),
       ];
 
       const event = {
@@ -444,24 +446,26 @@ module.exports = {
         title: sails._t(locale, "consultation branding", {
           branding: process.env.BRANDING,
         }),
-        description: '',
-        location: '',
-        organizer: { name: invite.doctor?.firstName + ' ' + invite.doctor?.lastName, email: invite.doctor?.email },
+        description: "",
+        location: "",
+        organizer: {
+          name: invite.doctor?.firstName + " " + invite.doctor?.lastName,
+          email: invite.doctor?.email,
+        },
       };
 
-      console.log('Creating ICS event...');
+      console.log("Creating ICS event...");
       ics.createEvent(event, async (error, value) => {
-
         // const filePath = 'assets/event.ics';
         // Save the .ics file data to disk
         // fs.writeFileSync(filePath, value);
 
         if (error) {
-          console.error('Error creating ICS event:', error);
+          console.error("Error creating ICS event:", error);
           return;
         }
 
-        console.log('ICS event created successfully. Sending email...');
+        console.log("ICS event created successfully. Sending email...");
         await sails.helpers.email.with({
           to: invite.emailAddress,
           subject: sails._t(locale, "consultation branding", {
@@ -481,10 +485,10 @@ module.exports = {
           ],
         });
 
-        console.log('Email sent successfully.');
+        console.log("Email sent successfully.");
       });
     } catch (err) {
-      console.error('An error occurred:', err);
+      console.error("An error occurred:", err);
     }
   },
 

@@ -80,9 +80,9 @@ module.exports = {
       required: false,
     },
     experts: {
-      type: 'json',
-      columnType: 'array',
-      defaultsTo: []
+      type: "json",
+      columnType: "array",
+      defaultsTo: [],
     },
     status: {
       type: "string",
@@ -239,7 +239,7 @@ module.exports = {
             nurse,
             translator,
             guest,
-            queue
+            queue,
           },
         });
       }
@@ -269,7 +269,7 @@ module.exports = {
       consultationParticipants.push(consultation.doctor);
     }
     if (consultation.experts?.length) {
-      consultation.experts.forEach(expert => {
+      consultation.experts.forEach((expert) => {
         consultationParticipants.push(expert);
       });
     }
@@ -404,7 +404,7 @@ module.exports = {
   },
   async sendConsultationClosed(consultation) {
     // emit consultation closed event with the consultation
-    (await  Consultation.getConsultationParticipants(consultation)).forEach(
+    (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
         sails.sockets.broadcast(participant, "consultationClosed", {
           data: {
@@ -605,11 +605,19 @@ module.exports = {
           consultation.flagDoctorNotified = false;
           break;
         case "expert":
-          const expertsFlags = await Consultation.findOne({ id: consultation._id.toString() });
-          await Consultation.update({ id: consultation._id.toString() }).set({
-            flagExpertsOnline: { ...expertsFlags.flagExpertsOnline, [user.id]: isOnline },
+          const expertsFlags = await Consultation.findOne({
+            id: consultation._id.toString(),
           });
-          consultation.flagExpertsOnline = { ...expertsFlags.flagExpertsOnline, [user.id]: isOnline };
+          await Consultation.update({ id: consultation._id.toString() }).set({
+            flagExpertsOnline: {
+              ...expertsFlags.flagExpertsOnline,
+              [user.id]: isOnline,
+            },
+          });
+          consultation.flagExpertsOnline = {
+            ...expertsFlags.flagExpertsOnline,
+            [user.id]: isOnline,
+          };
           break;
         default:
           break;
@@ -627,7 +635,7 @@ module.exports = {
                 flagDoctorOnline: consultation.flagDoctorOnline,
                 translator: consultation.translator,
                 guest: consultation.guest,
-                flagExpertsOnline: consultation.flagExpertsOnline
+                flagExpertsOnline: consultation.flagExpertsOnline,
               },
               _id: consultation._id,
               // user
@@ -639,10 +647,10 @@ module.exports = {
   },
   getConsultationReport(consultation) {
     if (consultation.owner) {
-      consultation.owner.name = `${ consultation.owner.firstName } ${ consultation.owner.lastName }`;
+      consultation.owner.name = `${consultation.owner.firstName} ${consultation.owner.lastName}`;
     }
     if (consultation.acceptedBy) {
-      consultation.acceptedBy.name = `${ consultation.acceptedBy.firstName } ${ consultation.acceptedBy.lastName }`;
+      consultation.acceptedBy.name = `${consultation.acceptedBy.firstName} ${consultation.acceptedBy.lastName}`;
     }
     const mappedConsultation = {};
     columns.forEach((col) => {
@@ -677,13 +685,14 @@ module.exports = {
           },
         }
       );
-      const url = `${ process.env.DOCTOR_URL }/app/plan-consultation?token=${ tokenString }`;
+      const url = `${process.env.DOCTOR_URL}/app/plan-consultation?token=${tokenString}`;
       const doctorLanguage =
         doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
       await sails.helpers.sms.with({
         phoneNumber: doctor.notifPhoneNumber,
         message: sails._t(doctorLanguage, "patient is ready", { url }),
+        senderEmail: undefined, // TODO: fix here
       });
     }
   },

@@ -187,7 +187,7 @@ function sendSmsWithTwilio(phoneNumber, message) {
  *
  * @param {string} phoneNumber
  * @param {string} message
- * @param {string} sender_email
+ * @param {string} senderEmail
  * @returns {void}
  */
 function sendSmsWithOdoo(phoneNumber, message, sender_email) {
@@ -201,7 +201,7 @@ function sendSmsWithOdoo(phoneNumber, message, sender_email) {
 
   const data = JSON.stringify({
     body: message,
-    from: sender_email,
+    from: senderEmail,
     to: [phoneNumber],
   });
 
@@ -442,7 +442,7 @@ module.exports = {
       type: "string",
       required: true,
     },
-    sender_email: {
+    senderEmail: {
       type: "string",
       required: false,
     },
@@ -455,7 +455,7 @@ module.exports = {
 
   async fn(inputs, exits) {
     try {
-      const { message, phoneNumber } = inputs;
+      const { message, phoneNumber, senderEmail } = inputs;
       if (process.env.NODE_ENV === "development") {
         await sendSmsWithInLog(phoneNumber, message);
         return exits.success();
@@ -492,7 +492,7 @@ module.exports = {
                 await sendSmsWithClickatelAPI(phoneNumber, message);
                 break;
               case "ODOO_SMS":
-                await sendSmsWithOdoo(phoneNumber, message, sender_email);
+                await sendSmsWithOdoo(phoneNumber, message, senderEmail);
                 break;
               default:
                 console.error(`Provider ${provider} not recognized`);

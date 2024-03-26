@@ -52,24 +52,23 @@ function validateInviteRequest(invite) {
   return errors;
 }
 
-  //!function that transform DISPLAY_META in a object from a string
-  //  function toObjectDIsplayMeta(string, para){
-  //    let ObjectDisplay = {};
-  //   if(string === "" || string === undefined){
-  //     return ObjectDisplay;
-  //   }else{
-  //     let arrayString = string.split(',');
-  //     for (let i = 0; i < arrayString.length; i++) {
-  //       if(para === undefined){
-  //         ObjectDisplay = {};
-  //       }else{
-  //         ObjectDisplay[arrayString[i]] = para[arrayString[i]];
-  //       }
-  //     }
-  //     return ObjectDisplay;
-  //   }
-  // }
-
+//!function that transform DISPLAY_META in a object from a string
+//  function toObjectDIsplayMeta(string, para){
+//    let ObjectDisplay = {};
+//   if(string === "" || string === undefined){
+//     return ObjectDisplay;
+//   }else{
+//     let arrayString = string.split(',');
+//     for (let i = 0; i < arrayString.length; i++) {
+//       if(para === undefined){
+//         ObjectDisplay = {};
+//       }else{
+//         ObjectDisplay[arrayString[i]] = para[arrayString[i]];
+//       }
+//     }
+//     return ObjectDisplay;
+//   }
+// }
 
 async function createTranslationRequest(translationInvite, organization) {
   // if organization has main email sent to that email
@@ -213,12 +212,10 @@ module.exports = {
       }
 
       if (!doctor) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error: `Doctor with email ${req.body.doctorEmail} not found`,
-          });
+        return res.status(400).json({
+          success: false,
+          error: `Doctor with email ${req.body.doctorEmail} not found`,
+        });
       }
       // a
     } else if (req.user.role === "doctor" || req.user.role === "admin") {
@@ -312,40 +309,48 @@ module.exports = {
 
       invite = await PublicInvite.create(inviteData).fetch();
 
-
       const experts = req.body.experts;
-      const expertLink = `${ process.env.PUBLIC_URL }/inv/?invite=${ invite.expertToken }`;
+      const expertLink = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
 
-      const doctorLanguage = req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE
+      const doctorLanguage =
+        req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
       if (Array.isArray(experts)) {
         for (const expertContact of experts) {
-          if (typeof expertContact === 'string') {
+          if (typeof expertContact === "string") {
             const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
-            const isEmail = expertContact.includes('@');
+            const isEmail = expertContact.includes("@");
 
             if (isPhoneNumber && !isEmail) {
               await sails.helpers.sms.with({
                 phoneNumber: expertContact,
-                message: sails._t(doctorLanguage, 'please use this link',{expertLink: expertLink}),
+                message: sails._t(doctorLanguage, "please use this link", {
+                  expertLink: expertLink,
+                }),
+                senderEmail: undefined, // TODO: fix here
               });
             } else if (isEmail && !isPhoneNumber) {
               await sails.helpers.email.with({
                 to: expertContact,
-                subject: sails._t(doctorLanguage, 'consultation link'),
-                text: sails._t(doctorLanguage, 'please use this link',{expertLink: expertLink}),
+                subject: sails._t(doctorLanguage, "consultation link"),
+                text: sails._t(doctorLanguage, "please use this link", {
+                  expertLink: expertLink,
+                }),
               });
             } else {
               sails.log.error(`Invalid contact info: ${expertContact}`);
             }
           } else {
-            sails.log.error(`Invalid contact info (not a string): ${expertContact}`);
+            sails.log.error(
+              `Invalid contact info (not a string): ${expertContact}`
+            );
           }
         }
       } else {
-        sails.log.error('Experts field should be an array of email addresses or phone numbers.');
+        sails.log.error(
+          "Experts field should be an array of email addresses or phone numbers."
+        );
       }
-
 
       if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
         const guestInviteDate = {
@@ -571,12 +576,10 @@ module.exports = {
       }
 
       if (!doctor) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            error: `Doctor with email ${doctorEmail} not found`,
-          });
+        return res.status(400).json({
+          success: false,
+          error: `Doctor with email ${doctorEmail} not found`,
+        });
       }
       // a
     } else if (req.user.role === "doctor") {
@@ -980,8 +983,8 @@ module.exports = {
     const publicinvite = await PublicInvite.findOne({
       or: [
         { inviteToken: req.params.invitationToken },
-        { expertToken: req.params.invitationToken }
-      ]
+        { expertToken: req.params.invitationToken },
+      ],
     })
       .populate("translationOrganization")
       .populate("doctor");
@@ -994,13 +997,13 @@ module.exports = {
       "lastName",
     ]);
 
-    const expertBody = {}
-    if(isExpert){
+    const expertBody = {};
+    if (isExpert) {
       expertBody.status = null;
       expertBody.isExpert = true;
       expertBody.expertToken = publicinvite.expertToken;
     }
-    res.json({ ...publicinvite, expertToken: '' , ...expertBody });
+    res.json({ ...publicinvite, expertToken: "", ...expertBody });
   },
 
   async getConsultation(req, res) {

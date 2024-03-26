@@ -76,7 +76,7 @@ module.exports = {
       type: "string",
     },
     fromUserDetail: {
-      type: 'json',
+      type: "json",
       defaultsTo: {},
     },
   },
@@ -112,12 +112,12 @@ module.exports = {
           firstName: user.firstName,
           lastName: user.lastName,
           role: user.role,
-          id: user.id
+          id: user.id,
         };
       }
       return proceed();
     } catch (error) {
-      console.error('Error in beforeCreate: ', error.message);
+      console.error("Error in beforeCreate: ", error.message);
       return proceed(error);
     }
   },
@@ -135,8 +135,11 @@ module.exports = {
       id: message.to,
     });
 
-    let roomNames = [message.to || consultation.queue || consultation.doctor, ...consultation.experts]
-    if (user.role === 'expert') {
+    let roomNames = [
+      message.to || consultation.queue || consultation.doctor,
+      ...consultation.experts,
+    ];
+    if (user.role === "expert") {
       roomNames = consultation.experts.filter((expert) => expert !== user.id);
       roomNames.push(consultation.doctor);
       roomNames.push(consultation.owner);
@@ -145,14 +148,12 @@ module.exports = {
       firstName: user.firstName,
       lastName: user.lastName,
       role: user.role,
-      id: user.id
+      id: user.id,
     };
 
-    sails.sockets.broadcast(
-      roomNames,
-      "newMessage",
-      { data: { ...message, fromUserDetail } },
-    );
+    sails.sockets.broadcast(roomNames, "newMessage", {
+      data: { ...message, fromUserDetail },
+    });
 
     if (message.type === "audioCall" || message.type === "videoCall") {
       sails.sockets.broadcast(message.from, "newMessage", { data: message });
@@ -175,65 +176,121 @@ module.exports = {
 
     if (publicInvite) {
       const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
-      if ((user.role === sails.config.globals.ROLE_ADMIN || user.role === sails.config.globals.ROLE_DOCTOR) && !consultation.flagPatientOnline && !consultation.flagPatientNotified) {
-        await PublicInvite.updateOne({ inviteToken: consultation.invitationToken }).set({ status: "SENT" });
+      if (
+        (user.role === sails.config.globals.ROLE_ADMIN ||
+          user.role === sails.config.globals.ROLE_DOCTOR) &&
+        !consultation.flagPatientOnline &&
+        !consultation.flagPatientNotified
+      ) {
+        await PublicInvite.updateOne({
+          inviteToken: consultation.invitationToken,
+        }).set({ status: "SENT" });
 
-        const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+        const locale =
+          publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
-        console.log(publicInvite.emailAddress, 'publicInvite.emailAddress');
-        if (toUser && toUser.email && toUser.role === sails.config.globals.ROLE_NURSE) {
+        console.log(publicInvite.emailAddress, "publicInvite.emailAddress");
+        if (
+          toUser &&
+          toUser.email &&
+          toUser.role === sails.config.globals.ROLE_NURSE
+        ) {
           await sails.helpers.email.with({
             to: toUser.email,
-            subject: sails._t(locale, "notification for offline action subject", { branding: process.env.BRANDING }),
-            text: sails._t(locale, "notification for offline action text for nurse")
+            subject: sails._t(
+              locale,
+              "notification for offline action subject",
+              { branding: process.env.BRANDING }
+            ),
+            text: sails._t(
+              locale,
+              "notification for offline action text for nurse"
+            ),
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
-
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         } else if (publicInvite.emailAddress) {
           await sails.helpers.email.with({
             to: publicInvite.emailAddress,
-            subject: sails._t(locale, "notification for offline action subject", { branding: process.env.BRANDING }),
-            text: sails._t(locale, "notification for offline action text", { url })
+            subject: sails._t(
+              locale,
+              "notification for offline action subject",
+              { branding: process.env.BRANDING }
+            ),
+            text: sails._t(locale, "notification for offline action text", {
+              url,
+            }),
           });
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         }
 
-        if (toUser && toUser.phoneNumber && toUser.role === sails.config.globals.ROLE_NURSE) {
+        if (
+          toUser &&
+          toUser.phoneNumber &&
+          toUser.role === sails.config.globals.ROLE_NURSE
+        ) {
           await sails.helpers.sms.with({
             phoneNumber: toUser.phoneNumber,
-            message: sails._t(locale, "notification for offline action text for nurse"),
+            message: sails._t(
+              locale,
+              "notification for offline action text for nurse"
+            ),
+            senderEmail: consultation.doctor.email,
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         }
       }
 
-      if ((user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_PATIENT) && !consultation.flagDoctorOnline && !consultation.flagDoctorNotified) {
-        const doctorLang = publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+      if (
+        (user.role === sails.config.globals.ROLE_NURSE ||
+          user.role === sails.config.globals.ROLE_PATIENT) &&
+        !consultation.flagDoctorOnline &&
+        !consultation.flagDoctorNotified
+      ) {
+        const doctorLang =
+          publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
         if (toUser?.email) {
           await sails.helpers.email.with({
             to: toUser.email,
-            subject: sails._t(doctorLang, "notification for offline action subject", { branding: process.env.BRANDING }),
-            text: sails._t(doctorLang, "notification for offline action text for doctor")
+            subject: sails._t(
+              doctorLang,
+              "notification for offline action subject",
+              { branding: process.env.BRANDING }
+            ),
+            text: sails._t(
+              doctorLang,
+              "notification for offline action text for doctor"
+            ),
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagDoctorNotified: true });
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagDoctorNotified: true,
+          });
         }
 
         if (toUser?.enableNotif && toUser?.notifPhoneNumber) {
           await sails.helpers.sms.with({
             phoneNumber: toUser?.notifPhoneNumber,
-            message: sails._t(doctorLang, "notification for offline action text for doctor"),
+            message: sails._t(
+              doctorLang,
+              "notification for offline action text for doctor"
+            ),
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagDoctorNotified: true });
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagDoctorNotified: true,
+          });
         }
       }
     }
-
-
 
     return proceed();
   },

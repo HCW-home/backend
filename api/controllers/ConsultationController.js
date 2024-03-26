@@ -9,11 +9,11 @@ const fs = require("fs");
 const path = require("path");
 const Json2csvParser = require("json2csv").Parser;
 const jwt = require("jsonwebtoken");
-const uuid = require('uuid');
-const fileType = require('file-type');
+const uuid = require("uuid");
+const fileType = require("file-type");
 
 const _ = require("@sailshq/lodash");
-const validator = require('validator');
+const validator = require("validator");
 
 const db = Consultation.getDatastore().manager;
 
@@ -58,7 +58,6 @@ module.exports = {
         },
       ];
     }
-
 
     if (req.user.viewAllQueues) {
       const queues = (await Queue.find({})).map(
@@ -250,10 +249,10 @@ module.exports = {
     const data = await results.toArray();
 
     for (const index in data) {
-      const item = data[index]
-      if(item.consultation.experts.length){
+      const item = data[index];
+      if (item.consultation.experts.length) {
         const experts = await User.find({
-          id: { in: item.consultation.experts }
+          id: { in: item.consultation.experts },
         });
         data[index].consultation.experts = experts;
       }
@@ -298,8 +297,8 @@ module.exports = {
         invite = await PublicInvite.findOne({
           or: [
             { inviteToken: req.body.invitationToken },
-            { expertToken: req.body.invitationToken }
-          ]
+            { expertToken: req.body.invitationToken },
+          ],
         });
       }
 
@@ -315,7 +314,7 @@ module.exports = {
       if (invite && isExpert) {
         Consultation.update({ invitationToken: invite.inviteToken }, {})
           .fetch()
-          .then(consultation => {
+          .then((consultation) => {
             res.json(consultation[0]);
           });
         return;
@@ -346,7 +345,7 @@ module.exports = {
         consultationJson.metadata = invite.metadata; //! we pass the metadata from the invite to the consultation
         consultationJson.IMADTeam = invite.IMADTeam || "none";
         consultationJson.birthDate = invite.birthDate;
-        consultationJson.expertInvitationURL = `${ process.env.PUBLIC_URL }/inv/?invite=${ invite.expertToken }`;
+        consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
       }
     }
 
@@ -381,12 +380,12 @@ module.exports = {
         queue: req.body.queue,
         gender: req.body.gender,
         inviteToken: req.body.invitationToken,
-        expertToken: req.body.expertInvitationURL
-      }
+        expertToken: req.body.expertInvitationURL,
+      };
       const newInvite = await PublicInvite.create(inviteData).fetch();
-      consultationJson.id = newInvite.id
+      consultationJson.id = newInvite.id;
       consultationJson.invitationToken = newInvite.inviteToken;
-      consultationJson.expertInvitationURL = `${ process.env.PUBLIC_URL }/inv/?invite=${ newInvite.expertToken }`;
+      consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${newInvite.expertToken}`;
     }
 
     Consultation.create(consultationJson)
@@ -511,10 +510,11 @@ module.exports = {
       });
       return res.json({ token, peerId: roomIdPeerId });
     } catch (err) {
-      return res.status(400).json({ error: 'An error occurred', details: err.message });
+      return res
+        .status(400)
+        .json({ error: "An error occurred", details: err.message });
     }
   },
-
 
   async call(req, res) {
     try {
@@ -566,7 +566,11 @@ module.exports = {
         from: req.user.id,
         to: calleeId,
         participants: [req.user.id],
-        isConferenceCall: !!(consultation.translator || consultation.guest || consultation.experts?.length),
+        isConferenceCall: !!(
+          consultation.translator ||
+          consultation.guest ||
+          consultation.experts?.length
+        ),
         status: "ringing",
         mediasoupURL: mediasoupServer.url,
       }).fetch();
@@ -577,52 +581,95 @@ module.exports = {
       const patientMsg = Object.assign({}, msg);
       patientMsg.token = patientToken;
 
-      const publicInvite = await PublicInvite.findOne({ inviteToken: consultation.invitationToken });
+      const publicInvite = await PublicInvite.findOne({
+        inviteToken: consultation.invitationToken,
+      });
 
       const toUser = await User.findOne({
         id: calleeId,
       });
 
-      if (publicInvite && !consultation.flagPatientOnline && !consultation.flagPatientNotified) {
-        await PublicInvite.updateOne({ inviteToken: consultation.invitationToken }).set({ status: "SENT" });
+      if (
+        publicInvite &&
+        !consultation.flagPatientOnline &&
+        !consultation.flagPatientNotified
+      ) {
+        await PublicInvite.updateOne({
+          inviteToken: consultation.invitationToken,
+        }).set({ status: "SENT" });
 
         const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
-        const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+        const locale =
+          publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
-        if (toUser && toUser.email && toUser.role === sails.config.globals.ROLE_NURSE) {
+        if (
+          toUser &&
+          toUser.email &&
+          toUser.role === sails.config.globals.ROLE_NURSE
+        ) {
           await sails.helpers.email.with({
             to: toUser.email,
-            subject: sails._t(locale, "notification for offline action subject", { branding: process.env.BRANDING }),
-            text: sails._t(locale, "notification for offline action text for nurse")
+            subject: sails._t(
+              locale,
+              "notification for offline action subject",
+              { branding: process.env.BRANDING }
+            ),
+            text: sails._t(
+              locale,
+              "notification for offline action text for nurse"
+            ),
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
-
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         } else if (publicInvite.email) {
           await sails.helpers.email.with({
             to: publicInvite.emailAddress,
-            subject: sails._t(locale, "notification for offline action subject", { branding: process.env.BRANDING }),
-            text: sails._t(locale, "notification for offline action text", { url })
+            subject: sails._t(
+              locale,
+              "notification for offline action subject",
+              { branding: process.env.BRANDING }
+            ),
+            text: sails._t(locale, "notification for offline action text", {
+              url,
+            }),
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         }
 
-        if (toUser && toUser.phoneNumber && toUser.role === sails.config.globals.ROLE_NURSE) {
+        if (
+          toUser &&
+          toUser.phoneNumber &&
+          toUser.role === sails.config.globals.ROLE_NURSE
+        ) {
           await sails.helpers.sms.with({
             phoneNumber: toUser.phoneNumber,
-            message: sails._t(locale, "notification for offline action text for nurse"),
+            message: sails._t(
+              locale,
+              "notification for offline action text for nurse"
+            ),
+            senderEmail: consultation.doctor.email,
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
-
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         } else if (publicInvite.phoneNumber) {
           await sails.helpers.sms.with({
             phoneNumber: publicInvite.phoneNumber,
-            message: sails._t(locale, "notification for offline action text", { url }),
+            message: sails._t(locale, "notification for offline action text", {
+              url,
+            }),
+            senderEmail: consultation.doctor.email,
           });
 
-          await Consultation.updateOne({ id: consultation.id }).set({ flagPatientNotified: true });
+          await Consultation.updateOne({ id: consultation.id }).set({
+            flagPatientNotified: true,
+          });
         }
       }
 
@@ -711,7 +758,9 @@ module.exports = {
       });
     } catch (error) {
       console.error(error);
-      return res.status(400).json({ error: 'An error occurred', details: error.message });
+      return res
+        .status(400)
+        .json({ error: "An error occurred", details: error.message });
     }
   },
 
@@ -859,73 +908,83 @@ module.exports = {
 
   uploadFile(req, res) {
     const fileId = uuid.v4();
-    const {locale} = req.headers || {};
+    const { locale } = req.headers || {};
 
-    req.file('attachment').upload({
-      dirname: sails.config.globals.attachmentsDir,
-      saveAs: function (__newFileStream, cb) {
-        const fileExtension = __newFileStream.filename.split(".").pop();
-        const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
-        cb(null, filePath);
+    req.file("attachment").upload(
+      {
+        dirname: sails.config.globals.attachmentsDir,
+        saveAs: function (__newFileStream, cb) {
+          const fileExtension = __newFileStream.filename.split(".").pop();
+          const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
+          cb(null, filePath);
+        },
       },
-    }, async function whenDone(err, uploadedFiles) {
-      if (err) {
-        if (err.code === 'E_EXCEEDS_UPLOAD_LIMIT') {
-          return res.status(413).send(sails._t(locale, 'max file size'));
-        }
-        return res.status(500).send(err);
-      }
-      if (!uploadedFiles.length) {
-        return res.status(400).send(sails._t(locale, 'no file'));
-      }
-
-      const uploadedFile = uploadedFiles[0];
-      const buffer = fs.readFileSync(uploadedFile.fd);
-      const type = await fileType.fromBuffer(buffer);
-      const extraMimeTypes = sails.config.globals.EXTRA_MIME_TYPES;
-      const defaultMimeTypes = sails.config.globals.DEFAULT_MIME_TYPES;
-      const allowedMimeTypes = extraMimeTypes && extraMimeTypes.length > 0 ? extraMimeTypes : defaultMimeTypes;
-
-      if (!allowedMimeTypes.includes(type?.mime)) {
-        fs.unlinkSync(uploadedFile.fd);
-        return res.status(400).send(sails._t(locale, 'invalid file type'));
-      }
-
-      const filePath = `${req.params.consultation}_${fileId}.${uploadedFile.filename.split(".").pop()}`;
-
-      try {
-        if (process.env.NODE_ENV !== 'development') {
-          const { isInfected } = await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
-          if (isInfected) {
-            fs.unlinkSync(uploadedFile.fd);
-            return res.status(400).send(new Error(sails._t(locale, 'infected file')));
+      async function whenDone(err, uploadedFiles) {
+        if (err) {
+          if (err.code === "E_EXCEEDS_UPLOAD_LIMIT") {
+            return res.status(413).send(sails._t(locale, "max file size"));
           }
+          return res.status(500).send(err);
+        }
+        if (!uploadedFiles.length) {
+          return res.status(400).send(sails._t(locale, "no file"));
         }
 
-        const message = await Message.create({
-          type: 'attachment',
-          mimeType: uploadedFile.type,
-          fileName: uploadedFile.filename,
-          filePath,
-          consultation: req.params.consultation,
-          to: req.body.to || null,
-          from: req.user.id,
-        }).fetch();
+        const uploadedFile = uploadedFiles[0];
+        const buffer = fs.readFileSync(uploadedFile.fd);
+        const type = await fileType.fromBuffer(buffer);
+        const extraMimeTypes = sails.config.globals.EXTRA_MIME_TYPES;
+        const defaultMimeTypes = sails.config.globals.DEFAULT_MIME_TYPES;
+        const allowedMimeTypes =
+          extraMimeTypes && extraMimeTypes.length > 0
+            ? extraMimeTypes
+            : defaultMimeTypes;
 
-        return res.ok({ message });
-      } catch (error) {
-        sails.log('Error processing file upload: ', error);
-        try {
+        if (!allowedMimeTypes.includes(type?.mime)) {
           fs.unlinkSync(uploadedFile.fd);
-        } catch (deleteError) {
-          sails.log('Error deleting file: ', deleteError);
+          return res.status(400).send(sails._t(locale, "invalid file type"));
         }
 
-        return res.serverError();
-      }
-    });
-  },
+        const filePath = `${
+          req.params.consultation
+        }_${fileId}.${uploadedFile.filename.split(".").pop()}`;
 
+        try {
+          if (process.env.NODE_ENV !== "development") {
+            const { isInfected } =
+              await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
+            if (isInfected) {
+              fs.unlinkSync(uploadedFile.fd);
+              return res
+                .status(400)
+                .send(new Error(sails._t(locale, "infected file")));
+            }
+          }
+
+          const message = await Message.create({
+            type: "attachment",
+            mimeType: uploadedFile.type,
+            fileName: uploadedFile.filename,
+            filePath,
+            consultation: req.params.consultation,
+            to: req.body.to || null,
+            from: req.user.id,
+          }).fetch();
+
+          return res.ok({ message });
+        } catch (error) {
+          sails.log("Error processing file upload: ", error);
+          try {
+            fs.unlinkSync(uploadedFile.fd);
+          } catch (deleteError) {
+            sails.log("Error deleting file: ", deleteError);
+          }
+
+          return res.serverError();
+        }
+      }
+    );
+  },
 
   async attachment(req, res) {
     const attachment = validator.escape(req.params.attachment).trim();
@@ -933,19 +992,17 @@ module.exports = {
       id: attachment,
     });
 
-    if (
-      !msg.mimeType.startsWith("audio")
-    ) {
+    if (!msg.mimeType.startsWith("audio")) {
       res.setHeader(
         "Content-disposition",
-        `attachment; filename=${ msg.fileName }`
+        `attachment; filename=${msg.fileName}`
       );
       // res.setHeader(
       //   "content-type",
       //   "application/pdf"
       // );
     }
-    const filePath = `${ sails.config.globals.attachmentsDir }/${ msg.filePath }`;
+    const filePath = `${sails.config.globals.attachmentsDir}/${msg.filePath}`;
 
     if (!fs.existsSync(filePath)) {
       return res.notFound();
