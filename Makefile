@@ -16,8 +16,9 @@ docker:
 
 build-podman:
 	podman build . -t docker.io/iabsis/hcw-backend
-	V=$$(cat .version) ; podman tag docker.io/iabsis/hcw-backend:latest docker.io/iabsis/hcw-backend:$$V
-	podman tag docker.io/iabsis/hcw-backend:latest docker.io/iabsis/hcw-backend:5
+	@ V=$$(cat .version) ; podman tag docker.io/iabsis/hcw-backend:latest docker.io/iabsis/hcw-backend:$$V
+	@ podman tag docker.io/iabsis/hcw-backend:latest docker.io/iabsis/hcw-backend:5
+	@ V=$$(cat .version) ; echo "Publish podman now with:\n podman push docker.io/iabsis/hcw-backend:$$V\n podman push docker.io/iabsis/hcw-backend:latest\n podman push docker.io/iabsis/hcw-backend:5"
 
 clean:
 	@ echo "cleaning the dist directory"
@@ -35,6 +36,6 @@ update-redhat-release:
 do-git-release:
 	@ git add debian/changelog redhat/hcw-athome-backend.spec
 	@ V=$$(cat .version) ; git tag $$V
-	@ V=$$(cat .version) ; echo "Check everything is good and publish now with:\n git commit -m \"New release $$V\"\n git push --tag"
+	@ V=$$(cat .version) ; echo "Publish git now with:\n git commit -m \"New release $$V\"\n git push --tag"
 
 do-release-all: create-debian-release update-redhat-release build-podman
