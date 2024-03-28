@@ -199,7 +199,7 @@ module.exports = {
       const results = await User.find({
         or: [
           { role: sails.config.globals.ROLE_DOCTOR, email: req.body.doctorEmail },
-          { role: sails.config.globals.ROLE_SCHEDULER, email: req.body.doctorEmail }
+          { role: sails.config.globals.ROLE_ADMIN, email: req.body.doctorEmail }
         ]
       });
       doctor = results.length > 0 ? results[0] : null;
@@ -568,7 +568,7 @@ module.exports = {
       const res = await User.find({
         or: [
           { role: sails.config.globals.ROLE_DOCTOR, email: req.body.doctorEmail },
-          { role: sails.config.globals.ROLE_SCHEDULER, email: req.body.doctorEmail }
+          { role: sails.config.globals.ROLE_ADMIN, email: req.body.doctorEmail }
         ]
       });
       doctor = res.length > 0 ? res[0] : null;
