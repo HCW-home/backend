@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.0.7) focal; urgency=medium
+hcw-athome-backend (0.5.0.8) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * refs ##6578, Create invite with API /api/v1/invite and doctorEmail returns error, #6577 Export CSV file has no break line
