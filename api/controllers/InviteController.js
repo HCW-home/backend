@@ -5,9 +5,9 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const db = PublicInvite.getDatastore().manager;
-const ObjectId = require("mongodb").ObjectID;
+const ObjectId = require('mongodb').ObjectID;
 
-const moment = require("moment-timezone");
+const moment = require('moment-timezone');
 
 // /**
 //  *
@@ -31,22 +31,22 @@ const moment = require("moment-timezone");
 function validateInviteRequest(invite) {
   const errors = [];
   if (!invite.phoneNumber && !invite.emailAddress) {
-    errors.push({ message: "emailAddress or phoneNumber are required" });
+    errors.push({ message: 'emailAddress or phoneNumber are required' });
   }
 
   if (!invite.gender) {
-    errors.push({ message: "gender is required" });
+    errors.push({ message: 'gender is required' });
   }
   if (invite.gender) {
-    if (!["male", "female"].includes(invite.gender)) {
-      errors.push({ message: "gender must be either male or female" });
+    if (!['male', 'female'].includes(invite.gender)) {
+      errors.push({ message: 'gender must be either male or female' });
     }
   }
   if (!invite.firstName) {
-    errors.push({ message: "firstName is required" });
+    errors.push({ message: 'firstName is required' });
   }
   if (!invite.lastName) {
-    errors.push({ message: "lastName is required" });
+    errors.push({ message: 'lastName is required' });
   }
 
   return errors;
@@ -81,7 +81,7 @@ async function createTranslationRequest(translationInvite, organization) {
   }
   // if not
   // get all translators under organization
-  const translatorCollection = db.collection("translator");
+  const translatorCollection = db.collection('translator');
   const translatorsCursor = await translatorCollection.find({
     organization: new ObjectId(organization.id),
     languages: {
@@ -115,7 +115,7 @@ async function createTranslationRequest(translationInvite, organization) {
 module.exports = {
   async invite(req, res) {
     let invite = null;
-    console.log("create invite now");
+    console.log('create invite now');
     const currentUserPublic = {
       id: req.user.id,
       firstName: req.user.firstName,
@@ -132,12 +132,12 @@ module.exports = {
       }
 
       if (
-        req.user.role !== "scheduler" &&
+        req.user.role !== 'scheduler' &&
         (req.body.IMADTeam || req.body.birthDate)
       ) {
         return res.status(400).json({
           success: false,
-          error: "IMADTeam and birthDate are not allowed",
+          error: 'IMADTeam and birthDate are not allowed',
         });
       }
     } else {
@@ -148,7 +148,7 @@ module.exports = {
       ) {
         return res.status(400).json({
           success: false,
-          error: "You must invite at least a patient translator or a guest!",
+          error: 'You must invite at least a patient translator or a guest!',
         });
       }
     }
@@ -156,29 +156,29 @@ module.exports = {
     if (req.body.scheduledFor && !moment(req.body.scheduledFor).isValid()) {
       return res.status(400).json({
         success: false,
-        error: "ScheduledFor is not a valid date",
+        error: 'ScheduledFor is not a valid date',
       });
     }
 
     if (req.body.birthDate && !moment(req.body.birthDate).isValid()) {
       return res.status(400).json({
         success: false,
-        error: "birthDate is not a valid date",
+        error: 'birthDate is not a valid date',
       });
     }
 
     if (req.body.scheduledFor && new Date(req.body.scheduledFor) < new Date()) {
       return res.status(400).json({
         success: false,
-        error: "Consultation Time cannot be in the past",
+        error: 'Consultation Time cannot be in the past',
       });
     }
 
-    if (req.user.role === "scheduler") {
+    if (req.user.role === 'scheduler') {
       if (!req.body.doctorEmail && !req.body.queue) {
         return res.status(400).json({
           success: false,
-          error: "doctorEmail or queue is required.",
+          error: 'doctorEmail or queue is required.',
         });
       }
     }
@@ -196,18 +196,21 @@ module.exports = {
     let doctor;
     if (req.body.doctorEmail) {
       // get doctor
-      [doctor] = await User.find({
-        role: "doctor",
-        email: req.body.doctorEmail,
+      const results = await User.find({
+        or: [
+          { role: sails.config.globals.ROLE_DOCTOR, email: req.body.email },
+          { role: sails.config.globals.ROLE_SCHEDULER, email: req.body.email }
+        ]
       });
+      doctor = results.length > 0 ? results[0] : null;
       if (doctor) {
         doctor = _.pick(doctor, [
-          "id",
-          "firstName",
-          "lastName",
-          "email",
-          "role",
-          "organization",
+          'id',
+          'firstName',
+          'lastName',
+          'email',
+          'role',
+          'organization',
         ]);
       }
 
@@ -218,7 +221,7 @@ module.exports = {
         });
       }
       // a
-    } else if (req.user.role === "doctor" || req.user.role === "admin") {
+    } else if (req.user.role === 'doctor' || req.user.role === 'admin') {
       doctor = currentUserPublic;
     }
 
@@ -256,7 +259,7 @@ module.exports = {
     if (
       translationOrganization &&
       (translationOrganization.languages || []).indexOf(req.body.language) ===
-        -1
+      -1
     ) {
       return res.status(400).json({
         error: true,
@@ -280,7 +283,7 @@ module.exports = {
           ? new Date(req.body.scheduledFor)
           : undefined,
         patientLanguage: req.body.language,
-        type: "PATIENT",
+        type: 'PATIENT',
         //IMADTeam: req.body.IMADTeam,
         birthDate: req.body.birthDate,
         patientTZ: req.body.patientTZ,
@@ -290,7 +293,7 @@ module.exports = {
       };
       if (doctor) {
         inviteData.doctor = doctor.id;
-        inviteData.doctorData = { email:  doctor.email };
+        inviteData.doctorData = { email: doctor.email };
       }
       if (queue) {
         inviteData.queue = queue.id;
@@ -318,23 +321,23 @@ module.exports = {
 
       if (Array.isArray(experts)) {
         for (const expertContact of experts) {
-          if (typeof expertContact === "string") {
+          if (typeof expertContact === 'string') {
             const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
-            const isEmail = expertContact.includes("@");
+            const isEmail = expertContact.includes('@');
 
             if (isPhoneNumber && !isEmail) {
-                await sails.helpers.sms.with({
-                  phoneNumber: expertContact,
-                  message: sails._t(doctorLanguage, "please use this link", {
-                    expertLink: expertLink,
-                  }),
-                  senderEmail: inviteData.doctorData?.email,
-                });
+              await sails.helpers.sms.with({
+                phoneNumber: expertContact,
+                message: sails._t(doctorLanguage, 'please use this link', {
+                  expertLink: expertLink,
+                }),
+                senderEmail: inviteData.doctorData?.email,
+              });
             } else if (isEmail && !isPhoneNumber) {
               await sails.helpers.email.with({
                 to: expertContact,
-                subject: sails._t(doctorLanguage, "consultation link"),
-                text: sails._t(doctorLanguage, "please use this link", {
+                subject: sails._t(doctorLanguage, 'consultation link'),
+                text: sails._t(doctorLanguage, 'please use this link', {
                   expertLink: expertLink,
                 }),
               });
@@ -357,7 +360,7 @@ module.exports = {
           scheduledFor: req.body.scheduledFor
             ? new Date(req.body.scheduledFor)
             : undefined,
-          type: "GUEST",
+          type: 'GUEST',
           guestEmailAddress: inviteData.guestEmailAddress,
           guestPhoneNumber: inviteData.guestPhoneNumber,
           emailAddress: inviteData.guestEmailAddress,
@@ -385,7 +388,7 @@ module.exports = {
           patientLanguage: req.body.language,
           doctorLanguage:
             req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE,
-          type: "TRANSLATOR_REQUEST",
+          type: 'TRANSLATOR_REQUEST',
         };
 
         const translatorRequestInvite = await PublicInvite.create(
@@ -409,15 +412,15 @@ module.exports = {
         });
       }
     } catch (e) {
-      console.log("error", e);
+      console.log('error', e);
       return res.status(500).json({
         error: true,
       });
     }
 
     let shouldSend = true;
-    if (!req.body.hasOwnProperty("sendInvite")) {
-      req.body.sendInvite = req.user.role !== "scheduler";
+    if (!req.body.hasOwnProperty('sendInvite')) {
+      req.body.sendInvite = req.user.role !== 'scheduler';
     }
 
     shouldSend = req.body.sendInvite;
@@ -434,11 +437,11 @@ module.exports = {
         await PublicInvite.sendGuestInvite(guestInvite);
       }
     } catch (error) {
-      console.log("ERROR SENDING Invite>>>>>>>> ", error);
+      console.log('ERROR SENDING Invite>>>>>>>> ', error);
       await PublicInvite.destroyOne({ id: invite.id });
       return res.status(500).json({
         error: true,
-        message: error?.message  || sails._t(doctorLanguage, "invite error"),
+        message: error?.message || sails._t(doctorLanguage, 'invite error'),
       });
     }
 
@@ -468,12 +471,12 @@ module.exports = {
   async update(req, res) {
     let invite = await PublicInvite.findOne({
       id: req.params.id,
-      type: "PATIENT",
+      type: 'PATIENT',
     })
-      .populate("guestInvite")
-      .populate("translatorInvite")
-      .populate("translatorRequestInvite")
-      .populate("doctor");
+      .populate('guestInvite')
+      .populate('translatorInvite')
+      .populate('translatorRequestInvite')
+      .populate('doctor');
 
     // if no invite return 404
     if (!invite) {
@@ -481,20 +484,20 @@ module.exports = {
     }
 
     // if invite has been accepted return 400
-    if (invite.status === "ACCEPTED") {
+    if (invite.status === 'ACCEPTED') {
       return res.status(400).json({
         error: true,
-        message: "can't edit Invite has been accepted by patient",
+        message: 'can\'t edit Invite has been accepted by patient',
       });
     }
 
     if (
       invite.translatorRequestInvite &&
-      invite.translatorRequestInvite.status === "ACCEPTED"
+      invite.translatorRequestInvite.status === 'ACCEPTED'
     ) {
       return res.status(400).json({
         error: true,
-        message: "can't edit Invite has been accepted by translator",
+        message: 'can\'t edit Invite has been accepted by translator',
       });
     }
 
@@ -531,21 +534,21 @@ module.exports = {
     if (scheduledFor && !moment(scheduledFor).isValid()) {
       return res.status(400).json({
         success: false,
-        error: "ScheduledFor is not a valid date",
+        error: 'ScheduledFor is not a valid date',
       });
     }
 
     if (birthDate && !moment(birthDate).isValid()) {
       return res.status(400).json({
         success: false,
-        error: "birthDate is not a valid date",
+        error: 'birthDate is not a valid date',
       });
     }
 
     if (scheduledFor && new Date(scheduledFor) < new Date()) {
       return res.status(400).json({
         success: false,
-        error: "Consultation Time cannot be in the past",
+        error: 'Consultation Time cannot be in the past',
       });
     }
 
@@ -562,15 +565,21 @@ module.exports = {
     let doctor;
     if (doctorEmail) {
       // get doctor
-      [doctor] = await User.find({ role: "doctor", email: doctorEmail });
+      const res = await User.find({
+        or: [
+          { role: sails.config.globals.ROLE_DOCTOR, email: req.body.email },
+          { role: sails.config.globals.ROLE_SCHEDULER, email: req.body.email }
+        ]
+      });
+      doctor = res.length > 0 ? res[0] : null;
       if (doctor) {
         doctor = _.pick(doctor, [
-          "id",
-          "firstName",
-          "lastName",
-          "email",
-          "role",
-          "organization",
+          'id',
+          'firstName',
+          'lastName',
+          'email',
+          'role',
+          'organization',
         ]);
       }
 
@@ -581,7 +590,7 @@ module.exports = {
         });
       }
       // a
-    } else if (req.user.role === "doctor") {
+    } else if (req.user.role === 'doctor') {
       doctor = currentUserPublic;
     }
 
@@ -667,10 +676,10 @@ module.exports = {
       // update
       invite = await PublicInvite.updateOne({ id: invite.id }).set(inviteData);
       invite = await PublicInvite.findOne({ id: invite.id })
-        .populate("guestInvite")
-        .populate("translatorInvite")
-        .populate("translatorRequestInvite")
-        .populate("doctor");
+        .populate('guestInvite')
+        .populate('translatorInvite')
+        .populate('translatorRequestInvite')
+        .populate('doctor');
 
       if (cancelGuestInvite) {
         await PublicInvite.cancelGuestInvite(invite);
@@ -681,7 +690,7 @@ module.exports = {
             doctor: doctor ? doctor.id : req.user.id,
             invitedBy: req.user.id,
             scheduledFor: invite.scheduledFor,
-            type: "GUEST",
+            type: 'GUEST',
             guestEmailAddress: inviteData.guestEmailAddress,
             guestPhoneNumber: inviteData.guestPhoneNumber,
             emailAddress: inviteData.guestEmailAddress,
@@ -722,7 +731,7 @@ module.exports = {
             scheduledFor: invite.scheduledFor,
             patientLanguage: language,
             doctorLanguage: doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE,
-            type: "TRANSLATOR_REQUEST",
+            type: 'TRANSLATOR_REQUEST',
           };
 
           const translatorRequestInvite = await PublicInvite.create(
@@ -758,7 +767,7 @@ module.exports = {
           invite.translatorRequestInvite &&
           translationOrganizationObj &&
           translationOrganizationObj.id.toString() !==
-            invite.translatorRequestInvite.translationOrganization;
+          invite.translatorRequestInvite.translationOrganization;
 
         // if existing update it
         if (
@@ -777,7 +786,7 @@ module.exports = {
             scheduledFor: invite.scheduledFor,
             patientLanguage: language,
             doctorLanguage: doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE,
-            type: "TRANSLATOR_REQUEST",
+            type: 'TRANSLATOR_REQUEST',
           };
 
           const translatorRequestInvite = await PublicInvite.create(
@@ -803,15 +812,15 @@ module.exports = {
         }
       }
     } catch (e) {
-      console.log("error", e);
+      console.log('error', e);
       return res.status(500).json({
         error: true,
       });
     }
 
     let shouldSend = true;
-    if (!req.body.hasOwnProperty("sendInvite")) {
-      req.body.sendInvite = req.user.role !== "scheduler";
+    if (!req.body.hasOwnProperty('sendInvite')) {
+      req.body.sendInvite = req.user.role !== 'scheduler';
     }
 
     shouldSend = req.body.sendInvite;
@@ -826,11 +835,11 @@ module.exports = {
         await PublicInvite.sendGuestInvite(guestInvite);
       }
     } catch (error) {
-      console.log("ERROR sending Invite ", error);
+      console.log('ERROR sending Invite ', error);
       // await PublicInvite.destroyOne({ id: invite.id });
       return res.status(500).json({
         error: true,
-        message: "Error sending Invite",
+        message: 'Error sending Invite',
       });
     }
 
@@ -863,10 +872,10 @@ module.exports = {
       const patientInvite = await PublicInvite.findOne({
         id: req.params.invite,
       })
-        .populate("guestInvite")
-        .populate("translatorInvite")
-        .populate("translatorRequestInvite")
-        .populate("doctor");
+        .populate('guestInvite')
+        .populate('translatorInvite')
+        .populate('translatorRequestInvite')
+        .populate('doctor');
 
       if (!patientInvite) {
         return res.notFound();
@@ -874,17 +883,17 @@ module.exports = {
 
       if (
         patientInvite.translatorRequestInvite &&
-        patientInvite.translatorRequestInvite.status !== "ACCEPTED"
+        patientInvite.translatorRequestInvite.status !== 'ACCEPTED'
       ) {
         return res.status(400).json({
           success: false,
-          error: "Translation invite have NOT been accepted",
+          error: 'Translation invite have NOT been accepted',
         });
       }
 
       await PublicInvite.sendPatientInvite(patientInvite);
       await PublicInvite.updateOne({ id: req.params.invite }).set({
-        status: "SENT",
+        status: 'SENT',
       });
 
       if (patientInvite.translatorInvite) {
@@ -899,7 +908,7 @@ module.exports = {
         await PublicInvite.updateOne({
           id: patientInvite.translatorInvite.id,
         }).set({
-          status: "SENT",
+          status: 'SENT',
         });
       }
 
@@ -907,7 +916,7 @@ module.exports = {
         patientInvite.guestInvite.doctor = patientInvite.doctor;
         await PublicInvite.sendGuestInvite(patientInvite.guestInvite);
         await PublicInvite.updateOne({ id: patientInvite.guestInvite.id }).set({
-          status: "SENT",
+          status: 'SENT',
         });
       }
 
@@ -927,7 +936,7 @@ module.exports = {
         patientInvite,
       });
     } catch (error) {
-      console.log("error ", error);
+      console.log('error ', error);
       res.json({
         success: false,
         error: error.message,
@@ -943,7 +952,7 @@ module.exports = {
 
       return res.status(200).send();
     } catch (error) {
-      sails.log("error deleting Invite ", error);
+      sails.log('error deleting Invite ', error);
 
       return res.status(500).send();
     }
@@ -985,15 +994,15 @@ module.exports = {
         { expertToken: req.params.invitationToken },
       ],
     })
-      .populate("translationOrganization")
-      .populate("doctor");
+      .populate('translationOrganization')
+      .populate('doctor');
     if (!publicinvite) {
       return res.notFound();
     }
     const isExpert = publicinvite.expertToken === req.params.invitationToken;
     publicinvite.doctor = _.pick(publicinvite.doctor, [
-      "firstName",
-      "lastName",
+      'firstName',
+      'lastName',
     ]);
 
     const expertBody = {};
@@ -1002,7 +1011,7 @@ module.exports = {
       expertBody.isExpert = true;
       expertBody.expertToken = publicinvite.expertToken;
     }
-    res.json({ ...publicinvite, expertToken: "", ...expertBody });
+    res.json({ ...publicinvite, expertToken: '', ...expertBody });
   },
 
   async getConsultation(req, res) {
@@ -1024,13 +1033,13 @@ module.exports = {
       const anonymousConsultationDetails =
         await Consultation.getAnonymousDetails(consultation);
       consultation.doctorURL =
-        process.env.DOCTOR_URL + "/app/consultation/" + consultation.id;
+        process.env.DOCTOR_URL + '/app/consultation/' + consultation.id;
       return res.status(200).json(anonymousConsultationDetails);
     }
     if (anonymousConsultation) {
       anonymousConsultation.doctorURL =
         process.env.DOCTOR_URL +
-        "/app/consultation/" +
+        '/app/consultation/' +
         anonymousConsultation.id;
       return res.status(200).json(anonymousConsultation);
     }
@@ -1047,7 +1056,7 @@ module.exports = {
 
     if (consultation) {
       invite.doctorURL =
-        process.env.DOCTOR_URL + "/app/consultation/" + consultation.id;
+        process.env.DOCTOR_URL + '/app/consultation/' + consultation.id;
     }
 
     invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
@@ -1060,7 +1069,7 @@ module.exports = {
       invite: req.params.invite,
     });
 
-    if (!consultation || consultation.status !== "active") {
+    if (!consultation || consultation.status !== 'active') {
       const [anonymousConsultation] = await AnonymousConsultation.find({
         invite: req.params.invite,
       });
@@ -1071,7 +1080,7 @@ module.exports = {
       } else {
         return res
           .status(404)
-          .json({ success: false, error: "Consultation not found" });
+          .json({ success: false, error: 'Consultation not found' });
       }
     }
 

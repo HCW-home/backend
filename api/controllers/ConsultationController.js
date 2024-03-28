@@ -7,7 +7,7 @@
 const ObjectId = require("mongodb").ObjectID;
 const fs = require("fs");
 const path = require("path");
-const Json2csvParser = require("json2csv").Parser;
+const json2csv = require('@json2csv/plainjs');
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid");
 const fileType = require("file-type");
@@ -1053,23 +1053,27 @@ module.exports = {
   },
 
   async consultationsCSV(req, res) {
-    const consultations = await AnonymousConsultation.find()
-      .populate("acceptedBy")
-      .populate("queue")
-      .populate("owner");
-    const mappedConsultations = consultations.map(
-      Consultation.getConsultationReport
-    );
+    try {
+      const consultations = await AnonymousConsultation.find()
+        .populate("acceptedBy")
+        .populate("queue")
+        .populate("owner");
+      const mappedConsultations = consultations.map(
+        Consultation.getConsultationReport
+      );
 
-    const parser = new Json2csvParser(
-      { fields: Consultation.columns.map((c) => c.colName) },
-      { encoding: "utf-8" }
-    );
-    const csv = parser.parse(mappedConsultations);
-    res.set({
-      "Content-Disposition": 'attachment; filename="consultations_summary.csv"',
-    });
-    res.send(csv);
+      const fields = Consultation.columns.map((c) => c.colName);
+      const opts = { fields };
+      const parser = new json2csv.Parser();
+      const csv = parser.parse(mappedConsultations, opts);
+
+      res.setHeader('Content-Disposition', 'attachment; filename="consultations_summary.csv"');
+      res.setHeader('Content-Type', 'text/csv');
+      res.send(csv);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send('Error generating CSV file');
+    }
   },
 
   async getCurrentCall(req, res) {
