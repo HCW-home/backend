@@ -1,3 +1,15 @@
+hcw-athome-backend (0.5.0.6) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update Makefile
+  * Adding new SMS ODOO method, but not tested and missing sender_email argument in sails.helpers.sms.with()
+  * Update SMS
+
+  [ Gor Grigoryan ]
+  * fix ODOO_SMS provider usage
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 26 Mar 2024 16:02:28 +0100
+
 hcw-athome-backend (5.0.5) focal; urgency=medium
 
   [ Olivier Bitsch ]
