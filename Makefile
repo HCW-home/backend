@@ -14,19 +14,27 @@ install: build
 docker:
 	docker build . -t docker.io/iabsis/hcw-backend
 
-podman:
+build-podman:
 	podman build . -t docker.io/iabsis/hcw-backend
 	V=$$(cat .version) ; podman tag docker.io/iabsis/hcw-backend:latest docker.io/iabsis/hcw-backend:$$V
+	podman tag docker.io/iabsis/hcw-backend:latest docker.io/iabsis/hcw-backend:5
 
 clean:
 	@ echo "cleaning the dist directory"
 	@ rm -rf node_modules
 
-do-release:
-	# Update Debian changelog
+create-debian-release:
 	@ gbp dch  --ignore-branch
 	@ sed -i 's/UNRELEASED/focal/' debian/changelog
-	@ V=$$(cat .version) ; sed -i "s/Version:.*/Version: $$V/" redhat/hcw-athome-backend.spec
-	git add debian/changelog redhat/hcw-athome-backend.spec
-	@ V=$$(cat .version) ;  echo "You can run now:\n git commit -m \"New release $$V\""
+	@ head -n 1 debian/changelog| cut -d' ' -f2 | sed 's/[\(\)]*//g' > .version
+	@ V=$$(cat .version) ; echo "Release: $$V"
 
+update-redhat-release:
+	@ V=$$(cat .version) ; sed -i "s/Version:.*/Version: $$V/" redhat/hcw-athome-backend.spec
+
+do-git-release:
+	@ git add debian/changelog redhat/hcw-athome-backend.spec
+	@ V=$$(cat .version) ; git tag $$V
+	@ V=$$(cat .version) ; echo "Check everything is good and publish now with:\n git commit -m \"New release $$V\"\n git push --tag"
+
+do-release-all: create-debian-release update-redhat-release build-podman
