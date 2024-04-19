@@ -38,4 +38,4 @@ do-git-release:
 	@ V=$$(cat .version) ; git tag $$V
 	@ V=$$(cat .version) ; echo "Publish git now with:\n git commit -m \"New release $$V\"\n git push --tag"
 
-do-release-all: create-debian-release update-redhat-release build-podman
+do-release-all: create-debian-release update-redhat-release do-git-release build-podman
