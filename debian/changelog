@@ -1,3 +1,9 @@
+hcw-athome-backend (5.0.8) focal; urgency=medium
+
+  * Update Makefile
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 19 Apr 2024 16:38:49 +0200
+
 hcw-athome-backend (5.0.7) focal; urgency=medium
 
   [ Gor Grigoryan ]
