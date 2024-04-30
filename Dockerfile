@@ -14,7 +14,7 @@ COPY config ./config
 COPY public ./public
 COPY views ./views
 
-FROM node:16
+FROM node:18
 
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/ /usr/src/app/

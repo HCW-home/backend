@@ -622,27 +622,26 @@ module.exports = {
         default:
           break;
       }
-      (await Consultation.getConsultationParticipants(consultation)).forEach(
-        (participant) => {
-          // don't echo the event
-          if (participant === user.id) return;
-          sails.sockets.broadcast(participant, "onlineStatusChange", {
-            data: {
-              consultation: {
-                flagPatientOnline: consultation.flagPatientOnline,
-                flagGuestOnline: consultation.flagGuestOnline,
-                flagTranslatorOnline: consultation.flagTranslatorOnline,
-                flagDoctorOnline: consultation.flagDoctorOnline,
-                translator: consultation.translator,
-                guest: consultation.guest,
-                flagExpertsOnline: consultation.flagExpertsOnline,
-              },
-              _id: consultation._id,
-              // user
+      const participants = await Consultation.getConsultationParticipants(consultation);
+      for (const participant of participants) {
+        const participantId = participant.toString();
+        if (participantId === user.id) continue;
+
+        sails.sockets.broadcast(participantId, "onlineStatusChange", {
+          data: {
+            consultation: {
+              flagPatientOnline: consultation.flagPatientOnline,
+              flagGuestOnline: consultation.flagGuestOnline,
+              flagTranslatorOnline: consultation.flagTranslatorOnline,
+              flagDoctorOnline: consultation.flagDoctorOnline,
+              translator: consultation.translator,
+              guest: consultation.guest,
+              flagExpertsOnline: consultation.flagExpertsOnline,
             },
-          });
-        }
-      );
+            _id: consultation._id,
+          },
+        });
+      }
     }
   },
   getConsultationReport(consultation) {
