@@ -135,6 +135,7 @@ module.exports.policies = {
   PublicInviteController: {
     "*": false,
     find: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    checkPrefix: ["isLoggedIn", "canInvite", "isInviteOwner"],
     destroy: ["isLoggedIn", "canInvite", "isInviteOwner"],
     findOne: ["isLoggedIn", "canInvite", "isInviteOwner"],
   },

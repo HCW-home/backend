@@ -1,7 +1,7 @@
 module.exports = {
   sendExpertLink: async function (req, res) {
     try {
-      const { expertLink, to, consultationId } = req.body;
+      const { expertLink, to, consultationId, messageService } = req.body;
       const { locale } = req.headers || {};
 
       let consultation = await Consultation.findOne({
@@ -15,13 +15,28 @@ module.exports = {
       const isEmail = to.includes("@");
 
       if (isPhoneNumber && !isEmail) {
-        await sails.helpers.sms.with({
-          phoneNumber: to,
-          message: sails._t(locale, "please use this link", {
-            expertLink: expertLink,
-          }),
-          senderEmail: consultation.doctor?.email,
-        });
+        if (messageService === '1') {
+          // WhatsApp
+          await sails.helpers.sms.with({
+            phoneNumber: to,
+            message: sails._t(locale, "please use this link", {
+              expertLink: expertLink?.expertLink,
+            }),
+            senderEmail: consultation.doctor?.email,
+            whatsApp: true,
+          });
+        } else if(messageService === '2')  {
+        //   SMS
+          await sails.helpers.sms.with({
+            phoneNumber: to,
+            message: sails._t(locale, "please use this link", {
+              expertLink: expertLink?.expertLink,
+            }),
+            senderEmail: consultation.doctor?.email,
+            whatsApp: false,
+          });
+        }
+
 
         return res.ok({ message: "SMS sent successfully" });
       } else if (isEmail && !isPhoneNumber) {
@@ -29,7 +44,7 @@ module.exports = {
           to,
           subject: sails._t(locale, "consultation link"),
           text: sails._t(locale, "please use this link", {
-            expertLink: expertLink,
+            expertLink: expertLink?.expertLink,
           }),
         });
 

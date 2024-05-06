@@ -313,17 +313,36 @@ module.exports = {
     }
 
     if (invite.phoneNumber) {
-      try {
-        await sails.helpers.sms.with({
-          phoneNumber: invite.phoneNumber,
-          message,
-          senderEmail: invite?.doctor?.email,
-        });
-      } catch (error) {
-        console.log("ERROR SENDING SMS>>>>>>>> ", error);
-        // await PublicInvite.destroyOne({ id: invite.id });
-        return Promise.reject(error);
+      // 2 is SMS
+      if (invite.messageService === '2') {
+        try {
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message,
+            senderEmail: invite?.doctor?.email,
+            whatsApp: false,
+          });
+        } catch (error) {
+          console.log("ERROR SENDING SMS>>>>>>>> ", error);
+          return Promise.reject(error);
+        }
+      } else {
+        if (invite.messageService === '1') {
+          try {
+            console.log('stexaaaa');
+            await sails.helpers.sms.with({
+              phoneNumber: invite.phoneNumber,
+              message,
+              senderEmail: invite?.doctor?.email,
+              whatsApp: true,
+            });
+          } catch (error) {
+            console.log("ERROR SENDING SMS>>>>>>>> ", error);
+            return Promise.reject(error);
+          }
+        }
       }
+
     }
   },
 
@@ -379,6 +398,7 @@ module.exports = {
           phoneNumber: invite.phoneNumber,
           message,
           senderEmail: invite.doctor?.email,
+          whatsApp: false,
         });
       } catch (error) {
         console.log("ERROR SENDING SMS>>>>>>>> ", error);

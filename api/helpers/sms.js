@@ -183,6 +183,38 @@ function sendSmsWithTwilio(phoneNumber, message) {
 }
 
 /**
+ * Sends an SMS through the Twillo WhatsApp API
+ *
+ * @param {string} message
+ * @param {string} phoneNumber
+ * @returns {void}
+ */
+
+function sendSmsWithTwilioWhatsapp(phoneNumber, message) {
+  const accountSid = process.env.TWILIO_ACCOUNT_SID;
+  const authToken = process.env.TWILIO_AUTH_TOKEN;
+  const twilioPhoneNumber = process.env.TWILIO_WHATSAPP_PHONE_NUMBER;
+  const client = require("twilio")(accountSid, authToken);
+
+  return new Promise((resolve, reject) => {
+    client.messages
+      .create({
+        body: message,
+        from: `whatsapp:${twilioPhoneNumber}`,
+        to: `whatsapp:${phoneNumber}`,
+      })
+      .then((message) => {
+        console.log("Twilio whatsapp SMS sent:", message.sid);
+        resolve(message.sid);
+      })
+      .catch((error) => {
+        console.error("Error sending Twilio SMS:", error);
+        reject(error);
+      });
+  });
+}
+
+/**
  * Sends an SMS through Odoo API
  *
  * @param {string} phoneNumber
@@ -401,17 +433,9 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
   });
 }
 
-const whitelistedPrefixes = {
-  OVH: process.env.SMS_OVH_WL_PREFIX,
-  SWISSCOM: process.env.SMS_SWISSCOM_WL_PREFIX,
-  CLICKATEL: process.env.SMS_CLICKATEL_WL_PREFIX,
-  CLICKATEL_API: process.env.SMS_CLICKATEL_API_WL_PREFIX,
-  TWILIO: process.env.SMS_TWILLO_WL_PREFIX,
-  ODOO_SMS: process.env.SMS_ODOO_WL_PREFIX,
-};
 
 function isWhitelistedForProvider(provider, phoneNumber) {
-  const prefixString = whitelistedPrefixes[provider];
+  const prefixString = sails.config.globals.WHITELISTED_PREFIXES[provider];
 
   if (!prefixString) {
     console.log(
@@ -444,6 +468,10 @@ module.exports = {
       type: "string",
       required: false,
     },
+    whatsApp: {
+      type: 'boolean',
+      required: false,
+    },
   },
   exits: {
     success: {
@@ -453,62 +481,68 @@ module.exports = {
 
   async fn(inputs, exits) {
     try {
-      const { message, phoneNumber, senderEmail } = inputs;
+      const { message, phoneNumber, senderEmail, whatsApp } = inputs;
+      console.log(whatsApp, 'whatsApp');
       if (process.env.NODE_ENV === "development") {
         await sendSmsWithInLog(phoneNumber, message);
         return exits.success();
       }
 
-      const isAnyPrefixDefined = Object.values(whitelistedPrefixes).some(
-        (prefix) => prefix
-      );
-      const providers = sails.config.globals.SMS_PROVIDER_ORDER.split(",");
+      if (whatsApp) {
+        sendSmsWithTwilioWhatsapp(phoneNumber, message)
+        return exits.success();
+      } else {
+        const isAnyPrefixDefined = Object.values(sails.config.globals.WHITELISTED_PREFIXES).some(
+          (prefix) => prefix
+        );
+        const providers = sails.config.globals.SMS_PROVIDER_ORDER.split(",");
 
-      for (const provider of providers) {
-        if (
-          isAnyPrefixDefined
-            ? isWhitelistedForProvider(provider, phoneNumber)
-            : true
-        ) {
-          try {
-            console.log(`Sending an SMS to ${phoneNumber} through ${provider}`);
+        for (const provider of providers) {
+          if (
+            isAnyPrefixDefined
+              ? isWhitelistedForProvider(provider, phoneNumber)
+              : true
+          ) {
+            try {
+              console.log(`Sending an SMS to ${phoneNumber} through ${provider}`);
 
-            switch (provider) {
-              case "TWILIO":
-                await sendSmsWithTwilio(phoneNumber, message);
-                break;
-              case "OVH":
-                await sendSmsWithOvh(phoneNumber, message);
-                break;
-              case "SWISSCOM":
-                await sendSmsWithSwisscom(phoneNumber, message);
-                break;
-              case "CLICKATEL":
-                await sendSmsWithClickatel(phoneNumber, message);
-                break;
-              case "CLICKATEL_API":
-                await sendSmsWithClickatelAPI(phoneNumber, message);
-                break;
-              case "ODOO_SMS":
-                try {
-                  await sendSmsWithOdoo(phoneNumber, message, senderEmail);
-                } catch (odooError) {
-                  console.error(`Failed to send SMS through Odoo:`, odooError.message);
-                  return exits.error(new Error(odooError.message)); // Pass the specific error from Odoo
-                }
-                break;
-              default:
-                console.error(`Provider ${provider} not recognized`);
-                continue;
+              switch (provider) {
+                case "TWILIO":
+                  await sendSmsWithTwilio(phoneNumber, message);
+                  break;
+                case "OVH":
+                  await sendSmsWithOvh(phoneNumber, message);
+                  break;
+                case "SWISSCOM":
+                  await sendSmsWithSwisscom(phoneNumber, message);
+                  break;
+                case "CLICKATEL":
+                  await sendSmsWithClickatel(phoneNumber, message);
+                  break;
+                case "CLICKATEL_API":
+                  await sendSmsWithClickatelAPI(phoneNumber, message);
+                  break;
+                case "ODOO_SMS":
+                  try {
+                    await sendSmsWithOdoo(phoneNumber, message, senderEmail);
+                  } catch (odooError) {
+                    console.error(`Failed to send SMS through Odoo:`, odooError.message);
+                    return exits.error(new Error(odooError.message)); // Pass the specific error from Odoo
+                  }
+                  break;
+                default:
+                  console.error(`Provider ${provider} not recognized`);
+                  continue;
+              }
+
+              return exits.success();
+            } catch (error) {
+              console.error(`Failed to send SMS through ${provider}:`, error);
             }
-
-            return exits.success();
-          } catch (error) {
-            console.error(`Failed to send SMS through ${provider}:`, error);
           }
         }
-      }
 
+      }
       console.error(
         "No SMS provider succeeded or phone number not whitelisted"
       );

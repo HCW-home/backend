@@ -311,6 +311,10 @@ module.exports = {
         inviteData.guestPhoneNumber = req.body.guestPhoneNumber;
       }
 
+      if (req.body.messageService) {
+        inviteData.messageService = req.body.messageService
+      }
+
       invite = await PublicInvite.create(inviteData).fetch();
 
       const experts = req.body.experts;
@@ -320,19 +324,38 @@ module.exports = {
         req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
       if (Array.isArray(experts)) {
-        for (const expertContact of experts) {
+        for (const contact of experts) {
+          const {expertContact, messageService} = contact || {};
           if (typeof expertContact === 'string') {
             const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
             const isEmail = expertContact.includes('@');
 
             if (isPhoneNumber && !isEmail) {
-              await sails.helpers.sms.with({
-                phoneNumber: expertContact,
-                message: sails._t(doctorLanguage, 'please use this link', {
-                  expertLink: expertLink,
-                }),
-                senderEmail: inviteData.doctorData?.email,
-              });
+              //  WhatsApp
+              if (messageService === '1') {
+                await sails.helpers.sms.with({
+                  phoneNumber: expertContact,
+                  message: sails._t(doctorLanguage, 'please use this link', {
+                    expertLink: expertLink,
+                  }),
+                  senderEmail: inviteData.doctorData?.email,
+                  whatsApp: true,
+                });
+              } else if (messageService === '2') {
+                await sails.helpers.sms.with({
+                  phoneNumber: expertContact,
+                  message: sails._t(doctorLanguage, 'please use this link', {
+                    expertLink: expertLink,
+                  }),
+                  senderEmail: inviteData.doctorData?.email,
+                  whatsApp: false,
+                });
+              } else {
+                sails.log.error(
+                  `Invalid messageService info: ${messageService}`
+                );
+              }
+
             } else if (isEmail && !isPhoneNumber) {
               await sails.helpers.email.with({
                 to: expertContact,

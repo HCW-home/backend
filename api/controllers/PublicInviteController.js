@@ -7,6 +7,34 @@
 const ObjectId = require('mongodb').ObjectID;
 const db = PublicInvite.getDatastore().manager;
 
+function determineStatus(phoneNumber, prefixes) {
+  let canSendSMS = false;
+  let canSendWhatsApp = false;
+
+  for (const provider in prefixes) {
+    if (prefixes[provider]) {
+      const prefixList = prefixes[provider].split(',');
+      if (prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix))) {
+        if (provider.includes('WHATSAPP')) {
+          canSendWhatsApp = true;
+        } else {
+          canSendSMS = true;
+        }
+      }
+    }
+  }
+
+  if (canSendSMS && canSendWhatsApp) {
+    return { code: 1, message: "You have to choose Whatsapp or SMS for sending this invite." };
+  } else if (!canSendSMS && canSendWhatsApp) {
+    return { code: 2, message: "Invite will be send by WhatsApp." };
+  } else if (canSendSMS && !canSendWhatsApp) {
+    return { code: 3, message: "Invite will be send by SMS." };
+  } else {
+    return { code: 0, message: "This phone number is not permitted to be used on this platform." };
+  }
+}
+
 module.exports = {
 
   async update(req, res) {
@@ -35,8 +63,25 @@ module.exports = {
       res.serverError(error.message);
     }
 
+  },
+
+  checkPrefix: async function (req, res) {
+    const phoneNumber = req.param('phoneNumber');
+    if (!phoneNumber) {
+      return res.badRequest({ message: 'Phone number is required.' });
+    }
+
+    const status = determineStatus(phoneNumber, sails.config.globals.WHITELISTED_PREFIXES);
+
+    return res.ok({
+      phoneNumber: phoneNumber,
+      status: status.code,
+      message: status.message
+    });
   }
-  // async find (req, res) {
+
+
+// async find (req, res) {
   //   console.log('getting public invites');
   //   const publicInviteCollection = db.collection('publicInvite');
 

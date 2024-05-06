@@ -437,7 +437,9 @@ module.exports = {
         const patientInvite = await PublicInvite.findOne({
           inviteToken: consultation.invitationToken,
         });
-        await PublicInvite.destroyPatientInvite(patientInvite);
+        if (patientInvite) {
+          await PublicInvite.destroyPatientInvite(patientInvite);
+        }
       } catch (error) {
         console.error("Error destroying Invite ", error);
       }

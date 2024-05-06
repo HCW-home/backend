@@ -82,6 +82,7 @@ module.exports.routes = {
   'POST /api/v1/support': 'SupportController.supportRequest',
   'POST /api/v1/invite': 'InviteController.invite',
   'GET /api/v1/invite': 'PublicInviteController.find',
+  'GET /api/v1/check-prefix': 'PublicInviteController.checkPrefix',
   'GET /api/v1/invite/:id': 'InviteController.getInvite',
   'DELETE /api/v1/invite/:id': 'PublicInviteController.destroy',
   'PATCH /api/v1/invite/:id': 'InviteController.update',
