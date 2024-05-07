@@ -80,12 +80,12 @@ module.exports.globals = {
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,
   WHITELISTED_PREFIXES: {
-    OVH: process.env.SMS_OVH_WL_PREFIX,
-    SWISSCOM: process.env.SMS_SWISSCOM_WL_PREFIX,
-    CLICKATEL: process.env.SMS_CLICKATEL_WL_PREFIX,
-    CLICKATEL_API: process.env.SMS_CLICKATEL_API_WL_PREFIX,
-    TWILIO: process.env.SMS_TWILLO_WL_PREFIX,
-    ODOO_SMS: process.env.SMS_ODOO_WL_PREFIX,
-    TWILIO_WHATSAPP: process.env.TWILIO_WHATSAPP_WL_PREFIX
+    OVH: process.env.SMS_OVH_WL_PREFIX || '*',
+    SWISSCOM: process.env.SMS_SWISSCOM_WL_PREFIX  || '*',
+    CLICKATEL: process.env.SMS_CLICKATEL_WL_PREFIX || '*',
+    CLICKATEL_API: process.env.SMS_CLICKATEL_API_WL_PREFIX || '*',
+    TWILIO: process.env.SMS_TWILLO_WL_PREFIX || '*',
+    ODOO_SMS: process.env.SMS_ODOO_WL_PREFIX || '*',
+    TWILIO_WHATSAPP: process.env.TWILIO_WHATSAPP_WL_PREFIX || '*'
   }
 };
