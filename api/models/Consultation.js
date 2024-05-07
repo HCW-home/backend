@@ -678,7 +678,7 @@ module.exports = {
       }).fetch();
       const db = Consultation.getDatastore().manager;
       const tokenCollection = db.collection("token");
-      await tokenCollection.update(
+      await tokenCollection.updateOne(
         { _id: new ObjectId(token.id) },
         {
           $set: {
