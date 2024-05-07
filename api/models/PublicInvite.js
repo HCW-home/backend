@@ -43,6 +43,10 @@ module.exports = {
     phoneNumber: {
       type: "string",
     },
+    messageService: {
+      type: "string",
+      required: false,
+    },
     emailAddress: {
       type: "string",
       isEmail: true,
@@ -292,7 +296,7 @@ module.exports = {
             doctorName,
           });
     // don't send invite if there is a translator required
-    if (invite.emailAddress) {
+    if (invite.emailAddress && !invite.scheduledFor) {
       try {
         await sails.helpers.email.with({
           to: invite.emailAddress,
@@ -524,13 +528,6 @@ module.exports = {
             time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
           });
         }
-        if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
-          await sails.helpers.schedule.with({
-            name: "SECOND_INVITE_REMINDER_SMS",
-            data: { invite },
-            time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
-          });
-        }
       }
 
       if (invite.emailAddress) {
@@ -541,13 +538,26 @@ module.exports = {
             time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
           });
         }
-        if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
-          await sails.helpers.schedule.with({
-            name: "SECOND_INVITE_REMINDER_EMAIL",
-            data: { invite },
-            time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
-          });
-        }
+      }
+    }
+
+    if (invite.phoneNumber) {
+      if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
+        await sails.helpers.schedule.with({
+          name: "SECOND_INVITE_REMINDER_SMS",
+          data: { invite },
+          time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+        });
+      }
+    }
+
+    if (invite.emailAddress) {
+      if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
+        await sails.helpers.schedule.with({
+          name: "SECOND_INVITE_REMINDER_EMAIL",
+          data: { invite },
+          time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+        });
       }
     }
   },

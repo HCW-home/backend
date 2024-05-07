@@ -10,22 +10,48 @@ module.exports = {
 
     const inviteJobs = {
       FIRST_INVITE_REMINDER_SMS: async (invite) => {
-        await sails.helpers.sms.with({
-          phoneNumber: invite.phoneNumber,
-          message:
+        if (invite.messageService === '1') {
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message:
             sails.models.publicinvite.getReminderMessage(invite)
               .firstReminderMessage,
-          senderEmail: invite?.doctor?.email,
-        });
+            senderEmail: invite?.doctor?.email,
+            whatsApp: true,
+          });
+        } else {
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message:
+            sails.models.publicinvite.getReminderMessage(invite)
+              .firstReminderMessage,
+            senderEmail: invite?.doctor?.email,
+            whatsApp: false,
+          });
+        }
       },
       SECOND_INVITE_REMINDER_SMS: async (invite) => {
-        await sails.helpers.sms.with({
-          phoneNumber: invite.phoneNumber,
-          message:
+        if (invite.messageService === '1') {
+          //   WhatsApp
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message:
             sails.models.publicinvite.getReminderMessage(invite)
               .secondReminderMessage,
-          senderEmail: invite?.doctor?.email,
-        });
+            senderEmail: invite?.doctor?.email,
+            whatsApp: true,
+          });
+        } else {
+          // SMS
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message:
+            sails.models.publicinvite.getReminderMessage(invite)
+              .secondReminderMessage,
+            senderEmail: invite?.doctor?.email,
+            whatsApp: false,
+          });
+        }
       },
       FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
         const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
