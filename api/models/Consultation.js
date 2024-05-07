@@ -472,7 +472,7 @@ module.exports = {
     }
 
     // mark consultation as closed and set closedAtISO for mongodb ttl
-    const { result } = await consultationCollection.update(
+    const { result } = await consultationCollection.updateOne(
       { _id: new ObjectId(consultation.id) },
       {
         $set: {
@@ -484,7 +484,7 @@ module.exports = {
     );
 
     // set consultationClosedAtISO for mongodb ttl index
-    await messageCollection.update(
+    await messageCollection.updateOne(
       { consultation: new ObjectId(consultation.id) },
       {
         $set: {

@@ -559,7 +559,7 @@ module.exports = {
     if (invite.guestInvite) {
       await PublicInvite.destroyOne({ id: invite.guestInvite });
 
-      await userCollection.update(
+      await userCollection.updateOne(
         { username: invite.guestInvite },
         {
           $set: {
@@ -573,7 +573,7 @@ module.exports = {
     }
     if (invite.translatorInvite) {
       await PublicInvite.destroyOne({ id: invite.translatorInvite });
-      await userCollection.update(
+      await userCollection.updateOne(
         { username: invite.translatorInvite },
         {
           $set: {
@@ -584,7 +584,7 @@ module.exports = {
     }
 
     await PublicInvite.destroyOne({ id: invite.id });
-    await userCollection.update(
+    await userCollection.updateOne(
       { username: invite.id },
       {
         $set: {
