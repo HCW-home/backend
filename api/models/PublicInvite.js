@@ -329,7 +329,6 @@ module.exports = {
       } else {
         if (invite.messageService === '1') {
           try {
-            console.log('stexaaaa');
             await sails.helpers.sms.with({
               phoneNumber: invite.phoneNumber,
               message,

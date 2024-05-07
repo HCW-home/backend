@@ -75,7 +75,7 @@ module.exports.globals = {
   ROLE_SCHEDULER: "scheduler",
 
   attachmentsDir:
-    process.env.ATTACHMENTS_DIR || "/Users/grigoryan/Desktop/garlaxnoc",
+    process.env.ATTACHMENTS_DIR || "/var/lib/hug-home/attachments",
 
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,
