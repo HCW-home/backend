@@ -1,6 +1,6 @@
 #!/bin/sh
 ## Adapt according to you build environment.
-VERSION=node_16.x
+VERSION=node_18.x
 DISTRO=focal
 
 set -e
