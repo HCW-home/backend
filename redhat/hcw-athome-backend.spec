@@ -1,6 +1,6 @@
 Summary: Front end for Hug@Home Backend application
 Name: hcw-athome-backend
-Version: 5.0.10
+Version: 5.0.11
 Release: 1
 Group: Web Application
 License: HUG
