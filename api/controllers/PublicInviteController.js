@@ -4,8 +4,6 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const ObjectId = require('mongodb').ObjectID;
-const db = PublicInvite.getDatastore().manager;
 
 function determineStatus(phoneNumber, prefixes) {
   let canSendSMS = false;

@@ -73,6 +73,9 @@ module.exports.routes = {
   'DELETE /mediasoupserver/:id': 'MediasoupserverController.delete',
 
 
+  'GET /api/v1/sms-providers': 'SmsProviderController.list',
+  'PUT /api/v1/sms-provider/:id': 'SmsProviderController.update',
+
   'POST /api/v1/user/:user/allowed-queues': 'UserController.addDoctorToQueue',
   'DELETE /api/v1/user/:user/allowed-queues': 'UserController.removeDoctorFromQueue',
   'GET /api/v1/user/:user/allowed-queues': 'UserController.getDoctorQueues',

@@ -5,7 +5,7 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 
-const ObjectId = require("mongodb").ObjectID;
+const { ObjectId } = require('mongodb');
 const _ = require("@sailshq/lodash");
 const jwt = require("jsonwebtoken");
 

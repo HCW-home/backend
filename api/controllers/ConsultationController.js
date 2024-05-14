@@ -4,7 +4,7 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const ObjectId = require("mongodb").ObjectID;
+const { ObjectId } = require('mongodb');
 const fs = require("fs");
 const path = require("path");
 const json2csv = require('@json2csv/plainjs');

@@ -6,7 +6,7 @@
  */
 
 
- const ObjectId = require('mongodb').ObjectID;
+const { ObjectId } = require('mongodb');
 
 module.exports = {
   schema: true,

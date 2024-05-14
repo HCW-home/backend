@@ -5,7 +5,7 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const db = PublicInvite.getDatastore().manager;
-const ObjectId = require('mongodb').ObjectID;
+const { ObjectId } = require('mongodb');
 
 const moment = require('moment-timezone');
 
