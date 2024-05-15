@@ -34,10 +34,10 @@ module.exports = {
 
   fn: async function (inputs, exits) {
     try {
-      if (!inviteJobs[inputs.name]) {
-        sails.log.error(`Invalid helper name: ${inputs.name}`);
-        return exits.invalidHelper();
-      }
+      // if (!inviteJobs[inputs.name]) {
+      //   sails.log.error(`Invalid helper name: ${inputs.name}`);
+      //   return exits.invalidHelper();
+      // }
 
       if (inputs.time instanceof Date) {
         const now = new Date();

@@ -276,8 +276,8 @@ module.exports = {
     return consultationParticipants;
   },
 
-  async find(...args) {
-    return  Consultation.find(...args);
+  async findBy(args) {
+    return  Consultation.find(args);
   },
 
   async getAnonymousDetails(consultation) {

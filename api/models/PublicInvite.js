@@ -349,8 +349,8 @@ module.exports = {
     }
   },
 
-  async find(...args) {
-    return  PublicInvite.find(...args);
+  async findBy(args) {
+    return  PublicInvite.find(args);
   },
 
   async sendGuestInvite(invite) {
