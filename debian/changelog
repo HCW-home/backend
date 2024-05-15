@@ -1,3 +1,10 @@
+hcw-athome-backend (5.0.17) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * dist env update
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 May 2024 10:53:28 +0200
+
 hcw-athome-backend (0.5.0.16) focal; urgency=medium
 
   [ Gor Grigoryan ]
