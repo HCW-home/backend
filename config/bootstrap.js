@@ -54,7 +54,7 @@ module.exports.bootstrap = async function() {
       prefix: 'SMS_TWILLO_WL_PREFIX',
       requiredVars: ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER']
     },
-    { name: 'CLICKATEL_API', prefix: 'SMS_CLICKATEL_API_WL_PREFIX', requiredVars: ['SMS_CLICKATEL'] },
+    { name: 'CLICKATEL_API', prefix: 'SMS_CLICKATEL_API_WL_PREFIX', requiredVars: ['SMS_CLICKATEL_API'] },
     {
       name: 'OVH',
       prefix: 'SMS_OVH_WL_PREFIX',
