@@ -1,3 +1,9 @@
+hcw-athome-backend (5.0.18) focal; urgency=medium
+
+  * Fix SMS_CLICKATEL_API error in bootstrap
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 May 2024 11:55:46 +0200
+
 hcw-athome-backend (5.0.17) focal; urgency=medium
 
   [ Gor Grigoryan ]
