@@ -1,3 +1,13 @@
+hcw-athome-backend (0.5.0.14) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Translated using Weblate (French)
+
+  [ Gor Grigoryan ]
+  * cron find model fix
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 May 2024 09:26:43 +0200
+
 hcw-athome-backend (0.5.0.13) focal; urgency=medium
 
   [ Gor Grigoryan ]
