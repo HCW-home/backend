@@ -276,6 +276,10 @@ module.exports = {
     return consultationParticipants;
   },
 
+  async find(...args) {
+    return  Consultation.find(...args);
+  },
+
   async getAnonymousDetails(consultation) {
     // consultation = await Consultation.findOne({id:'5e81e3838475f6352ef40aec'})
     const anonymousConsultation = {

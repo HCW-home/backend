@@ -349,6 +349,10 @@ module.exports = {
     }
   },
 
+  async find(...args) {
+    return  PublicInvite.find(...args);
+  },
+
   async sendGuestInvite(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;

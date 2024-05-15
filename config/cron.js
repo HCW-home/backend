@@ -71,6 +71,7 @@ const inviteJobs = {
 
 module.exports = {
   startCron: async () => {
+
     const defineJob = (name, cronTime, jobFunction) => {
       const job = new CronJob(cronTime, async () => {
         const jobs = await sails.models.publicinvite.find({ name });
@@ -113,7 +114,7 @@ module.exports = {
 
     defineJob('delete old consultations', '*/5 * * * *', async () => {
       const now = Date.now();
-      const consultationsToBeClosed = await Consultation.find({
+      const consultationsToBeClosed = await sails.models.consultation.find({
         status: { '!=': 'closed' },
         or: [
           { acceptedAt: 0, createdAt: { '<': now - CONSULTATION_TIMEOUT } },
@@ -122,17 +123,17 @@ module.exports = {
       });
 
       for (const consultation of consultationsToBeClosed) {
-        await Consultation.closeConsultation(consultation);
+        await sails.models.consultation.closeConsultation(consultation);
       }
 
-      const translatorRequestsToBeRefused = await PublicInvite.find({
+      const translatorRequestsToBeRefused = await sails.models.publicinvite.find({
         status: 'SENT',
         type: 'TRANSLATOR_REQUEST',
         createdAt: { '<': now - TRANSLATION_REQUEST_TIMEOUT },
       });
 
       for (const invite of translatorRequestsToBeRefused) {
-        await PublicInvite.refuseTranslatorRequest(invite);
+        await sails.models.publicinvite.refuseTranslatorRequest(invite);
       }
     });
   },
