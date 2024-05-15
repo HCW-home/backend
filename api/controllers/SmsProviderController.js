@@ -32,6 +32,23 @@ module.exports = {
     } catch (err) {
       return res.serverError(err);
     }
+  },
+  batchUpdateOrder: async function(req, res) {
+    const updates = req.body;
+
+    try {
+      const updatePromises = updates.map(update => {
+        return SmsProvider.updateOne({ id: update.id })
+          .set({
+            order: update.order
+          });
+      });
+
+      await Promise.all(updatePromises);
+      return res.ok({ message: 'Orders updated successfully' });
+    } catch (err) {
+      return res.serverError(err);
+    }
   }
 
 

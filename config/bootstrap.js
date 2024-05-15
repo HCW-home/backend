@@ -50,6 +50,12 @@ module.exports.bootstrap = async function() {
 
   const providers = [
     {
+      name: 'TWILIO',
+      prefix: 'SMS_TWILLO_WL_PREFIX',
+      requiredVars: ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER']
+    },
+    { name: 'CLICKATEL_API', prefix: 'SMS_CLICKATEL_API_WL_PREFIX', requiredVars: ['SMS_CLICKATEL'] },
+    {
       name: 'OVH',
       prefix: 'SMS_OVH_WL_PREFIX',
       requiredVars: ['SMS_OVH_SENDER', 'SMS_OVH_ENDPOINT', 'SMS_OVH_APP_KEY', 'SMS_OVH_APP_SECRET', 'SMS_OVH_APP_CONSUMER_KEY']
@@ -59,11 +65,14 @@ module.exports.bootstrap = async function() {
       prefix: 'SMS_SWISSCOM_WL_PREFIX',
       requiredVars: ['SMS_SWISSCOM_ACCOUNT', 'SMS_SWISSCOM_PASSWORD', 'SMS_SWISSCOM_SENDER']
     },
-    { name: 'CLICKATEL', prefix: 'SMS_CLICKATEL_WL_PREFIX', requiredVars: [] },
-    { name: 'CLICKATEL_API', prefix: 'SMS_CLICKATEL_API_WL_PREFIX', requiredVars: [] },
-    { name: 'TWILIO', prefix: 'SMS_TWILLO_WL_PREFIX', requiredVars: [] },
-    { name: 'ODOO_SMS', prefix: 'SMS_ODOO_WL_PREFIX', requiredVars: [] },
-    { name: 'TWILIO_WHATSAPP', prefix: 'TWILIO_WHATSAPP_WL_PREFIX', requiredVars: [] }
+    {
+      name: 'TWILIO_WHATSAPP',
+      prefix: 'TWILIO_WHATSAPP_WL_PREFIX',
+      requiredVars: ['TWILIO_WHATSAPP_PHONE_NUMBER', 'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN']
+    },
+    { name: 'ODOO_SMS', prefix: 'SMS_ODOO_WL_PREFIX', requiredVars: ['ODOO_SMS_KEY', 'ODOO_SMS_URL', 'ODOO_SMS_HOST'] },
+    { name: 'CLICKATEL', prefix: 'SMS_CLICKATEL_WL_PREFIX', requiredVars: ['SMS_CLICKATEL'] },
+
   ];
 
   for (const [index, provider] of providers.entries()) {
@@ -78,7 +87,7 @@ module.exports.bootstrap = async function() {
       await SmsProvider.create({
         provider: provider.name,
         order: index,
-        prefix: process.env[provider.prefix] || '*',
+        prefix: provider.name === 'TWILIO_WHATSAPP' ? process.env[provider.prefix] : process.env[provider.prefix] || '*',
         isWhatsapp: provider.name === 'TWILIO_WHATSAPP',
         isDisabled: isDisabled,
       });

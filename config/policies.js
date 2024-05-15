@@ -40,6 +40,7 @@ module.exports.policies = {
   SmsProviderController: {
     list: ["isLoggedIn"],
     update: ["isLoggedIn"],
+    batchUpdateOrder: ["isLoggedIn"],
   },
   // '/api/v1/subscribe-to-socket':['isLoggedIn'],
   UserController: {
