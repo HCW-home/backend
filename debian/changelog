@@ -1,3 +1,10 @@
+hcw-athome-backend (0.5.0.15) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * renem find function
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 May 2024 10:03:21 +0200
+
 hcw-athome-backend (0.5.0.14) focal; urgency=medium
 
   [ Olivier Bitsch ]
