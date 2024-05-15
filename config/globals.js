@@ -86,6 +86,6 @@ module.exports.globals = {
     CLICKATEL_API: process.env.SMS_CLICKATEL_API_WL_PREFIX || '*',
     TWILIO: process.env.SMS_TWILLO_WL_PREFIX || '*',
     ODOO_SMS: process.env.SMS_ODOO_WL_PREFIX || '*',
-    TWILIO_WHATSAPP: process.env.TWILIO_WHATSAPP_WL_PREFIX || '*'
+    TWILIO_WHATSAPP: process.env.TWILIO_WHATSAPP_WL_PREFIX,
   }
 };

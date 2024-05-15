@@ -4,25 +4,22 @@
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-const ObjectId = require('mongodb').ObjectID;
-const db = PublicInvite.getDatastore().manager;
-
-function determineStatus(phoneNumber, prefixes) {
+function determineStatus(phoneNumber, smsProviders) {
   let canSendSMS = false;
   let canSendWhatsApp = false;
 
-  for (const provider in prefixes) {
-    if (prefixes[provider]) {
-      const prefixList = prefixes[provider].split(',');
+  smsProviders.forEach(provider => {
+    if (!provider.isDisabled && provider.prefix) {
+      const prefixList = provider.prefix.split(',');
       if (prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix))) {
-        if (provider.includes('WHATSAPP')) {
+        if (provider.provider.includes('WHATSAPP')) {
           canSendWhatsApp = true;
         } else {
           canSendSMS = true;
         }
       }
     }
-  }
+  });
 
   if (canSendSMS && canSendWhatsApp) {
     return { code: 1, message: "You have to choose Whatsapp or SMS for sending this invite." };
@@ -34,6 +31,7 @@ function determineStatus(phoneNumber, prefixes) {
     return { code: 0, message: "This phone number is not permitted to be used on this platform." };
   }
 }
+
 
 module.exports = {
 
@@ -71,7 +69,8 @@ module.exports = {
       return res.badRequest({ message: 'Phone number is required.' });
     }
 
-    const status = determineStatus(phoneNumber, sails.config.globals.WHITELISTED_PREFIXES);
+    const providers = await SmsProvider.find({});
+    const status = determineStatus(phoneNumber, providers);
 
     return res.ok({
       phoneNumber: phoneNumber,

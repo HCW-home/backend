@@ -13,7 +13,7 @@ const { promisify } = require('util');
 
 const readdirP = promisify(fs.readdir);
 
-module.exports.bootstrap = async function () {
+module.exports.bootstrap = async function() {
 
   // By convention, this is a good place to set up fake data during development.
   //
@@ -44,6 +44,56 @@ module.exports.bootstrap = async function () {
   // await userCollection.createIndex({ email: 1, role: 1 }, { unique: true });
   await tokenCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 60 * 60 }); // expires after an hour
 
+  function checkEnvVariables(vars) {
+    return vars.every(variable => process.env[variable] && process.env[variable].trim() !== '');
+  }
+
+  const providers = [
+    {
+      name: 'TWILIO',
+      prefix: 'SMS_TWILLO_WL_PREFIX',
+      requiredVars: ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_PHONE_NUMBER']
+    },
+    { name: 'CLICKATEL_API', prefix: 'SMS_CLICKATEL_API_WL_PREFIX', requiredVars: ['SMS_CLICKATEL'] },
+    {
+      name: 'OVH',
+      prefix: 'SMS_OVH_WL_PREFIX',
+      requiredVars: ['SMS_OVH_SENDER', 'SMS_OVH_ENDPOINT', 'SMS_OVH_APP_KEY', 'SMS_OVH_APP_SECRET', 'SMS_OVH_APP_CONSUMER_KEY']
+    },
+    {
+      name: 'SWISSCOM',
+      prefix: 'SMS_SWISSCOM_WL_PREFIX',
+      requiredVars: ['SMS_SWISSCOM_ACCOUNT', 'SMS_SWISSCOM_PASSWORD', 'SMS_SWISSCOM_SENDER']
+    },
+    {
+      name: 'TWILIO_WHATSAPP',
+      prefix: 'TWILIO_WHATSAPP_WL_PREFIX',
+      requiredVars: ['TWILIO_WHATSAPP_PHONE_NUMBER', 'TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN']
+    },
+    { name: 'ODOO_SMS', prefix: 'SMS_ODOO_WL_PREFIX', requiredVars: ['ODOO_SMS_KEY', 'ODOO_SMS_URL', 'ODOO_SMS_HOST'] },
+    { name: 'CLICKATEL', prefix: 'SMS_CLICKATEL_WL_PREFIX', requiredVars: ['SMS_CLICKATEL'] },
+
+  ];
+
+  for (const [index, provider] of providers.entries()) {
+    const isDisabled = !checkEnvVariables(provider.requiredVars);
+    const existingProvider = await SmsProvider.findOne({ provider: provider.name });
+    if (existingProvider) {
+      await SmsProvider.updateOne({ id: existingProvider.id })
+        .set({
+          isDisabled: isDisabled,
+        });
+    } else {
+      await SmsProvider.create({
+        provider: provider.name,
+        order: index,
+        prefix: provider.name === 'TWILIO_WHATSAPP' ? process.env[provider.prefix] : process.env[provider.prefix] || '*',
+        isWhatsapp: provider.name === 'TWILIO_WHATSAPP',
+        isDisabled: isDisabled,
+      });
+    }
+  }
+
   // check and delete expired files
   setInterval(async () => {
 
@@ -56,7 +106,7 @@ module.exports.bootstrap = async function () {
 
         // if the file message is not found (message was deleted) delete the file
         if (!found) {
-          fs.unlink(`${sails.config.globals.attachmentsDir }/${ filePath}`, err => {
+          fs.unlink(`${sails.config.globals.attachmentsDir}/${filePath}`, err => {
 
             if (err) {
               sails.log.warn('error deleting file ', err);

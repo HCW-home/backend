@@ -37,6 +37,11 @@ module.exports.policies = {
     read: ["isLoggedIn", "isAdmin"],
     create: ["isLoggedIn", "isAdmin"],
   },
+  SmsProviderController: {
+    list: ["isLoggedIn"],
+    update: ["isLoggedIn"],
+    batchUpdateOrder: ["isLoggedIn"],
+  },
   // '/api/v1/subscribe-to-socket':['isLoggedIn'],
   UserController: {
     "*": false,
