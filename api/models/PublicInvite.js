@@ -270,7 +270,7 @@ module.exports = {
     });
   },
 
-  async sendPatientInvite(invite) {
+  async sendPatientInvite(invite, resend = false) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
     const inviteTime = invite.scheduledFor
@@ -296,7 +296,7 @@ module.exports = {
             doctorName,
           });
     // don't send invite if there is a translator required
-    if (invite.emailAddress && !invite.scheduledFor) {
+    if (invite.emailAddress && (!invite.scheduledFor || resend)) {
       try {
         await sails.helpers.email.with({
           to: invite.emailAddress,

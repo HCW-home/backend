@@ -914,7 +914,7 @@ module.exports = {
         });
       }
 
-      await PublicInvite.sendPatientInvite(patientInvite);
+      await PublicInvite.sendPatientInvite(patientInvite, true);
       await PublicInvite.updateOne({ id: req.params.invite }).set({
         status: 'SENT',
       });
