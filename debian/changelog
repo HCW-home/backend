@@ -1,3 +1,10 @@
+hcw-athome-backend (5.0.19) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix resend invite email/sms when invite is in past
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 22 May 2024 08:28:51 +0200
+
 hcw-athome-backend (5.0.18) focal; urgency=medium
 
   * Fix SMS_CLICKATEL_API error in bootstrap
