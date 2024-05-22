@@ -131,7 +131,7 @@ module.exports.policies = {
     closeConsultation: [
       "isLoggedIn",
       "canInvite",
-      "isScheduler",
+      "isSchedulerOrAdmin",
       "isInviteOwner",
     ],
     findByToken: true,
