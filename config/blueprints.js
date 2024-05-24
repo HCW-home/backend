@@ -49,6 +49,9 @@ module.exports.blueprints = {
 
     if(queryOptions.criteria){
       queryOptions.criteria = sanitize(queryOptions.criteria)
+      if (req.options.blueprintAction === 'find') {
+         queryOptions.meta = { enableExperimentalDeepTargets : true };
+      }
     }
     if (!req.param('populate', false) && !queryOptions.alias) {
       queryOptions.populates = {};
