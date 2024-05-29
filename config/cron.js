@@ -136,6 +136,30 @@ module.exports = {
         await sails.models.publicinvite.refuseTranslatorRequest(invite);
       }
     });
+
+    defineJob('delete old invites', '*/5 * * * *', async () => {
+      try {
+        console.log('Executing delete old invites job');
+        const now = Date.now();
+        const invitesToBeRemoved = await sails.models.publicinvite.find({
+          where: {
+            status: 'SENT',
+            type: 'PATIENT',
+            createdAt: { '<': new Date(now - CONSULTATION_TIMEOUT) },
+          }
+        });
+
+        for (const invitation of invitesToBeRemoved) {
+          await sails.models.publicinvite.destroyOne({ id: invitation.id });
+        }
+
+        console.log('Old invitations deleted successfully');
+      } catch (error) {
+        console.log('Error in delete old invites job:', error);
+      }
+
+    });
+
   },
   inviteJobs,
 };
