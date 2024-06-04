@@ -147,7 +147,7 @@ module.exports = {
     });
 
     if (user) {
-      await db.collection("user").update(
+      await db.collection("user").updateOne(
         {
           _id: user._id,
         },
