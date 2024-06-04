@@ -9,7 +9,8 @@ module.exports = {
 
   // retrieve the queue that are allowed for the current user
   async find (req, res) {
-    if (req.user.viewAllQueues || req.user.role === sails.config.globals.ROLE_NURSE || req.user.role === sails.config.globals.ROLE_SCHEDULER) {
+    const viewAll = req.user.role === sails.config.globals.ROLE_ADMIN ? !!req.query.viewAllQueues : false;
+    if (viewAll || req.user.viewAllQueues || req.user.role === sails.config.globals.ROLE_NURSE || req.user.role === sails.config.globals.ROLE_SCHEDULER) {
       const queues = await Queue.find({});
       return res.json(queues);
     }

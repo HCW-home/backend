@@ -60,9 +60,6 @@ const generate = (options = {}) => {
   const silentError = options.silentError;
 
   const middleware = function (req, res, next) {
-    // if(!req.options){
-    //   return next();
-    // }
     const now = !!(
       req.options &&
       (req.options.blueprintAction || req.options.action)
@@ -76,7 +73,6 @@ const generate = (options = {}) => {
     } else {
       // else, save the req.send to override it, so addHeaderThenOrNext can execute later
 
-      // todo: I really really didn't want to do that
       // but at the time of calling the middleware, req.options.blueprintAction was undefined
       // only after it gets processed by sails that these options are added
       // https://groups.google.com/forum/#!topic/sailsjs/bMZlbWnZRu4
@@ -109,7 +105,6 @@ const generate = (options = {}) => {
       const queryOptions = parseBlueprintOptions(req);
       const Model = req._sails.models[queryOptions.using];
 
-      // todo: pile of sh*t part-1
       // https://gitter.im/balderdashy/sails?at=5a3d24bcba39a53f1a903eef
       let populatingAssociation;
       if (/populate/.test(action) && queryOptions.alias) {
