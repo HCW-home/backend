@@ -1,0 +1,35 @@
+meta {
+  name: DEL invite
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{BASE_URI}}/invite/6661679f85a93edbc4330a58
+  body: json
+  auth: none
+}
+
+headers {
+  x-access-token: {{TOKEN}}
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "emailAddress":"olivier.b@iabsis.com",
+      "IMADTeam": "123",
+      "phoneNumber":"",
+      "scheduledFor":"2021-08-06T16:54:59.000Z",
+      "language":"fr",
+      "doctorLanguage":null,
+      "firstName":"Olivier",
+      "lastName":"Bitsch",
+      "gender":"male",
+      "patientTZ": "Europe/Paris",
+      "patientContact":"olivier.b@iabsis.com",
+      "doctorEmail": "olivier.b@iabsis.com",
+       "sendInvite": true,
+      "isPatientInvite":true
+  }
+}
