@@ -61,7 +61,7 @@ module.exports = async function(req, res, proceed) {
     req.query.where = JSON.stringify({
       and: [ownerFilter, additionalWhere],
     });
-
-    return proceed();
   }
+
+   return proceed();
 };
