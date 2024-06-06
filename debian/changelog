@@ -1,3 +1,13 @@
+hcw-athome-backend (5.0.21) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix get invite by id
+
+  [ Olivier Bitsch ]
+  * New invite DEL
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 06 Jun 2024 10:25:47 +0200
+
 hcw-athome-backend (5.0.20) focal; urgency=medium
 
   [ Olivier Bitsch ]
