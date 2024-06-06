@@ -1,3 +1,27 @@
+hcw-athome-backend (5.0.20) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * New release 5.0.19
+
+  [ Gor Grigoryan ]
+  * update closeConsultation policies
+
+  [ Olivier Bitsch ]
+  * Translated using Weblate (German)
+
+  [ Gor Grigoryan ]
+  * make where filter work for publicinvites
+
+  [ Olivier Bitsch ]
+  * Add script to permit to override languages
+
+  [ Gor Grigoryan ]
+  * refs #6768, Delete scheduled invite if not consumed 24h after schedule date/time
+  * add viewAllQueues for admin role
+  * refs #6828, Lost password feature seems not working anymore
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 06 Jun 2024 08:32:31 +0200
+
 hcw-athome-backend (5.0.19) focal; urgency=medium
 
   [ Gor Grigoryan ]
