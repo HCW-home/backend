@@ -137,27 +137,28 @@ module.exports = {
       }
     });
 
-    defineJob('delete old invites', '*/5 * * * *', async () => {
-      try {
-        console.log('Executing delete old invites job');
-        const now = Date.now();
-        const invitesToBeRemoved = await sails.models.publicinvite.find({
-          where: {
-            status: 'SENT',
-            type: 'PATIENT',
-            createdAt: { '<': new Date(now - CONSULTATION_TIMEOUT) },
+    const deleteOldInvites = CronJob.from({
+      cronTime: '*/5 * * * *',
+      onTick: async function () {
+          try {
+            const now = Date.now();
+            const invitesToBeRemoved = await sails.models.publicinvite.find({
+              where: {
+                status: 'SENT',
+                type: 'PATIENT',
+                createdAt: { '<': new Date(now - CONSULTATION_TIMEOUT) },
+              }
+            });
+
+            for (const invitation of invitesToBeRemoved) {
+              await sails.models.publicinvite.destroyOne({ id: invitation.id });
+            }
+
+          } catch (error) {
+            console.log('Error in delete old invites job:', error);
           }
-        });
-
-        for (const invitation of invitesToBeRemoved) {
-          await sails.models.publicinvite.destroyOne({ id: invitation.id });
-        }
-
-        console.log('Old invitations deleted successfully');
-      } catch (error) {
-        console.log('Error in delete old invites job:', error);
-      }
-
+      },
+      start: true,
     });
 
   },
