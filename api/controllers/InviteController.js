@@ -125,7 +125,7 @@ module.exports = {
     };
 
     // validate
-    if (req.body.isPatientInvite) {
+    if (req.body.isPatientInvite && !req.body.sendLinkManually) {
       const errors = validateInviteRequest(req.body);
       if (errors.length) {
         return res.status(400).json(errors);
@@ -144,7 +144,8 @@ module.exports = {
       if (
         !req.body.translationOrganization &&
         !req.body.guestPhoneNumber &&
-        !req.body.guestEmailAddress
+        !req.body.guestEmailAddress &&
+        !req.body.sendLinkManually
       ) {
         return res.status(400).json({
           success: false,
