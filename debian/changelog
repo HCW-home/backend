@@ -1,3 +1,11 @@
+hcw-athome-backend (0.5.0.22) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #6768, Delete scheduled invite if not consumed 24h after schedule date/time
+  * handle send link manually on create invite
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 11 Jul 2024 10:12:18 +0200
+
 hcw-athome-backend (5.0.21) focal; urgency=medium
 
   [ Gor Grigoryan ]
