@@ -955,6 +955,9 @@ module.exports = {
         }
       }
 
+      patientInvite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${patientInvite.inviteToken}`;
+
+
       return res.json({
         success: true,
         patientInvite,
