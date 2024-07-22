@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.0.23) focal; urgency=medium
+hcw-athome-backend (5.1.0) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * resend invite fix
