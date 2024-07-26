@@ -5,6 +5,7 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 const bcrypt = require('bcrypt');
+const passport = require('passport');
 
 
 module.exports = {
@@ -111,15 +112,19 @@ module.exports = {
     }
   },
 
-  generatePassword (clearPassword) {
+  generatePassword(clearPassword) {
     return new Promise((resolve, reject) => {
       bcrypt.genSalt(10, (err, salt) => {
         console.log('SALT GENERATED', salt);
-        if (err) { reject(err); }
+        if (err) {
+          reject(err);
+        }
         bcrypt.hash(clearPassword, salt, (err, hash) => {
           console.log('PASSWORD ENCRYPTED', hash);
           crypted = hash;
-          if (err) { reject(err); }
+          if (err) {
+            reject(err);
+          }
           resolve(hash);
         });
       });
@@ -127,10 +132,10 @@ module.exports = {
 
   },
 
-  customToJSON () {
+  customToJSON() {
     return _.omit(this, ['password', 'smsVerificationCode']);
   },
-  async beforeCreate (user, cb) {
+  async beforeCreate(user, cb) {
     try {
       // if(user.role === 'nurse') {return cb();}
       if (!user.password) {
@@ -143,9 +148,13 @@ module.exports = {
         });
       }
       bcrypt.genSalt(10, (err, salt) => {
-        if (err) { return cb(err); }
+        if (err) {
+          return cb(err);
+        }
         bcrypt.hash(user.password, salt, (err, hash) => {
-          if (err) { return cb(err); }
+          if (err) {
+            return cb(err);
+          }
           user.password = hash;
           return cb();
         });
@@ -157,12 +166,25 @@ module.exports = {
 
   },
 
-  async beforeUpdate (valuesToSet, proceed) {
-
+  async beforeUpdate(valuesToSet, proceed) {
 
     if (valuesToSet.email) {
-      const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
+      if (valuesToSet.password) {
+        bcrypt.genSalt(10, (err, salt) => {
+          if (err) {
+            return proceed(err);
+          }
+          bcrypt.hash(valuesToSet.password, salt, (err, hash) => {
+            if (err) {
+              return proceed(err);
+            }
+            valuesToSet.password = hash;
+            proceed();
+          });
+        });
+      }
 
+      const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
       if (currentUser && currentUser.email === valuesToSet.email) {
         return proceed();
       }
