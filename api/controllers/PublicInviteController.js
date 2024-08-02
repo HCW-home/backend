@@ -35,6 +35,111 @@ function determineStatus(phoneNumber, smsProviders) {
 
 module.exports = {
 
+  async createFhirAppointment(req, res) {
+    try {
+      const appointmentData = req.body;
+
+      FhirService.validateAppointmentData(appointmentData);
+
+      const inviteData = FhirService.serializeAppointmentToInvite(appointmentData);
+
+
+      const newInvite = await PublicInvite.create(inviteData).fetch();
+
+      console.log(newInvite, 'newInvite');
+      return res.status(201).json(newInvite);
+    } catch (error) {
+      if (error.message === 'Invalid FHIR data') {
+        return res.status(400).json({ error: error.message, details: error.details });
+      }
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
+
+    }
+  },
+
+  async getAllFhirAppointments(req, res) {
+    try {
+      const invites = await PublicInvite.find();
+      return res.status(200).json(invites);
+    } catch (error) {
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
+    }
+  },
+
+  async getFhirAppointmentByField(req, res) {
+    try {
+      const { inviteToken } = req.query;
+
+      const publicInvite = await PublicInvite.findOne({
+        inviteToken: inviteToken,
+      });
+
+
+      if (!publicInvite) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      return res.status(200).json(publicInvite);
+    } catch (error) {
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
+    }
+  },
+
+  async updateFhirAppointmentByField(req, res) {
+    try {
+      const field = req.query.field;
+      const value = req.query.value;
+      const appointmentData = req.body;
+
+      if (!field || !value) {
+        return res.status(400).json({ error: 'Field and value are required' });
+      }
+
+      FhirService.validateAppointmentData(appointmentData);
+
+      const inviteData = FhirService.serializeAppointmentToInvite(appointmentData);
+
+      const updatedInvite = await PublicInvite.updateOne({
+        [`fhirData.${field}`]: value,
+      }).set(inviteData);
+
+      if (!updatedInvite) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      return res.status(200).json(updatedInvite);
+    } catch (error) {
+      if (error.message === 'Invalid FHIR data') {
+        return res.status(400).json({ error: error.message, details: error.details });
+      }
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
+    }
+  },
+
+  deleteFhirAppointmentByField: async function (req, res) {
+    try {
+      const field = req.query.field;
+      const value = req.query.value;
+
+      if (!field || !value) {
+        return res.status(400).json({ error: 'Field and value are required' });
+      }
+
+      const deletedInvite = await PublicInvite.destroyOne({
+        [`fhirData.${field}`]: value,
+      });
+
+      if (!deletedInvite) {
+        return res.status(404).json({ error: 'Appointment not found' });
+      }
+
+      return res.status(200).json({ message: 'Appointment deleted successfully' });
+    } catch (error) {
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
+    }
+  },
+
+
   async update(req, res) {
     const inviteId = req.params.id;
 

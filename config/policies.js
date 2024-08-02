@@ -143,6 +143,9 @@ module.exports.policies = {
     checkPrefix: ["isLoggedIn", "canInvite", "isInviteOwner"],
     destroy: ["isLoggedIn", "canInvite", "isInviteOwner"],
     findOne: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    createFhirAppointment: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    getFhirAppointmentByField: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    getAllFhirAppointments: ["isLoggedIn", "canInvite", "isInviteOwner"],
   },
 
   QueueController: {
