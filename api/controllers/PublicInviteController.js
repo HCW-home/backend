@@ -116,17 +116,13 @@ module.exports = {
     }
   },
 
-  deleteFhirAppointmentByField: async function (req, res) {
+  async deleteFhirAppointmentByField (req, res) {
     try {
-      const field = req.query.field;
-      const value = req.query.value;
 
-      if (!field || !value) {
-        return res.status(400).json({ error: 'Field and value are required' });
-      }
+      const { inviteToken } = req.query;
 
       const deletedInvite = await PublicInvite.destroyOne({
-        [`fhirData.${field}`]: value,
+        inviteToken: inviteToken,
       });
 
       if (!deletedInvite) {
