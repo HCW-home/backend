@@ -8,6 +8,7 @@ const db = PublicInvite.getDatastore().manager;
 const { ObjectId } = require('mongodb');
 
 const moment = require('moment-timezone');
+const TwilioWhatsappConfig = require('../../twilio-whatsapp-config.json');
 
 // /**
 //  *
@@ -316,6 +317,10 @@ module.exports = {
         inviteData.messageService = req.body.messageService
       }
 
+      if (req.body.guestMessageService) {
+        inviteData.guestMessageService = req.body.guestMessageService
+      }
+
       invite = await PublicInvite.create(inviteData).fetch();
 
       const experts = req.body.experts;
@@ -334,13 +339,19 @@ module.exports = {
             if (isPhoneNumber && !isEmail) {
               //  WhatsApp
               if (messageService === '1') {
+                const type = "please use this link";
+                const twilioTemplatedId = TwilioWhatsappConfig?.[inviteData?.patientLanguage]?.[type]?.twilio_template_id;
+                const params = {1: expertLink}
+
                 await sails.helpers.sms.with({
                   phoneNumber: expertContact,
-                  message: sails._t(doctorLanguage, 'please use this link', {
+                  message: sails._t(doctorLanguage, type, {
                     expertLink: expertLink,
                   }),
                   senderEmail: inviteData.doctorData?.email,
                   whatsApp: true,
+                  params,
+                  twilioTemplatedId
                 });
               } else if (messageService === '2') {
                 await sails.helpers.sms.with({
@@ -387,6 +398,7 @@ module.exports = {
           type: 'GUEST',
           guestEmailAddress: inviteData.guestEmailAddress,
           guestPhoneNumber: inviteData.guestPhoneNumber,
+          guestMessageService: inviteData?.guestMessageService || '',
           emailAddress: inviteData.guestEmailAddress,
           phoneNumber: inviteData.guestPhoneNumber,
           patientLanguage: req.body.language,

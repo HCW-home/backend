@@ -1,0 +1,63 @@
+{
+  "fr": {
+    "patient invite": {
+      "twilio_template_id": "HX5344b2cb3caf3e48ed8dd0312388e10e",
+      "params": [
+        "$(branding)s",
+        "%(url)s"
+      ]
+    },
+    "scheduled patient invite": {
+      "twilio_template_id": "HX2f72edf14c24c4edac822c1920b963d0",
+      "params": [
+        "$(branding)s"
+      ]
+    },
+    "please use this link": {
+      "twilio_template_id": "HXc65c95086454ed8308d32f251d8b2047",
+      "params": [
+        "%(url)s"
+      ]
+    },
+    "second guest invite reminder": {
+      "twilio_template_id": "HXce34bd211d199e9a733a0819e21bb8e1",
+      "params": [
+        "%(url)s"
+      ]
+    },
+    "second invite reminder": {
+      "twilio_template_id": "HX9beac7929d4e34e962199239f1a697f0",
+      "params": [
+        "%(url)s"
+      ]
+    },
+    "first guest invite reminder": {
+      "twilio_template_id": "HX6e534f1c19d4cdcb0dd8f2511dd2f55b",
+      "params": [
+        "$(branding)s",
+        "%(inviteTime)s"
+      ]
+    },
+    "first invite reminder": {
+      "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
+      "params": [
+        "$(branding)s",
+        "%(inviteTime)s"
+      ]
+    },
+    "guest invite": {
+      "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
+      "params": [
+        "$(branding)s",
+        "%(inviteTime)s"
+      ]
+    },
+    "scheduled guest invite": {
+      "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
+      "params": [
+        "$(branding)s",
+        "%(inviteTime)s"
+      ]
+    }
+  }
+}

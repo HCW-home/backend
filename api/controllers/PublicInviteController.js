@@ -1,10 +1,11 @@
+const TwilioWhatsappConfig = require('../../twilio-whatsapp-config.json');
 /**
  * PublicInviteController
  *
  * @description :: Server-side actions for handling incoming requests.
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
-function determineStatus(phoneNumber, smsProviders) {
+function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
   let canSendWhatsApp = false;
 
@@ -12,7 +13,7 @@ function determineStatus(phoneNumber, smsProviders) {
     if (!provider.isDisabled && provider.prefix) {
       const prefixList = provider.prefix.split(',');
       if (prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix))) {
-        if (provider.provider.includes('WHATSAPP')) {
+        if (provider.provider.includes('WHATSAPP') && TwilioWhatsappConfig?.[whatsappConfig?.language]?.[whatsappConfig?.type]) {
           canSendWhatsApp = true;
         } else {
           canSendSMS = true;
@@ -64,13 +65,15 @@ module.exports = {
   },
 
   checkPrefix: async function (req, res) {
+    const type = req.param('type');
+    const language = req.param('language');
     const phoneNumber = req.param('phoneNumber');
     if (!phoneNumber) {
       return res.badRequest({ message: 'Phone number is required.' });
     }
 
     const providers = await SmsProvider.find({});
-    const status = determineStatus(phoneNumber, providers);
+    const status = determineStatus(phoneNumber, providers, {type, language});
 
     return res.ok({
       phoneNumber: phoneNumber,

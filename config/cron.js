@@ -1,15 +1,20 @@
 const { CronJob } = require('cron');
+const TwilioWhatsappConfig = require('../twilio-whatsapp-config.json');
 const CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000;
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
 const inviteJobs = {
   FIRST_INVITE_REMINDER_SMS: async (invite) => {
     if (invite.messageService === '1') {
+      const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
+      const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[reminderData.firstReminderType]?.twilio_template_id;
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
-        message: sails.models.publicinvite.getReminderMessage(invite).firstReminderMessage,
+        message: reminderData.firstReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: true,
+        twilioTemplatedId,
+        params: reminderData.firstReminderParams,
       });
     } else {
       await sails.helpers.sms.with({
@@ -22,11 +27,15 @@ const inviteJobs = {
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
     if (invite.messageService === '1') {
+      const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
+      const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[reminderData.secondReminderType]?.twilio_template_id;
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
-        message: sails.models.publicinvite.getReminderMessage(invite).secondReminderMessage,
+        message: reminderData.secondReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: true,
+        params: reminderData.secondReminderParams,
+        twilioTemplatedId
       });
     } else {
       await sails.helpers.sms.with({

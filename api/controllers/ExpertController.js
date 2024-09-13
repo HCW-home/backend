@@ -1,3 +1,4 @@
+const TwilioWhatsappConfig = require('../../twilio-whatsapp-config.json');
 module.exports = {
   sendExpertLink: async function (req, res) {
     try {
@@ -17,16 +18,22 @@ module.exports = {
       if (isPhoneNumber && !isEmail) {
         if (messageService === '1') {
           // WhatsApp
+          const type = "please use this link";
+          const twilioTemplatedId = TwilioWhatsappConfig?.[req?.body?.language]?.[type]?.twilio_template_id;
+          const params = {1: expertLink?.expertLink}
+
           await sails.helpers.sms.with({
             phoneNumber: to,
-            message: sails._t(locale, "please use this link", {
+            message: sails._t(locale, type, {
               expertLink: expertLink?.expertLink,
             }),
             senderEmail: consultation.doctor?.email,
             whatsApp: true,
+            params,
+            twilioTemplatedId
           });
-        } else if(messageService === '2')  {
-        //   SMS
+        } else if (messageService === '2') {
+          //   SMS
           await sails.helpers.sms.with({
             phoneNumber: to,
             message: sails._t(locale, "please use this link", {

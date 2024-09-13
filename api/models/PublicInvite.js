@@ -13,6 +13,7 @@ const SECOND_INVITE_REMINDER = 60 * 1000;
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
 const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
 const crypto = require("crypto");
+const TwilioWhatsappConfig = require('../../twilio-whatsapp-config.json');
 
 async function generateToken() {
   const buffer = await new Promise((resolve, reject) => {
@@ -95,6 +96,10 @@ module.exports = {
     },
     guestPhoneNumber: {
       type: "string",
+    },
+    guestMessageService: {
+      type: "string",
+      required: false,
     },
     translator: {
       model: "user",
@@ -332,12 +337,31 @@ module.exports = {
         }
       } else {
         if (invite.messageService === '1') {
+          const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? "scheduled patient invite" : "patient invite"
+          const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[type]?.twilio_template_id;
+          let params = {}
+          switch (type){
+            case 'patient invite':
+              params = {
+                1: process.env.BRANDING,
+                2: url
+              }
+              break;
+            case 'scheduled patient invite':
+              params = {
+                1: process.env.BRANDING,
+              }
+              break;
+          }
+
           try {
             await sails.helpers.sms.with({
               phoneNumber: invite.phoneNumber,
               message,
               senderEmail: invite?.doctor?.email,
               whatsApp: true,
+              params,
+              twilioTemplatedId
             });
           } catch (error) {
             console.log("ERROR SENDING SMS>>>>>>>> ", error);
@@ -400,17 +424,51 @@ module.exports = {
     }
 
     if (invite.phoneNumber) {
-      try {
-        await sails.helpers.sms.with({
-          phoneNumber: invite.phoneNumber,
-          message,
-          senderEmail: invite.doctor?.email,
-          whatsApp: false,
-        });
-      } catch (error) {
-        console.log("ERROR SENDING SMS>>>>>>>> ", error);
-        // await PublicInvite.destroyOne({ id: invite.id });
-        return Promise.reject(error);
+      if (invite.guestMessageService === '1') {
+        const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? "scheduled guest invite" : "guest invite"
+        const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[type]?.twilio_template_id;
+        let params = {}
+        switch (type){
+          case 'guest invite':
+            params = {
+              1: process.env.BRANDING,
+              2: url
+            }
+            break;
+          case 'scheduled guest invite':
+            params = {
+              1: process.env.BRANDING,
+            }
+            break;
+        }
+
+        try {
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message,
+            senderEmail: invite.doctor?.email,
+            whatsApp: true,
+            params,
+            twilioTemplatedId
+          });
+        } catch (error) {
+          console.log("ERROR SENDING SMS>>>>>>>> ", error);
+          // await PublicInvite.destroyOne({ id: invite.id });
+          return Promise.reject(error);
+        }
+      } else {
+        try {
+          await sails.helpers.sms.with({
+            phoneNumber: invite.phoneNumber,
+            message,
+            senderEmail: invite.doctor?.email,
+            whatsApp: false,
+          });
+        } catch (error) {
+          console.log("ERROR SENDING SMS>>>>>>>> ", error);
+          // await PublicInvite.destroyOne({ id: invite.id });
+          return Promise.reject(error);
+        }
       }
     }
   },
@@ -425,27 +483,24 @@ module.exports = {
     const doctorName =
       (invite.doctor.firstName || "") + " " + (invite.doctor.lastName || "");
 
-    const firstReminderMessage =
-      invite.type === "PATIENT"
-        ? sails._t(locale, "first invite reminder", {
-            inviteTime,
-            branding: process.env.BRANDING,
-            doctorName,
-          })
-        : sails._t(locale, "first guest invite reminder", {
-            inviteTime,
-            branding: process.env.BRANDING,
-            doctorName,
-          });
+    const firstReminderType = invite.type === "PATIENT" ? "first invite reminder" : "first guest invite reminder";
+    const firstReminderMessage = sails._t(locale,firstReminderType, {
+      inviteTime,
+      branding: process.env.BRANDING,
+      doctorName,
+    })
 
-    const secondReminderMessage =
-      invite.type === "PATIENT"
-        ? sails._t(locale, "second invite reminder", { url, doctorName })
-        : sails._t(locale, "second guest invite reminder", { url, doctorName });
+
+    const secondReminderType = invite.type === "PATIENT" ? "second invite reminder" : "second guest invite reminder";
+    const secondReminderMessage = sails._t(locale, secondReminderType, { url, doctorName })
 
     return {
       firstReminderMessage,
       secondReminderMessage,
+      firstReminderType,
+      secondReminderType,
+      firstReminderParams: {1: inviteTime, 2: process.env.BRANDING, 3: doctorName,},
+      secondReminderParams: { 1: url, 2: doctorName }
     };
   },
 

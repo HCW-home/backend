@@ -187,10 +187,12 @@ function sendSmsWithTwilio(phoneNumber, message) {
  *
  * @param {string} message
  * @param {string} phoneNumber
+ * @param {string} contentSid
+ * @param {object} contentVariables
  * @returns {void}
  */
 
-function sendSmsWithTwilioWhatsapp(phoneNumber, message) {
+function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, contentVariables) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const twilioPhoneNumber = process.env.TWILIO_WHATSAPP_PHONE_NUMBER;
@@ -199,7 +201,8 @@ function sendSmsWithTwilioWhatsapp(phoneNumber, message) {
   return new Promise((resolve, reject) => {
     client.messages
       .create({
-        body: message,
+        contentSid: contentSid,
+        contentVariables: JSON.stringify(contentVariables),
         from: `whatsapp:${twilioPhoneNumber}`,
         to: `whatsapp:${phoneNumber}`,
       })
@@ -453,6 +456,14 @@ module.exports = {
       type: 'boolean',
       required: false,
     },
+    params: {
+      type: {},
+      required: false,
+    },
+    twilioTemplatedId: {
+      type: 'string',
+      required: false,
+    },
   },
   exits: {
     success: {
@@ -462,15 +473,15 @@ module.exports = {
 
   async fn(inputs, exits) {
     try {
-      const { message, phoneNumber, senderEmail, whatsApp } = inputs;
+      const {message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params} = inputs || {};
 
-      if (process.env.NODE_ENV === "development") {
-        await sendSmsWithInLog(phoneNumber, message);
-        return exits.success();
-      }
+      // if (process.env.NODE_ENV === "development") {
+      //   await sendSmsWithInLog(phoneNumber, message);
+      //   return exits.success();
+      // }
 
       if (whatsApp) {
-        sendSmsWithTwilioWhatsapp(phoneNumber, message);
+        sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params);
         return exits.success();
       } else {
         const providers = await SmsProvider.find({
