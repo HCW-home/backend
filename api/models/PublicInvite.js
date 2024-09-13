@@ -427,17 +427,19 @@ module.exports = {
       if (invite.guestMessageService === '1') {
         const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? "scheduled guest invite" : "guest invite"
         const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[type]?.twilio_template_id;
-        let params = {}
+        let params = {};
         switch (type){
           case 'guest invite':
             params = {
               1: process.env.BRANDING,
-              2: url
+              2: url,
             }
             break;
           case 'scheduled guest invite':
             params = {
               1: process.env.BRANDING,
+              2: testingUrl,
+              3: inviteTime,
             }
             break;
         }
@@ -499,8 +501,8 @@ module.exports = {
       secondReminderMessage,
       firstReminderType,
       secondReminderType,
-      firstReminderParams: {1: inviteTime, 2: process.env.BRANDING, 3: doctorName,},
-      secondReminderParams: { 1: url, 2: doctorName }
+      firstReminderParams: { 1: process.env.BRANDING, 2: inviteTime },
+      secondReminderParams: { 1: url }
     };
   },
 

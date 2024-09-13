@@ -49,13 +49,14 @@
       "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
       "params": [
         "$(branding)s",
-        "%(inviteTime)s"
+        "%(url)s"
       ]
     },
     "scheduled guest invite": {
       "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
       "params": [
         "$(branding)s",
+        "%(testingUrl)s",
         "%(inviteTime)s"
       ]
     }
