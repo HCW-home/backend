@@ -1,4 +1,5 @@
-const TwilioWhatsappConfig = require('../../twilio-whatsapp-config.json');
+const {importFileIfExists} = require('../../helpers/helpers');
+const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 /**
  * PublicInviteController
  *
