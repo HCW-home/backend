@@ -488,6 +488,70 @@ module.exports = {
         await PublicInvite.setPatientOrGuestInviteReminders(invite);
         if (invite.emailAddress) {
           await PublicInvite.createAndSendICS(invite);
+        } else if(invite.phoneNumber){
+          const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+          const inviteTime = moment(invite.scheduledFor);
+          const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
+          const doctorName = (invite.doctor.firstName || "") + " " + (invite.doctor.lastName || "");
+          const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
+          const message =
+            invite.scheduledFor && invite.scheduledFor > Date.now()
+              ? sails._t(locale, "scheduled patient invite", {
+                inviteTime,
+                testingUrl,
+                branding: process.env.BRANDING,
+                doctorName,
+              })
+              : sails._t(locale, "patient invite", {
+                url,
+                branding: process.env.BRANDING,
+                doctorName,
+              });
+
+          if (invite.messageService === '1') {
+            const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? "scheduled patient invite" : "patient invite"
+            const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[type]?.twilio_template_id;
+            let params = {}
+            switch (type){
+              case 'patient invite':
+                params = {
+                  1: process.env.BRANDING,
+                  2: url
+                }
+                break;
+              case 'scheduled patient invite':
+                params = {
+                  1: process.env.BRANDING,
+                }
+                break;
+            }
+
+            try {
+              await sails.helpers.sms.with({
+                phoneNumber: invite.phoneNumber,
+                message,
+                senderEmail: invite?.doctor?.email,
+                whatsApp: true,
+                params,
+                twilioTemplatedId
+              });
+            } catch (error) {
+              console.log("ERROR SENDING SMS>>>>>>>> ", error);
+              return Promise.reject(error);
+            }
+          }else if(invite.messageService === '2'){
+            try {
+              await sails.helpers.sms.with({
+                phoneNumber: invite.phoneNumber,
+                message,
+                senderEmail: invite?.doctor?.email,
+                whatsApp: false,
+              });
+            } catch (error) {
+              console.log("ERROR SENDING SMS>>>>>>>> ", error);
+              return Promise.reject(error);
+            }
+          }
         }
       }
       if (guestInvite) {
