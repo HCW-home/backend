@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.1.6) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.1.7) focal; urgency=medium
 
   [ Aram ]
   * fix:change guest invite ids
