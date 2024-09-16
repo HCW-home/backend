@@ -1,3 +1,11 @@
+hcw-athome-backend (0.5.1.4) focal; urgency=medium
+
+  [ Aram ]
+  * add logs
+  * fix: sneding sms on scheduled invite
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 15:11:51 +0200
+
 hcw-athome-backend (0.5.1.3) focal; urgency=medium
 
   [ Aram ]
