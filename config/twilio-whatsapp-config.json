@@ -10,7 +10,8 @@
     "scheduled patient invite": {
       "twilio_template_id": "HX2f72edf14c24c4edac822c1920b963d0",
       "params": [
-        "$(branding)s"
+        "$(branding)s",
+        "%(inviteDateTime)s"
       ]
     },
     "please use this link": {

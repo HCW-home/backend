@@ -6,7 +6,10 @@ const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
 const inviteJobs = {
   FIRST_INVITE_REMINDER_SMS: async (invite) => {
-    if (invite.messageService === '1') {
+    const isWhatsApp = (invite.type === "PATIENT" && invite.messageService === '1') ||
+      (invite.type !== "PATIENT" && invite.guestMessageService === '1')
+
+    if (isWhatsApp) {
       const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
       const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[reminderData.firstReminderType]?.twilio_template_id;
       await sails.helpers.sms.with({
@@ -27,7 +30,10 @@ const inviteJobs = {
     }
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
-    if (invite.messageService === '1') {
+    const isWhatsApp = (invite.type === "PATIENT" && invite.messageService === '1') ||
+      (invite.type !== "PATIENT" && invite.guestMessageService === '1')
+
+    if (isWhatsApp) {
       const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
       const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[reminderData.secondReminderType]?.twilio_template_id;
       await sails.helpers.sms.with({

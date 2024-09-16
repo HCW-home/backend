@@ -345,12 +345,13 @@ module.exports = {
             case 'patient invite':
               params = {
                 1: process.env.BRANDING,
-                2: url
+                2: invite.inviteToken
               }
               break;
             case 'scheduled patient invite':
               params = {
                 1: process.env.BRANDING,
+                2: inviteTime
               }
               break;
           }
@@ -503,7 +504,7 @@ module.exports = {
       firstReminderType,
       secondReminderType,
       firstReminderParams: { 1: process.env.BRANDING, 2: inviteTime },
-      secondReminderParams: { 1: url }
+      secondReminderParams: { 1: invite.inviteToken }
     };
   },
 
