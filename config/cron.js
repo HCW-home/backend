@@ -1,6 +1,7 @@
 const { CronJob } = require('cron');
 const {importFileIfExists} = require('../api/utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
+console.log('TwilioWhatsappConfig', TwilioWhatsappConfig)
 const CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000;
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
