@@ -8,7 +8,7 @@ const db = PublicInvite.getDatastore().manager;
 const { ObjectId } = require('mongodb');
 
 const moment = require('moment-timezone');
-const {importFileIfExists} = require('../../helpers/helpers');
+const {importFileIfExists} = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 // /**

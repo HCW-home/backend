@@ -13,7 +13,7 @@ const SECOND_INVITE_REMINDER = 60 * 1000;
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
 const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
 const crypto = require("crypto");
-const {importFileIfExists} = require('../../helpers/helpers');
+const {importFileIfExists} = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 async function generateToken() {
