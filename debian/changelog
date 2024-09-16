@@ -1,3 +1,10 @@
+hcw-athome-backend (0.5.1.5) focal; urgency=medium
+
+  [ Aram ]
+  * fix: twilio messages
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 17:38:29 +0200
+
 hcw-athome-backend (0.5.1.4) focal; urgency=medium
 
   [ Aram ]
