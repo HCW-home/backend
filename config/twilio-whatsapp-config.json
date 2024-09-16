@@ -47,18 +47,17 @@
       ]
     },
     "guest invite": {
-      "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
+      "twilio_template_id": "HX5344b2cb3caf3e48ed8dd0312388e10e",
       "params": [
         "$(branding)s",
         "%(url)s"
       ]
     },
     "scheduled guest invite": {
-      "twilio_template_id": "HX9beed9a1f14ebd9ab3d0001bda647f30",
+      "twilio_template_id": "HX2f72edf14c24c4edac822c1920b963d0",
       "params": [
         "$(branding)s",
-        "%(testingUrl)s",
-        "%(inviteTime)s"
+        "%(inviteDateTime)s"
       ]
     }
   }

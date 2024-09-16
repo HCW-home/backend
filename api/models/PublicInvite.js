@@ -434,14 +434,13 @@ module.exports = {
           case 'guest invite':
             params = {
               1: process.env.BRANDING,
-              2: url,
+              2: invite.inviteToken
             }
             break;
           case 'scheduled guest invite':
             params = {
               1: process.env.BRANDING,
-              2: testingUrl,
-              3: inviteTime,
+              2: inviteTime,
             }
             break;
         }
