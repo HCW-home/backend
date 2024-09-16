@@ -1,3 +1,17 @@
+hcw-athome-backend (0.5.1.1) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * update password when updating user
+
+  [ Isshak Mrabet Deraoui ]
+  * Translated using Weblate (German)
+
+  [ Aram ]
+  * feat: add twilio teamplate config for whatsapp
+  * fix: twilio template variables order
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 09:17:24 +0200
+
 hcw-athome-backend (5.1.0) focal; urgency=medium
 
   [ Gor Grigoryan ]
