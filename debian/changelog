@@ -1,3 +1,10 @@
+hcw-athome-backend (0.5.1.2) focal; urgency=medium
+
+  [ Aram ]
+  * feat: add CONFIG_FILES var to env and add safe import function
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 10:34:39 +0200
+
 hcw-athome-backend (0.5.1.1) focal; urgency=medium
 
   [ Gor Grigoryan ]
