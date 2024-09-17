@@ -1,3 +1,10 @@
+hcw-athome-backend (0.5.1.7) focal; urgency=medium
+
+  [ Aram ]
+  * fix:change guest invite ids
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 17:44:35 +0200
+
 hcw-athome-backend (0.5.1.5) focal; urgency=medium
 
   [ Aram ]
