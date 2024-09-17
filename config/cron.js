@@ -11,7 +11,9 @@ const inviteJobs = {
 
     if (isWhatsApp) {
       const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
-      const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[reminderData.firstReminderType]?.twilio_template_id;
+      const type = reminderData.firstReminderType;
+      const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+      const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
         message: reminderData.firstReminderMessage,
@@ -35,7 +37,9 @@ const inviteJobs = {
 
     if (isWhatsApp) {
       const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
-      const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[reminderData.secondReminderType]?.twilio_template_id;
+      const type = reminderData.secondReminderType;
+      const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+      const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
         message: reminderData.secondReminderMessage,

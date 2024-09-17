@@ -339,7 +339,8 @@ module.exports = {
       } else {
         if (invite.messageService === '1') {
           const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? "scheduled patient invite" : "patient invite"
-          const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[type]?.twilio_template_id;
+          const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+          const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
           let params = {}
           switch (type){
             case 'patient invite':
@@ -428,7 +429,8 @@ module.exports = {
     if (invite.phoneNumber) {
       if (invite.guestMessageService === '1') {
         const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? "scheduled guest invite" : "guest invite"
-        const twilioTemplatedId = TwilioWhatsappConfig?.[invite?.patientLanguage]?.[type]?.twilio_template_id;
+        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+        const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
         let params = {};
         switch (type){
           case 'guest invite':

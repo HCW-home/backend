@@ -14,7 +14,8 @@ function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
     if (!provider.isDisabled && provider.prefix) {
       const prefixList = provider.prefix.split(',');
       if (prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix))) {
-        if (provider.provider.includes('WHATSAPP') && TwilioWhatsappConfig?.[whatsappConfig?.language]?.[whatsappConfig?.type]) {
+        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[whatsappConfig?.language] || TwilioWhatsappConfig?.['en'];
+        if (provider.provider.includes('WHATSAPP') && TwilioWhatsappConfigLanguage?.[whatsappConfig?.type]) {
           canSendWhatsApp = true;
         } else {
           canSendSMS = true;

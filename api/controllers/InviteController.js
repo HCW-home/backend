@@ -341,7 +341,8 @@ module.exports = {
               //  WhatsApp
               if (messageService === '1') {
                 const type = "please use this link";
-                const twilioTemplatedId = TwilioWhatsappConfig?.[inviteData?.patientLanguage]?.[type]?.twilio_template_id;
+                const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[inviteData?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+                const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
                 const params = {1: invite.expertToken}
 
                 await sails.helpers.sms.with({
