@@ -481,7 +481,7 @@ module.exports = {
       // }
 
       if (whatsApp) {
-        sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params);
+         await sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params);
         return exits.success();
       } else {
         const providers = await SmsProvider.find({
