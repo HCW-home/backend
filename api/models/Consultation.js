@@ -14,7 +14,6 @@ const columns = [
   { colName: "Consultation planifiée le", key: "inviteScheduledFor" },
   { colName: "File d'attente", key: "queue.name" },
   { colName: "Patient consultation demandée à", key: "consultationCreatedAt" },
-  { colName: "IMAD equipe", key: "IMADTeam" },
   { colName: "Consultation clôturée le", key: "closedAt" },
   { colName: "Total appel avec réponse", key: "successfulCallsCount" },
   { colName: "Total appel sans réponse", key: "missedCallsCount" },
