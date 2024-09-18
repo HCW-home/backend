@@ -61,7 +61,7 @@ module.exports.policies = {
     getUser: ["isLoggedIn", "isDoctorOrAdminOrNurse"],
     updateNotif: ["isLoggedIn", "isDoctorOrAdmin"],
     registerNurse: true,
-    updateStatus: true,
+    updateStatus: ["isLoggedIn", "isDoctorOrAdmin"],
   },
   countController: {
     count: ["isLoggedIn", "isAdmin"],

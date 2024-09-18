@@ -42,6 +42,7 @@ const canLoginLocal = async (req) => {
   }
   return false;
 };
+
 module.exports = {
   // login using client certificate
   loginCert(req, res) {
@@ -253,9 +254,14 @@ module.exports = {
 
     passport.authenticate("local", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
+      if (err?.message === "User is not approved") {
+        return res.status(403).json({
+          message: sails._t(locale, "not approved"),
+        });
+      }
       if (err) {
         return res.status(500).json({
-          message: info.message || sails._t(locale, "server error"),
+          message: info.message || err?.message || sails._t(locale, "server error"),
         });
       }
       if (!user) {
@@ -353,11 +359,17 @@ module.exports = {
 
   // used only for admin
   loginSms(req, res) {
+    const { locale } = req.headers || {};
     passport.authenticate("sms", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
+      if (err?.message === "User is not approved") {
+        return res.status(403).json({
+          message: sails._t(locale, "not approved"),
+        });
+      }
       if (err) {
         return res.status(500).json({
-          message: info.message || "Server Error",
+          message: info.message || err?.message ||  "Server Error",
         });
       }
       if (!user) {
@@ -388,11 +400,17 @@ module.exports = {
   },
 
   login2FA(req, res) {
+    const { locale } = req.headers || {};
     passport.authenticate("2FA", (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
+      if (err.message === "User is not approved") {
+        return res.status(403).json({
+          message: sails._t(locale, "not approved"),
+        });
+      }
       if (err) {
         return res.status(500).json({
-          message: info.message || "Server Error",
+          message: info.message || err?.message ||  "Server Error",
         });
       }
       if (!user) {
@@ -427,7 +445,7 @@ module.exports = {
     try {
       const decoded = await TokenService.verifyToken(refreshToken, true);
       const user = await User.findOne({ id: decoded.id });
-      if (!user) {
+      if (!user || user.status !== 'approved') {
         return res.status(401).json({ error: 'User not found' });
       }
 
@@ -844,6 +862,7 @@ module.exports = {
         : "", //! sending metadata to the front in config
     });
   },
+
   externalAuth(req, res) {
     const { token } = req.query;
     if (!token) {

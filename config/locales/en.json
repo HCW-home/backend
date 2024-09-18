@@ -11,6 +11,7 @@
   "2FA login successful": "2FA Login Successful",
   "password login is disabled": "Password login is disabled",
   "server error": "Server Error",
+  "not approved": "User is not approved",
   "patient invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
   "guest invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
   "scheduled patient invite": "Hello, you have been invited to a telemedicine %(branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link.\n\n%(testingUrl)s",

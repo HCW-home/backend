@@ -108,7 +108,7 @@ module.exports = {
     status: {
       type: 'string',
       isIn: ['approved', 'not-approved'],
-      defaultsTo: 'not-approved'
+      defaultsTo: 'approved'
     }
   },
 
