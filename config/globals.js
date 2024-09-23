@@ -74,6 +74,8 @@ module.exports.globals = {
   ROLE_ADMIN: "admin",
   ROLE_SCHEDULER: "scheduler",
 
+  DOCTOR_TERMS_VERSION: process.env.DOCTOR_TERMS_VERSION || "0",
+
   attachmentsDir:
     process.env.ATTACHMENTS_DIR || "/var/lib/hug-home/attachments",
 

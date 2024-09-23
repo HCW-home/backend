@@ -124,6 +124,15 @@ module.exports = {
     return res.status(200).json({ success: true });
   },
 
+  async updateTerms(req, res) {
+    const valuesToUpdate = {};
+    if (req.body.doctorTermsVersion !== undefined) {
+      valuesToUpdate.doctorTermsVersion = req.body.doctorTermsVersion;
+    }
+    const user = await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
+    return res.status(200).json({ ...user });
+  },
+
   updateStatus: async function (req, res) {
     try {
       const userId = validator.escape(req.param("id")).trim();

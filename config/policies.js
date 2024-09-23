@@ -60,6 +60,7 @@ module.exports.policies = {
     replace: ["isLoggedIn", "isAdmin"],
     getUser: ["isLoggedIn", "isDoctorOrAdminOrNurse"],
     updateNotif: ["isLoggedIn", "isDoctorOrAdmin"],
+    updateTerms: ["isLoggedIn", "isDoctorOrAdmin"],
     registerNurse: true,
     updateStatus: ["isLoggedIn", "isDoctorOrAdmin"],
   },

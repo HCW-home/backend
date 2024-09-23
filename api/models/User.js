@@ -109,6 +109,11 @@ module.exports = {
       type: 'string',
       isIn: ['approved', 'not-approved'],
       defaultsTo: 'approved'
+    },
+    doctorTermsVersion: {
+      type: 'string',
+      defaultsTo: '0',
+      required: false
     }
   },
 

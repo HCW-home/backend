@@ -857,6 +857,7 @@ module.exports = {
       matomoUrl: sails.config.globals.MATOMO_URL,
       matomoId: sails.config.globals.MATOMO_ID,
       extraMimeTypes: !!sails.config.globals.EXTRA_MIME_TYPES,
+      doctorTermsVersion: sails.config.globals.DOCTOR_TERMS_VERSION,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
         : "", //! sending metadata to the front in config
