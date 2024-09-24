@@ -1,3 +1,17 @@
+hcw-athome-backend (5.1.8) focal; urgency=medium
+
+  [ Aram ]
+  * feat: set fallback language for whatsapp templates to english
+  * fix: backend crashed issue
+
+  [ Gor Grigoryan ]
+  * refs #7578, Remove Imad team column from csv
+  * refs #7472 Be able to edit and remove requesters in admin interfac
+  * refs #6640, Don't show message in backend when jwt expired
+  * refs #6829, Add Terms acceptance for Doctor
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 24 Sep 2024 08:21:18 +0200
+
 hcw-athome-backend (0.5.1.7) focal; urgency=medium
 
   [ Aram ]
