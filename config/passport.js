@@ -88,7 +88,7 @@ passport.use(
     let user = await User.findOne({ role: { '!=': 'expert' }, username: invite.id });
 
     if (user && !isExpert) {
-      if (user.status !== "approved") {
+      if (user.hasOwnProperty('status') && user.status !== "approved") {
         return callback(new Error("User is not approved"));
       }
       return callback(null, user);
@@ -184,7 +184,7 @@ passport.use(
   new CustomStrategy(async (req, cb) => {
     const user = await User.findOne({ id: req.body.user });
     const { locale } = req.headers || {};
-    if (!user || user.status !== "approved") {
+    if (!user || (user.hasOwnProperty('status') && user.status !== "approved")) {
       return cb(new Error('User is not approved'));
     }
     jwt.verify(
@@ -225,7 +225,7 @@ passport.use(
   new CustomStrategy(async (req, cb) => {
     const user = await User.findOne({ id: req.body.user });
     const { locale } = req.headers || {};
-    if (!user || user.status !== "approved") {
+    if (!user || (user.hasOwnProperty('status') && user.status !== "approved")) {
       return cb(new Error('User is not approved'));
     }
 
@@ -293,7 +293,7 @@ passport.use(
           if (err) {
             return cb(err);
           }
-          if (!user || user.status !== "approved") {
+          if (!user ||( user.hasOwnProperty('status') && user.status !== "approved")) {
             return cb(new Error('User is not approved'));
           }
           bcrypt.compare(password, user.password, (err, res) => {
@@ -355,7 +355,7 @@ if ( process.env.LOGIN_METHOD === 'openid') {
         });
 
         if (user) {
-          if (user.status !== "approved") {
+          if (user.hasOwnProperty('status') && user.status !== "approved") {
             return cb(new Error('User is not approved'));
           }
           const { token, refreshToken } = TokenService.generateToken(user) || {};
@@ -451,7 +451,7 @@ if (process.env.LOGIN_METHOD === 'openid') {
         });
 
         if (user && user.role === sails.config.globals.ROLE_DOCTOR) {
-          if (user.status !== "approved") {
+          if (user.hasOwnProperty('status') && user.status !== "approved") {
             return cb(new Error('User is not approved'));
           }
           user = await User.findOne({ id: user.id }).populate("allowedQueues");
@@ -464,7 +464,7 @@ if (process.env.LOGIN_METHOD === 'openid') {
           });
         }
 
-        if (!user || user.status !== "approved") {
+        if (!user || (user.hasOwnProperty('status') &&user.status !== "approved")) {
           return cb(new Error('User is not approved'));
         }
 
@@ -520,7 +520,7 @@ passport.use(
         }
       }
 
-      if (user.status !== "approved") {
+      if (user.hasOwnProperty('status') && user.status !== "approved") {
         return cb(new Error('User is not approved'));
       }
 
@@ -567,7 +567,7 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
           role: "doctor",
         }).populate("allowedQueues");
 
-        if (!user || user.status !== "approved") {
+        if (!user || (user.hasOwnProperty('status') && user.status !== "approved")) {
           return cb(new Error('User is not approved'));
         }
 
