@@ -1,7 +1,7 @@
-hcw-athome-backend (5.1.11) focal; urgency=medium
+hcw-athome-backend (5.2.0) focal; urgency=medium
 
   [ Olivier Bitsch ]
-  * New release 5.1.10
+  * New release 5.2.0
 
   [ Gor Grigoryan ]
   * refs #6765, Date for schedule invite are in english
