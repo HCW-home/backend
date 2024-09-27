@@ -9,6 +9,7 @@ const bodyParser = require("body-parser");
 const passport = require("passport");
 const { samlStrategy } = require("../../config/passport");
 const jwt = require("jsonwebtoken");
+const validator = require('validator');
 
 const SMS_CODE_LIFESPAN = 5 * 60;
 
@@ -869,7 +870,6 @@ module.exports = {
     if (!token) {
       return res.badRequest();
     }
-    console.log(5555555);
     jwt.verify(
       token,
       process.env.SHARED_EXTERNAL_AUTH_SECRET,
@@ -920,10 +920,11 @@ module.exports = {
           }
 
           const { token } = TokenService.generateToken(user);
+          const returnUrl = validator.escape(req.query.returnUrl);
 
           return res.redirect(
             `${process.env.DOCTOR_URL}/app?tk=${token}${
-              req.query.returnUrl ? `&returnUrl=${req.query.returnUrl}` : ""
+              returnUrl ? `&returnUrl=${returnUrl}` : ""
             }`
           );
         } catch (error) {

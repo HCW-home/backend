@@ -14,7 +14,6 @@ const fileType = require("file-type");
 
 const _ = require("@sailshq/lodash");
 const validator = require("validator");
-const { i18n } = require('../../config/i18n');
 
 const db = Consultation.getDatastore().manager;
 
@@ -909,9 +908,8 @@ module.exports = {
 
   uploadFile(req, res) {
     const fileId = uuid.v4();
-    const { locale } = req.headers || {};
-    const allowedLocales = i18n.locales;
-    const sanitizedLocale = allowedLocales.includes(locale) ? locale : 'en';
+    const locale = validator.escape(req.headers?.locale).trim();
+    const sanitizedLocale = locale || 'en';
 
     req.file("attachment").upload(
       {

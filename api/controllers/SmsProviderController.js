@@ -37,7 +37,7 @@ module.exports = {
           prefix: prefix
         });
 
-      if (updatedProvider) {
+      if (updatedProvider.id) {
         return res.ok(updatedProvider);
       } else {
         return res.notFound({ message: 'Provider not found.' });
