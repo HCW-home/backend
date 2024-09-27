@@ -1,3 +1,6 @@
+const validator = require("validator");
+
+
 module.exports = {
 
   list: async function(req, res) {
@@ -10,11 +13,22 @@ module.exports = {
   },
   update: async function(req, res) {
     const { id } = req.params;
-    const { order, prefix } = req.body;
+    let { order, prefix } = req.body;
 
     if (!id) {
-      return res.badRequest({ message: 'Provider name is required.' });
+      return res.badRequest({ message: 'Provider ID is required.' });
     }
+
+    if (!order) {
+      return res.badRequest({ message: 'Order must be a valid number.' });
+    }
+
+    if (!prefix ) {
+      return res.badRequest({ message: 'Prefix must contain only alphanumeric characters.' });
+    }
+
+    order = validator.escape(order.toString());
+    prefix = validator.escape(prefix);
 
     try {
       const updatedProvider = await SmsProvider.updateOne({ id })
@@ -23,7 +37,6 @@ module.exports = {
           prefix: prefix
         });
 
-      console.log(updatedProvider, 'updatedProvider')
       if (updatedProvider) {
         return res.ok(updatedProvider);
       } else {

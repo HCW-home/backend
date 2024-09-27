@@ -1,4 +1,5 @@
 const {importFileIfExists} = require('../utils/helpers');
+const validator = require('validator');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 /**
  * PublicInviteController
@@ -69,7 +70,7 @@ module.exports = {
   checkPrefix: async function (req, res) {
     const type = req.param('type');
     const language = req.param('language');
-    const phoneNumber = req.param('phoneNumber');
+    const phoneNumber = validator.escape(req.param('phoneNumber')).trim();
     if (!phoneNumber) {
       return res.badRequest({ message: 'Phone number is required.' });
     }

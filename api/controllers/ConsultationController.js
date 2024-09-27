@@ -14,6 +14,7 @@ const fileType = require("file-type");
 
 const _ = require("@sailshq/lodash");
 const validator = require("validator");
+const { i18n } = require('../../config/i18n');
 
 const db = Consultation.getDatastore().manager;
 
@@ -909,6 +910,8 @@ module.exports = {
   uploadFile(req, res) {
     const fileId = uuid.v4();
     const { locale } = req.headers || {};
+    const allowedLocales = i18n.locales;
+    const sanitizedLocale = allowedLocales.includes(locale) ? locale : 'en';
 
     req.file("attachment").upload(
       {
@@ -922,12 +925,12 @@ module.exports = {
       async function whenDone(err, uploadedFiles) {
         if (err) {
           if (err.code === "E_EXCEEDS_UPLOAD_LIMIT") {
-            return res.status(413).send(sails._t(locale, "max file size"));
+            return res.status(413).send(sails._t(sanitizedLocale, "max file size"));
           }
           return res.status(500).send(err);
         }
         if (!uploadedFiles.length) {
-          return res.status(400).send(sails._t(locale, "no file"));
+          return res.status(400).send(sails._t(sanitizedLocale, "no file"));
         }
 
         const uploadedFile = uploadedFiles[0];

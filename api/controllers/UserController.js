@@ -133,29 +133,33 @@ module.exports = {
     return res.status(200).json({ ...user });
   },
 
-  updateStatus: async function (req, res) {
+  updateStatus: async function(req, res) {
     try {
-      const userId = validator.escape(req.param("id")).trim();
+      const userId = validator.escape(req.param('id')).trim();
+
       const newStatus = req.body.status;
 
-      if (!["approved", "not-approved"].includes(newStatus)) {
-        return res.badRequest({ error: "Invalid status value." });
+      const allowedStatuses = ['approved', 'not-approved'];
+      if (!allowedStatuses.includes(newStatus)) {
+        return res.badRequest({ error: 'Invalid status value.' });
       }
 
       const user = await User.findOne({ id: userId });
       if (!user) {
-        return res.notFound({ error: "User not found." });
+        return res.notFound({ error: 'User not found.' });
       }
 
       const updatedUser = await User.updateOne({ id: userId }).set({
-        status: newStatus,
+        status: newStatus
       });
+
+      updatedUser.status = validator.escape(updatedUser.status);
 
       return res.ok(updatedUser);
     } catch (error) {
       return res.serverError(error);
     }
-  },
+  }
 
   // async count(req, res){
   //   let count
