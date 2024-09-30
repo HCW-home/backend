@@ -524,8 +524,9 @@ module.exports = {
 
       const mediasoupServer = mediasoupServers[serverIndex];
 
+      const id = validator.escape(req.params.consultation)
       const consultation = await Consultation.findOne({
-        _id: req.params.consultation,
+        _id: id,
       });
 
       const callerToken = await sails.helpers.getMediasoupToken.with({
@@ -908,7 +909,7 @@ module.exports = {
 
   uploadFile(req, res) {
     const fileId = uuid.v4();
-    const locale = validator.escape(req.headers?.locale).trim();
+    const locale = validator.escape(req.headers?.locale || 'en').trim();
     const sanitizedLocale = locale || 'en';
 
     req.file("attachment").upload(
@@ -998,11 +999,8 @@ module.exports = {
         "Content-disposition",
         `attachment; filename=${msg.fileName}`
       );
-      // res.setHeader(
-      //   "content-type",
-      //   "application/pdf"
-      // );
     }
+
     const filePath = `${sails.config.globals.attachmentsDir}/${msg.filePath}`;
 
     if (!fs.existsSync(filePath)) {

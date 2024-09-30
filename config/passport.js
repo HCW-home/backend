@@ -11,6 +11,7 @@ const passportCustom = require("passport-custom");
 const CustomStrategy = passportCustom.Strategy;
 
 const ActiveDirectory = require("activedirectory");
+const validator = require('validator');
 const config = {
   url: process.env.AD_URIS,
   baseDN: process.env.AD_BASE,
@@ -52,10 +53,11 @@ passport.deserializeUser((id, cb) => {
 passport.use(
   "invite",
   new CustomStrategy(async (req, callback) => {
+    const token = validator.escape(req.body.inviteToken)
     const invite = await PublicInvite.findOne({
       or: [
-        { inviteToken: req.body.inviteToken },
-        { expertToken: req.body.inviteToken }
+        { inviteToken: token },
+        { expertToken: token }
       ]
     });
 
@@ -67,7 +69,7 @@ passport.use(
       return callback({ invite: "cannot use this invite for login" }, null);
     }
 
-    const isExpert = invite.expertToken === req.body.inviteToken;
+    const isExpert = invite.expertToken === token;
 
     if (
       !isExpert && (
@@ -80,7 +82,7 @@ passport.use(
     }
 
     if (invite.status === "SENT") {
-      await PublicInvite.updateOne({ inviteToken: req.body.inviteToken }).set({
+      await PublicInvite.updateOne({ inviteToken: token }).set({
         status: "ACCEPTED",
       });
     }
@@ -111,14 +113,14 @@ passport.use(
       newUser.phoneNumber = invite.phoneNumber;
     }
     if (req.body.phoneNumber) {
-      newUser.phoneNumberEnteredByPatient = req.body.phoneNumber;
+      newUser.phoneNumberEnteredByPatient = validator.escape(req.body.phoneNumber);
     }
 
     if (req.body.firstName) {
-      newUser.firstName = req.body.firstName;
+      newUser.firstName = validator.escape(req.body.firstName);
     }
     if (req.body.lastName) {
-      newUser.lastName = req.body.lastName;
+      newUser.lastName = validator.escape(req.body.lastName);
     }
 
     user = await User.create(newUser).fetch();

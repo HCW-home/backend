@@ -24,7 +24,6 @@ module.exports = {
     `
 
     await sails.helpers.redmine('New issue reported from support form', description, req.body.userAgent)
-    console.log('support request ', req.body)
     res.json({success: true})
   }
 

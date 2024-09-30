@@ -12,7 +12,8 @@ module.exports = {
     }
   },
   update: async function(req, res) {
-    const { id } = req.params;
+    const id = validator.escape(req.params.id).trim();
+
     let { order, prefix } = req.body;
 
     if (!id) {

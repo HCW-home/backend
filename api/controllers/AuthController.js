@@ -137,9 +137,11 @@ module.exports = {
         .toArray()
     )[0];
 
+    const appSecret = process.env.APP_SECRET || sails.config.globals.APP_SECRET;
+
     const resetPasswordToken = jwt.sign(
       { email: req.body.email.toLowerCase() },
-      sails.config.globals.APP_SECRET,
+      appSecret,
       { expiresIn: SMS_CODE_LIFESPAN }
     );
 
@@ -195,9 +197,10 @@ module.exports = {
 
       const password = await User.generatePassword(req.body.password);
 
-      const user = await User.findOne({ resetPasswordToken: req.body.token });
+      const token = validator.escape(req.body.token).trim()
+      const user = await User.findOne({ resetPasswordToken: token });
       await User.updateOne({
-        resetPasswordToken: req.body.token,
+        resetPasswordToken: token,
       }).set({
         password,
         resetPasswordToken: "",
