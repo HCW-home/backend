@@ -8,8 +8,39 @@ const ics = require('ics');
 const moment = require('moment-timezone');
 moment.locale('fr');
 
-const FIRST_INVITE_REMINDER = 24 * 60 * 60 * 1000;
-const SECOND_INVITE_REMINDER = 60 * 1000;
+function parseTime(value, defaultValue) {
+  if (!value) return defaultValue;
+
+  const timeUnit = value.slice(-1);
+  const timeValue = parseInt(value.slice(0, -1), 10);
+
+  switch (timeUnit) {
+    case 's':
+      return timeValue * 1000;
+    case 'm':
+      return timeValue * 60 * 1000;
+    case 'h':
+      return timeValue * 60 * 60 * 1000;
+    case 'd':
+      return timeValue * 24 * 60 * 60 * 1000;
+    default:
+      return defaultValue;
+  }
+}
+
+const OVERRIDE_FIRST_INVITE_REMINDER = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
+const OVERRIDE_SECOND_INVITE_REMINDER = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
+const OVERRIDE_TIME_UNTIL_SCHEDULE = process.env.OVERRIDE_TIME_UNTIL_SCHEDULE;
+
+const DEFAULT_FIRST_INVITE_REMINDER = 24 * 60 * 60 * 1000; // 1 day
+const DEFAULT_SECOND_INVITE_REMINDER = 60 * 1000; // 1 minute
+const DEFAULT_TIME_UNTIL_SCHEDULE = 24 * 60 * 60 * 1000; // 1 day
+
+const FIRST_INVITE_REMINDER = parseTime(OVERRIDE_FIRST_INVITE_REMINDER, DEFAULT_FIRST_INVITE_REMINDER);
+const SECOND_INVITE_REMINDER = parseTime(OVERRIDE_SECOND_INVITE_REMINDER, DEFAULT_SECOND_INVITE_REMINDER);
+const TIME_UNTIL_SCHEDULE = parseTime(OVERRIDE_TIME_UNTIL_SCHEDULE, DEFAULT_TIME_UNTIL_SCHEDULE);
+
+
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
 const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
 const crypto = require('crypto');
@@ -141,7 +172,6 @@ module.exports = {
     return proceed();
   },
   async beforeUpdate(valuesToSet, proceed) {
-    console.log('beforeUpdate', valuesToSet);
     if (
       valuesToSet.scheduledFor &&
       !moment(valuesToSet.scheduledFor).isValid()
@@ -279,14 +309,12 @@ module.exports = {
   async sendPatientInvite(invite, resend = false) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    console.log(locale, 'locale');
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
         .tz(invite.patientTZ || moment.tz.guess())
         .locale(locale)
         .format('D MMMM HH:mm zz')
       : '';
-    console.log(inviteTime, 'inviteTime');
     const doctorName = invite.doctor
       ? (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '')
       : '';
@@ -530,7 +558,6 @@ module.exports = {
         date.getMinutes(),
       ];
 
-      console.log(start, 'start');
       const event = {
         start: start,
         duration: { hours: 1 },
@@ -556,7 +583,6 @@ module.exports = {
           return;
         }
 
-        console.log(inviteTime, '', 'ICS event created successfully. Sending email...');
         await sails.helpers.email.with({
           to: invite.emailAddress,
           subject: sails._t(locale, 'consultation branding', {
@@ -587,7 +613,7 @@ module.exports = {
     const currentTime = Date.now();
     const timeUntilScheduled = invite.scheduledFor - currentTime;
 
-    if (timeUntilScheduled > TRANSLATOR_REQUEST_TIMEOUT) {
+    if (timeUntilScheduled > TIME_UNTIL_SCHEDULE) {
       if (invite.phoneNumber) {
         if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
           await sails.helpers.schedule.with({
