@@ -466,8 +466,14 @@ if (process.env.LOGIN_METHOD === 'openid') {
           });
         }
 
-        if (!user || (user.hasOwnProperty('status') &&user.status !== "approved")) {
-          return cb(new Error('User is not approved'));
+        if (!user) {
+          user = await User.create({
+            email: email,
+            firstName: firstName || '',
+            lastName: lastName || '',
+            status: process.env.OPENID_AUTOCREATE_USER === 'true' ? 'approved' : 'not-approved',
+            role: sails.config.globals.ROLE_DOCTOR
+          }).fetch();
         }
 
         const { token, refreshToken } = TokenService.generateToken(user) || {};
@@ -569,9 +575,16 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
           role: "doctor",
         }).populate("allowedQueues");
 
-        if (!user || (user.hasOwnProperty('status') && user.status !== "approved")) {
-          return cb(new Error('User is not approved'));
-        }
+
+        if (!user) {
+            user = await User.create({
+              email: profile[process.env.EMAIL_FIELD],
+              firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
+              lastName: profile[process.env.SAML_LASTNAME_FIELD],
+              role: sails.config.globals.ROLE_DOCTOR,
+              status: process.env.SAML_AUTOCREATE_USER === 'true' ? 'approved' : 'not-approved'
+            }).fetch();
+          }
 
         const { token, refreshToken } = TokenService.generateToken(user) || {};
 
