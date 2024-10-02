@@ -1,3 +1,12 @@
+hcw-athome-backend (5.2.2) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix Log Forging and Reflected XSS issues
+  * refs #7620, Have parameter to choose <x> minute before sending reminder
+  * change autocreate user logic
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 02 Oct 2024 13:53:01 +0200
+
 hcw-athome-backend (5.2.1) focal; urgency=medium
 
   [ Gor Grigoryan ]
