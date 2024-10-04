@@ -18,6 +18,7 @@ FROM node:18
 
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/ /usr/src/app/
+COPY .version /usr/src/app/
 
 EXPOSE 1337
 
