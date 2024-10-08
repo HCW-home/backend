@@ -309,11 +309,12 @@ module.exports = {
   async sendPatientInvite(invite, resend = false) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-        .tz(invite.patientTZ || moment.tz.guess())
-        .locale(locale)
-        .format('D MMMM HH:mm zz')
+      .tz(timezone)
+      .locale(locale)
+      .format('D MMMM HH:mm') + ' ' + timezone
       : '';
     const doctorName = invite.doctor
       ? (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '')
@@ -413,12 +414,14 @@ module.exports = {
   async sendGuestInvite(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-        .tz(invite.patientTZ || moment.tz.guess())
-        .locale(locale)
-        .format('D MMMM HH:mm zz')
+      .tz(timezone)
+      .locale(locale)
+      .format('D MMMM HH:mm') + ' ' + timezone
       : '';
+
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
 
@@ -511,10 +514,14 @@ module.exports = {
   getReminderMessage(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    const inviteTime = moment(invite.scheduledFor)
-      .tz(invite.patientTZ || moment.tz.guess())
+    const timezone = invite.patientTZ || moment.tz.guess();
+    const inviteTime = invite.scheduledFor
+      ? moment(invite.scheduledFor)
+      .tz(timezone)
       .locale(locale)
-      .format('D MMMM HH:mm zz');
+      .format('D MMMM HH:mm') + ' ' + timezone
+      : '';
+
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
 
@@ -541,7 +548,14 @@ module.exports = {
 
   async createAndSendICS(invite) {
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    const inviteTime = moment(invite.scheduledFor).local(locale).format('D MMMM HH:mm zz');
+    const timezone = invite.patientTZ || moment.tz.guess();
+
+    const inviteTime = invite.scheduledFor
+      ? moment(invite.scheduledFor)
+      .tz(timezone)
+      .locale(locale)
+      .format('D MMMM HH:mm') + ' ' + timezone
+      : '';
 
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
