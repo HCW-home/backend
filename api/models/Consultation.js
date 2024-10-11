@@ -7,7 +7,7 @@
 
 const { ObjectId } = require('mongodb');
 const _ = require("@sailshq/lodash");
-const jwt = require("jsonwebtoken");
+const moment = require('moment');
 
 const columns = [
   { colName: "Invitation envoyée le", key: "inviteCreatedAt" },
@@ -657,8 +657,29 @@ module.exports = {
       consultation.acceptedBy.name = `${consultation.acceptedBy.firstName} ${consultation.acceptedBy.lastName}`;
     }
     const mappedConsultation = {};
+    const dateFields = [
+      'createdAt',
+      'updatedAt',
+      'acceptedAt',
+      'closedAt',
+      'inviteScheduledFor',
+      'consultationCreatedAt',
+      'inviteCreatedAt',
+      'consultationEstimatedAt',
+      'firstCallAt',
+      'acceptedBy.createdAt',
+      'acceptedBy.updatedAt',
+      'owner.createdAt',
+      'owner.updatedAt'
+    ];
+
     columns.forEach((col) => {
-      mappedConsultation[col.colName] = _.get(consultation, col.key);
+      let value = _.get(consultation, col.key);
+
+      if (dateFields.includes(col.key) && typeof value === 'number' && value) {
+        value = moment(value).format('MM/DD/YYYY HH:mm:ss');
+      }
+      mappedConsultation[col.colName] = value;
     });
     return mappedConsultation;
   },

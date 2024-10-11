@@ -182,15 +182,28 @@ module.exports = {
 
       return proceed(err);
     }
-    if (
-      valuesToSet.scheduledFor &&
-      new Date(valuesToSet.scheduledFor) < new Date()
-    ) {
-      const err = new Error('Consultation Time cannot be in the past ');
-      err.name = 'INVALID_SCHEDULED_FOR';
-      err.code = 400;
+    if (valuesToSet.scheduledFor && valuesToSet.patientTZ) {
+      const patientTZ = valuesToSet.patientTZ;
+      const localTime = moment.tz(moment(valuesToSet.scheduledFor).format("YYYY-MM-DDTHH:mm"), patientTZ);
+      const scheduledTimeUTC = localTime.utc().valueOf();
+      const currentTimeUTC = moment().utc().valueOf();
 
-      return proceed(err);
+      if (scheduledTimeUTC < currentTimeUTC) {
+        const err = new Error('Consultation Time cannot be in the past');
+        err.name = 'INVALID_SCHEDULED_FOR';
+        err.code = 400;
+        return proceed(err);
+      }
+    } else if (valuesToSet.scheduledFor) {
+      const scheduledTime = moment.utc(valuesToSet.scheduledFor).valueOf();
+      const currentTime = moment().utc().valueOf();
+
+      if (scheduledTime < currentTime) {
+        const err = new Error('Consultation Time cannot be in the past');
+        err.name = 'INVALID_SCHEDULED_FOR';
+        err.code = 400;
+        return proceed(err);
+      }
     }
     return proceed();
   },
@@ -312,7 +325,6 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -417,7 +429,6 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -517,7 +528,6 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -552,7 +562,6 @@ module.exports = {
 
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -625,7 +634,14 @@ module.exports = {
 
   async setPatientOrGuestInviteReminders(invite) {
     const currentTime = Date.now();
-    const timeUntilScheduled = invite.scheduledFor - currentTime;
+    let scheduledTime = invite.scheduledFor;
+
+    if (invite.patientTZ) {
+      const localTime = moment.tz(moment(invite.scheduledFor).format("YYYY-MM-DDTHH:mm"), invite.patientTZ);
+      scheduledTime = localTime.utc().valueOf();
+    }
+
+    const timeUntilScheduled = scheduledTime - currentTime;
 
     if (timeUntilScheduled > TIME_UNTIL_SCHEDULE) {
       if (invite.phoneNumber) {
@@ -633,7 +649,7 @@ module.exports = {
           await sails.helpers.schedule.with({
             name: 'FIRST_INVITE_REMINDER_SMS',
             data: { invite },
-            time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
+            time: new Date(scheduledTime - FIRST_INVITE_REMINDER),
           });
         }
       }
@@ -643,7 +659,7 @@ module.exports = {
           await sails.helpers.schedule.with({
             name: 'FIRST_INVITE_REMINDER_EMAIL',
             data: { invite },
-            time: new Date(invite.scheduledFor - FIRST_INVITE_REMINDER),
+            time: new Date(scheduledTime - FIRST_INVITE_REMINDER),
           });
         }
       }
@@ -654,7 +670,7 @@ module.exports = {
         await sails.helpers.schedule.with({
           name: 'SECOND_INVITE_REMINDER_SMS',
           data: { invite },
-          time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+          time: new Date(scheduledTime - SECOND_INVITE_REMINDER),
         });
       }
     }
@@ -664,7 +680,7 @@ module.exports = {
         await sails.helpers.schedule.with({
           name: 'SECOND_INVITE_REMINDER_EMAIL',
           data: { invite },
-          time: new Date(invite.scheduledFor - SECOND_INVITE_REMINDER),
+          time: new Date(scheduledTime - SECOND_INVITE_REMINDER),
         });
       }
     }

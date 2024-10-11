@@ -170,11 +170,27 @@ module.exports = {
       });
     }
 
-    if (req.body.scheduledFor && new Date(req.body.scheduledFor) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Consultation Time cannot be in the past',
-      });
+    if (req.body.scheduledFor && req.body.patientTZ) {
+      const patientTZ = req.body.patientTZ;
+      const localTime = moment.tz(moment(req.body.scheduledFor).format("YYYY-MM-DDTHH:mm"), patientTZ);
+      const scheduledTimeUTC = localTime.utc().valueOf();
+      const currentTimeUTC = moment().utc().valueOf();
+      if (scheduledTimeUTC < currentTimeUTC) {
+        return res.status(400).json({
+          success: false,
+          error: 'Consultation Time cannot be in the past',
+        });
+      }
+    } else if (req.body.scheduledFor) {
+      const scheduledTime = moment.utc(req.body.scheduledFor).valueOf();
+      const currentTime = moment().utc().valueOf();
+
+      if (scheduledTime < currentTime) {
+        return res.status(400).json({
+          success: false,
+          error: 'Consultation Time cannot be in the past',
+        });
+      }
     }
 
     if (req.user.role === 'scheduler') {
