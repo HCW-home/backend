@@ -600,10 +600,10 @@ module.exports = {
     }
 
     if (scheduledFor) {
-      const isTZValid = moment.tz.names().includes(patientTZ); // Validate the time zone first
+      const isTZValid = moment.tz.names().includes(patientTZ);
       if (patientTZ && isTZValid) {
-        const scheduledMoment = moment.tz(scheduledFor, patientTZ); // Parse `scheduledFor` in patient's time zone
-        const currentMoment = moment().tz(patientTZ); // Get current time in the patient's time zone
+        const scheduledMoment = moment.tz(scheduledFor, patientTZ);
+        const currentMoment = moment().tz(patientTZ);
 
         if (scheduledMoment.isBefore(currentMoment)) {
           return res.status(400).json({
@@ -617,7 +617,6 @@ module.exports = {
           error: `Unknown timezone identifier ${patientTZ}`,
         });
       } else {
-        // If no timezone is provided, assume UTC or a default server timezone
         const scheduledMomentUTC = moment.utc(scheduledFor); // Parse in UTC
         if (scheduledMomentUTC.isBefore(moment.utc())) {
           return res.status(400).json({
