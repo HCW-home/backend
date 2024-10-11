@@ -1,3 +1,9 @@
+hcw-athome-backend (5.2.4) focal; urgency=medium
+
+  * Fix nginx default rules
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Oct 2024 13:28:02 +0200
+
 hcw-athome-backend (5.2.3) focal; urgency=medium
 
   [ Olivier Bitsch ]
