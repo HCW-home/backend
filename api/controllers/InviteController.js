@@ -125,6 +125,7 @@ module.exports = {
       lastName: req.user.lastName,
       role: req.user.role,
     };
+    const { locale } = req.headers || {};
 
     // validate
     if (req.body.isPatientInvite && !req.body.sendLinkManually) {
@@ -178,7 +179,7 @@ module.exports = {
       if (scheduledTimeUTC < currentTimeUTC) {
         return res.status(400).json({
           success: false,
-          error: 'Consultation Time cannot be in the past',
+          error: sails._t(locale, 'consultation past time'),
         });
       }
     } else if (req.body.scheduledFor) {
@@ -188,7 +189,7 @@ module.exports = {
       if (scheduledTime < currentTime) {
         return res.status(400).json({
           success: false,
-          error: 'Consultation Time cannot be in the past',
+          error: sails._t(locale, 'consultation past time'),
         });
       }
     }
