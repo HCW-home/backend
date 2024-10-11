@@ -215,6 +215,7 @@ module.exports = {
       invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
+        .tz(invite.patientTZ)
         .local(doctorLangCode)
         .format('D MMMM YYYY HH:mm zz')
       : '';
@@ -325,6 +326,7 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
+      .tz(invite.patientTZ)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -429,6 +431,7 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
+      .tz(invite.patientTZ)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -528,6 +531,7 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
+      .tz(invite.patientTZ)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -562,6 +566,7 @@ module.exports = {
 
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
+      .tz(invite.patientTZ)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -637,8 +642,7 @@ module.exports = {
     let scheduledTime = invite.scheduledFor;
 
     if (invite.patientTZ) {
-      const localTime = moment.tz(moment(invite.scheduledFor).format("YYYY-MM-DDTHH:mm"), invite.patientTZ);
-      scheduledTime = localTime.utc().valueOf();
+      scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
     }
 
     const timeUntilScheduled = scheduledTime - currentTime;
