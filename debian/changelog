@@ -1,3 +1,11 @@
+hcw-athome-backend (5.2.6) UNRELEASED; urgency=medium
+
+  * add new locale
+  * fix create invite with patient timezone
+  * update invite fixes
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Sat, 12 Oct 2024 15:30:59 +0000
+
 hcw-athome-backend (5.2.5) focal; urgency=medium
 
   * Handle timezone in patient time
