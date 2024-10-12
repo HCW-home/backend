@@ -183,28 +183,25 @@ module.exports = {
       return proceed(err);
     }
     if (valuesToSet.scheduledFor && valuesToSet.patientTZ) {
-      const patientTZ = valuesToSet.patientTZ;
-      const localTime = moment.tz(moment(valuesToSet.scheduledFor).format("YYYY-MM-DDTHH:mm"), patientTZ);
-      const scheduledTimeUTC = localTime.utc().valueOf();
+      const scheduledTimeUTC = moment.tz(valuesToSet.scheduledFor, 'UTC').valueOf();
       const currentTimeUTC = moment().utc().valueOf();
-
       if (scheduledTimeUTC < currentTimeUTC) {
-        const err = new Error('Consultation Time cannot be in the past');
+        const err = new Error('Consultation Time cannot be in the past ');
         err.name = 'INVALID_SCHEDULED_FOR';
         err.code = 400;
-        return proceed(err);
-      }
-    } else if (valuesToSet.scheduledFor) {
-      const scheduledTime = moment.utc(valuesToSet.scheduledFor).valueOf();
-      const currentTime = moment().utc().valueOf();
 
-      if (scheduledTime < currentTime) {
-        const err = new Error('Consultation Time cannot be in the past');
-        err.name = 'INVALID_SCHEDULED_FOR';
-        err.code = 400;
         return proceed(err);
+
       }
+    } else if (valuesToSet.scheduledFor && new Date(valuesToSet.scheduledFor) < new Date()) {
+      const err = new Error('Consultation Time cannot be in the past ');
+      err.name = 'INVALID_SCHEDULED_FOR';
+      err.code = 400;
+
+      return proceed(err);
     }
+
+
     return proceed();
   },
 

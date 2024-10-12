@@ -593,32 +593,20 @@ module.exports = {
       });
     }
 
-    if (scheduledFor) {
-      const isTZValid = moment.tz.names().includes(patientTZ);
-      if (patientTZ && isTZValid) {
-        const scheduledMoment = moment.tz(scheduledFor, patientTZ);
-        const currentMoment = moment().tz(patientTZ);
-
-        if (scheduledMoment.isBefore(currentMoment)) {
-          return res.status(400).json({
-            success: false,
-            error: "Consultation Time cannot be in the past",
-          });
-        }
-      } else if (!isTZValid && patientTZ) {
+    if (scheduledFor && patientTZ) {
+      const scheduledTimeUTC = moment.tz(scheduledFor, 'UTC').valueOf();
+      const currentTimeUTC = moment().utc().valueOf();
+      if (scheduledTimeUTC < currentTimeUTC) {
         return res.status(400).json({
           success: false,
-          error: `Unknown timezone identifier ${patientTZ}`,
+          error: 'Consultation Time cannot be in the past',
         });
-      } else {
-        const scheduledMomentUTC = moment.utc(scheduledFor); // Parse in UTC
-        if (scheduledMomentUTC.isBefore(moment.utc())) {
-          return res.status(400).json({
-            success: false,
-            error: "Consultation Time cannot be in the past",
-          });
-        }
       }
+    } else if (scheduledFor && new Date(scheduledFor) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Consultation Time cannot be in the past',
+      });
     }
 
     let doctor;
