@@ -1,4 +1,4 @@
-hcw-athome-backend (5.2.7) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.2.7) UNRELEASED; urgency=medium
 
   * add patientTz to guestInvite
   * fix timezone in invite
