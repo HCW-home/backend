@@ -15,7 +15,7 @@
   "patient invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
   "guest invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
   "scheduled patient invite": "Hello, you have been invited to a telemedicine %(branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link.\n\n%(testingUrl)s",
-  "scheduled guest invite": "Hello, you have been invited to a telemedicine % (branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link. %(testingUrl)s",
+  "scheduled guest invite": "Hello, you have been invited to a telemedicine %(branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link. %(testingUrl)s",
   "first invite reminder": "D-1 reminder Your %(branding)s telemedicine consultation will take place tomorrow at %(inviteTime)s",
   "second invite reminder": "Your consultation will start in a minute: %(url)s",
   "first guest invite reminder": "D-1 reminder Your %(branding)s telemedicine consultation will take place tomorrow at %(inviteTime)s",
