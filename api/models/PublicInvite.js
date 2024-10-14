@@ -320,7 +320,7 @@ module.exports = {
   async sendPatientInvite(invite, resend = false) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    const timezone = invite.patientTZ || moment.tz.guess();
+    const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
       .tz(timezone)
@@ -425,7 +425,7 @@ module.exports = {
   async sendGuestInvite(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    const timezone = invite.patientTZ || moment.tz.guess();
+    const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
       .tz(timezone)
@@ -525,7 +525,7 @@ module.exports = {
   getReminderMessage(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    const timezone = invite.patientTZ || moment.tz.guess();
+    const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
       .tz(timezone)
@@ -559,7 +559,7 @@ module.exports = {
 
   async createAndSendICS(invite) {
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
-    const timezone = invite.patientTZ || moment.tz.guess();
+    const timezone = invite.patientTZ || 'UTC';
 
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
