@@ -323,7 +323,7 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(invite.patientTZ)
+      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -428,7 +428,7 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(invite.patientTZ)
+      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -528,7 +528,7 @@ module.exports = {
     const timezone = invite.patientTZ || moment.tz.guess();
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(invite.patientTZ)
+      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
@@ -563,7 +563,7 @@ module.exports = {
 
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
-      .tz(invite.patientTZ)
+      .tz(timezone)
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
