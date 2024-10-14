@@ -414,6 +414,7 @@ module.exports = {
           emailAddress: inviteData.guestEmailAddress,
           phoneNumber: inviteData.guestPhoneNumber,
           patientLanguage: req.body.language,
+          patientTZ: inviteData.patientTZ,
         };
 
         guestInvite = await PublicInvite.create(guestInviteDate).fetch();
