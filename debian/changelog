@@ -1,9 +1,10 @@
-hcw-athome-backend (0.5.2.7) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.2.8) UNRELEASED; urgency=medium
 
   * add patientTz to guestInvite
   * fix timezone in invite
+  * fix variable in translation file
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 14 Oct 2024 12:34:27 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 14 Oct 2024 13:22:25 +0000
 
 hcw-athome-backend (5.2.6) focal; urgency=medium
 
