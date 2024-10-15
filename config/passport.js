@@ -405,8 +405,15 @@ if (process.env.LOGIN_METHOD === 'openid') {
         });
 
         if (!user) {
-          return cb(new Error('User is not allowed to use this app'));
-        } else if (user && user.status === 'approved') {
+          const adminUser = await User.findOne({ email, role: sails.config.globals.ROLE_ADMIN });
+          if (adminUser) {
+            user = adminUser;
+          } else {
+            return cb(new Error('User is not allowed to use this app'));
+          }
+        }
+
+        if (user && user.status === 'approved') {
           const { token, refreshToken } = TokenService.generateToken(user) || {};
           user.token = token;
           user.refreshToken = refreshToken;

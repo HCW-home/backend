@@ -760,7 +760,7 @@ module.exports = {
                 user,
               });
             }
-            if (user.role === sails.config.globals.ROLE_NURSE) {
+            if (user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
                 return res.redirect(
                   `${process.env["PUBLIC_URL"]}/requester?tk=${user.token}`

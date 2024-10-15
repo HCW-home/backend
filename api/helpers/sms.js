@@ -475,10 +475,10 @@ module.exports = {
     try {
       const {message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params} = inputs || {};
 
-      // if (process.env.NODE_ENV === "development") {
-      //   await sendSmsWithInLog(phoneNumber, message);
-      //   return exits.success();
-      // }
+      if (process.env.NODE_ENV === "development") {
+        await sendSmsWithInLog(phoneNumber, message);
+        return exits.success();
+      }
 
       if (whatsApp) {
          await sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params);
