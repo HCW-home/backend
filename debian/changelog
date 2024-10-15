@@ -1,9 +1,10 @@
-hcw-athome-backend (0.5.2.10) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.2.11) UNRELEASED; urgency=medium
 
   * fix Admin role cannot login in requester interface
   * fix Admin role  login in requester interface
+  * fix variable in translation file
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 15 Oct 2024 15:03:01 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 15 Oct 2024 16:22:39 +0000
 
 hcw-athome-backend (5.2.9) focal; urgency=medium
 
