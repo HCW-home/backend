@@ -227,7 +227,7 @@ module.exports = {
           "doctor.phoneNumber": 1,
           "nurse.firstName": 1,
           "nurse.lastName": 1,
-          "queue.name": 1,
+          "queue": 1,
           guest: {
             $arrayElemAt: ["$guest", 0],
           },

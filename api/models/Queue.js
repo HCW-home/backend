@@ -11,15 +11,17 @@ const { ObjectId } = require('mongodb');
 module.exports = {
   schema: true,
   attributes: {
-
-
     name: {
       type: 'string',
       required: true
+    },
+    disableFeedback: {
+      type: 'boolean',
+      defaultsTo: false
     }
   },
+
   async getQueueUsers (nameOrId) {
-    console.log(nameOrId, 'nameOrId');
     const db = Consultation.getDatastore().manager;
     const queuesUsersCollection = db.collection('queue_allowedQueues_queue__user_allowedQueues');
     const queuesCollection = db.collection('queue');
