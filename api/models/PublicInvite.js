@@ -432,12 +432,18 @@ module.exports = {
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
+    const currentTime = Date.now();
+    let scheduledTime = invite.scheduledFor;
+    if (invite.patientTZ) {
+      scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
+    }
+    const timeUntilScheduled = scheduledTime - currentTime;
 
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
 
     const message =
-      invite.scheduledFor && invite.scheduledFor > Date.now()
+      invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
         ? sails._t(locale, 'scheduled guest invite', {
           inviteTime,
           testingUrl,
@@ -559,6 +565,12 @@ module.exports = {
 
   async createAndSendICS(invite) {
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const currentTime = Date.now();
+    let scheduledTime = invite.scheduledFor;
+    if (invite.patientTZ) {
+      scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
+    }
+    const timeUntilScheduled = scheduledTime - currentTime;
     const timezone = invite.patientTZ || 'UTC';
 
     const inviteTime = invite.scheduledFor
@@ -570,68 +582,95 @@ module.exports = {
 
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
-    try {
-      const timestamp = invite.scheduledFor;
-      const date = new Date(timestamp);
-
-      const start = [
-        date.getFullYear(),
-        date.getMonth() + 1,
-        date.getDate(),
-        date.getHours(),
-        date.getMinutes(),
-      ];
-
-      const event = {
-        start: start,
-        duration: { hours: 1 },
-        title: sails._t(locale, 'consultation branding', {
-          branding: process.env.BRANDING,
-        }),
-        description: '',
-        location: '',
-        organizer: {
-          name: invite.doctor?.firstName + ' ' + invite.doctor?.lastName,
-          email: invite.doctor?.email,
-        },
-      };
-
-      console.log('Creating ICS event...');
-      ics.createEvent(event, async (error, value) => {
-        // const filePath = 'assets/event.ics';
-        // Save the .ics file data to disk
-        // fs.writeFileSync(filePath, value);
-
-        if (error) {
-          console.error('Error creating ICS event:', error);
-          return;
-        }
-
+    if (timeUntilScheduled < SECOND_INVITE_REMINDER) {
+      const message = sails._t(locale, 'patient invite', {
+            url,
+            branding: process.env.BRANDING,
+            doctorName,
+          });
+      try {
         await sails.helpers.email.with({
           to: invite.emailAddress,
-          subject: sails._t(locale, 'consultation branding', {
-            branding: process.env.BRANDING,
-          }),
-          text: sails._t(locale, 'scheduled patient invite', {
-            inviteTime,
-            testingUrl,
+          subject: sails._t(locale, 'your consultation link', {
+            url,
             branding: process.env.BRANDING,
             doctorName,
           }),
-          attachments: [
-            {
-              filename: 'consultation.ics',
-              content: Buffer.from(value),
-            },
-          ],
+          text: message,
         });
+      } catch (error) {
+        console.log('error Sending patient invite email', error);
+        if (!invite.phoneNumber) {
+          // await PublicInvite.destroyOne({ id: invite.id });
+          return Promise.reject(error);
+        }
+      }
+    } else {
+      try {
+        const timestamp = invite.scheduledFor;
+        const date = new Date(timestamp);
 
-        console.log('Email sent successfully.');
-      });
-    } catch (err) {
-      console.error('An error occurred:', err);
+        const start = [
+          date.getFullYear(),
+          date.getMonth() + 1,
+          date.getDate(),
+          date.getHours(),
+          date.getMinutes(),
+        ];
+
+        const event = {
+          start: start,
+          duration: { hours: 1 },
+          title: sails._t(locale, 'consultation branding', {
+            branding: process.env.BRANDING,
+          }),
+          description: '',
+          location: '',
+          organizer: {
+            name: invite.doctor?.firstName + ' ' + invite.doctor?.lastName,
+            email: invite.doctor?.email,
+          },
+        };
+
+        console.log('Creating ICS event...');
+        ics.createEvent(event, async (error, value) => {
+          // const filePath = 'assets/event.ics';
+          // Save the .ics file data to disk
+          // fs.writeFileSync(filePath, value);
+
+          if (error) {
+            console.error('Error creating ICS event:', error);
+            return;
+          }
+
+          await sails.helpers.email.with({
+            to: invite.emailAddress,
+            subject: sails._t(locale, 'consultation branding', {
+              branding: process.env.BRANDING,
+            }),
+            text: sails._t(locale, 'scheduled patient invite', {
+              inviteTime,
+              testingUrl,
+              branding: process.env.BRANDING,
+              doctorName,
+            }),
+            attachments: [
+              {
+                filename: 'consultation.ics',
+                content: Buffer.from(value),
+              },
+            ],
+          });
+
+          console.log('Email sent successfully.');
+        });
+      } catch (err) {
+        console.error('An error occurred:', err);
+      }
     }
+
   },
 
   async setPatientOrGuestInviteReminders(invite) {
