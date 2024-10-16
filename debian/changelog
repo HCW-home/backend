@@ -1,11 +1,12 @@
-hcw-athome-backend (0.5.2.12) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.2.13) UNRELEASED; urgency=medium
 
   * fix Admin role cannot login in requester interface
   * fix Admin role  login in requester interface
   * fix variable in translation file
   * change emails when consultation time is less than time now + configured reminder time
+  * fix for guest invite sms
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 16 Oct 2024 09:11:59 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 16 Oct 2024 09:40:35 +0000
 
 hcw-athome-backend (5.2.9) focal; urgency=medium
 
