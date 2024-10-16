@@ -330,8 +330,15 @@ module.exports = {
     const doctorName = invite.doctor
       ? (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '')
       : '';
+    const currentTime = Date.now();
+    let scheduledTime = invite.scheduledFor;
+    if (invite.patientTZ) {
+      scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
+    }
+    const timeUntilScheduled = scheduledTime - currentTime;
+
     const message =
-      invite.scheduledFor && invite.scheduledFor > Date.now()
+      invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
         ? sails._t(locale, 'scheduled patient invite', {
           inviteTime,
           testingUrl,
