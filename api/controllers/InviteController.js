@@ -577,6 +577,7 @@ module.exports = {
       cancelGuestInvite,
       cancelTranslationRequestInvite,
       cancelScheduledFor,
+      metadata
     } = req.body;
 
     // validate provided fields
@@ -696,6 +697,7 @@ module.exports = {
         IMADTeam: IMADTeam,
         birthDate: birthDate,
         patientTZ: patientTZ,
+        metadata: metadata
       };
       // remove undefined values
       inviteData = JSON.parse(JSON.stringify(inviteData));

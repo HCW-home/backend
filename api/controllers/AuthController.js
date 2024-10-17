@@ -866,6 +866,9 @@ module.exports = {
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
         : "", //! sending metadata to the front in config
+      formMeta: process.env.FORM_META
+        ? process.env.FORM_META.split(",")
+        : "",
     });
   },
 
