@@ -28,6 +28,20 @@ function parseTime(value, defaultValue) {
   }
 }
 
+function parseTimeOverride(envVar) {
+  const match = envVar.match(/^(\d+)([smhd])$/);
+
+  if (!match) {
+    throw new Error(`Invalid format for time override: ${envVar}`);
+  }
+
+  const number = parseInt(match[1], 10);
+  const unit = match[2];
+
+  return { number, unit };
+}
+
+
 const OVERRIDE_FIRST_INVITE_REMINDER = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
 const OVERRIDE_SECOND_INVITE_REMINDER = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
 const OVERRIDE_TIME_UNTIL_SCHEDULE = process.env.OVERRIDE_TIME_UNTIL_SCHEDULE;
@@ -549,6 +563,23 @@ module.exports = {
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
 
+    const firstInviteReminder = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
+    const defaultFirstReminderTime = { number: 1, unit: 'd' };
+
+    let parsedFirstInviteReminderTime;
+    try {
+      parsedFirstInviteReminderTime = firstInviteReminder
+        ? parseTimeOverride(firstInviteReminder)
+        : defaultFirstReminderTime;
+    } catch (error) {
+      parsedFirstInviteReminderTime = defaultFirstReminderTime;
+    }
+
+    const firstReminderTranslationHelper = {
+      count: parsedFirstInviteReminderTime.number,
+      unitOfMeasurement: parsedFirstInviteReminderTime.unit
+    };
+
     const firstReminderType = invite.type === 'PATIENT' ? 'first invite reminder' : 'first guest invite reminder';
     const firstReminderMessage = sails._t(locale, firstReminderType, {
       inviteTime,
@@ -556,6 +587,20 @@ module.exports = {
       doctorName,
     });
 
+    const secondInviteReminder = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
+    const defaultSecondReminderTime = { number: 1, unit: 'm' };
+    let parsedSecondInviteReminderTime;
+    try {
+      parsedSecondInviteReminderTime = secondInviteReminder
+        ? parseTimeOverride(secondInviteReminder)
+        : defaultSecondReminderTime;
+    } catch (error) {
+      parsedSecondInviteReminderTime = defaultSecondReminderTime;
+    }
+    const secondReminderTranslationHelper = {
+      count: parsedSecondInviteReminderTime.number,
+      unitOfMeasurement: parsedSecondInviteReminderTime.unit
+    };
 
     const secondReminderType = invite.type === 'PATIENT' ? 'second invite reminder' : 'second guest invite reminder';
     const secondReminderMessage = sails._t(locale, secondReminderType, { url, doctorName });
