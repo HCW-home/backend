@@ -6,6 +6,7 @@
  */
 const db = PublicInvite.getDatastore().manager;
 const { ObjectId } = require('mongodb');
+const Joi = require('joi');
 
 const moment = require('moment-timezone');
 const {importFileIfExists} = require('../utils/helpers');
@@ -30,6 +31,44 @@ const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twi
  *
  * @param {object} invite
  */
+
+const inviteDataSchema = Joi.object({
+  phoneNumber: Joi.string().min(8).max(15).allow('').optional()
+    .messages({
+      'string.min': 'Phone number should be at least 8 digits',
+      'string.max': 'Phone number should not exceed 15 digits',
+    }),
+  emailAddress: Joi.string().email().allow('').optional()
+    .messages({
+      'string.email': 'Email address must be a valid email',
+    }),
+  gender: Joi.string().valid('male', 'female')
+    .messages({
+      'any.only': 'Gender must be one of male, female, or other',
+    }),
+  firstName: Joi.string().min(1).max(40)
+    .messages({
+      'string.min': 'First name must be at least 1 character long',
+      'string.max': 'First name must be less than 40 characters',
+    }),
+  lastName: Joi.string().min(1).max(100)
+    .messages({
+      'string.min': 'Last name must be at least 1 character long',
+      'string.max': 'Last name must be less than 100 characters',
+    }),
+  invitedBy: Joi.string().allow('').optional(),
+  scheduledFor: Joi.date().optional().allow('')
+    .messages({
+      'date.base': 'ScheduledFor must be a valid date',
+    }),
+  language: Joi.string().optional().allow(''),
+  type: Joi.string().optional().allow(''),
+  birthDate: Joi.date().optional().allow(''),
+  patientTZ: Joi.string().optional().allow(''),
+  metadata: Joi.any().optional(),
+}).unknown(true);
+
+
 function validateInviteRequest(invite) {
   const errors = [];
   if (!invite.phoneNumber && !invite.emailAddress) {
@@ -118,6 +157,13 @@ module.exports = {
   async invite(req, res) {
     let invite = null;
     console.log('create invite now');
+    const { error, value } = inviteDataSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: error.details,
+      });
+    }
     const currentUserPublic = {
       id: req.user.id,
       firstName: req.user.firstName,
@@ -239,44 +285,44 @@ module.exports = {
     }
 
     let queue;
-    if (req.body.queue) {
+    if (value.queue) {
       queue = await Queue.findOne({
-        or: [{ name: req.body.queue }, { id: req.body.queue }],
+        or: [{ name: value.queue }, { id: value.queue }],
       });
     }
 
-    if (req.body.queue && !queue) {
+    if (value.queue && !queue) {
       return res.status(400).json({
         error: true,
-        message: `queue ${req.body.queue} doesn't exist`,
+        message: `queue ${value.queue} doesn't exist`,
       });
     }
 
     let translationOrganization;
-    if (req.body.translationOrganization) {
+    if (value.translationOrganization) {
       translationOrganization = await TranslationOrganization.findOne({
         or: [
-          { name: req.body.translationOrganization },
-          { id: req.body.translationOrganization },
+          { name: value.translationOrganization },
+          { id: value.translationOrganization },
         ],
       });
     }
 
-    if (req.body.translationOrganization && !translationOrganization) {
+    if (value.translationOrganization && !translationOrganization) {
       return res.status(400).json({
         error: true,
-        message: `translationOrganization ${req.body.translationOrganization} doesn't exist`,
+        message: `translationOrganization ${value.translationOrganization} doesn't exist`,
       });
     }
 
     if (
       translationOrganization &&
-      (translationOrganization.languages || []).indexOf(req.body.language) ===
+      (translationOrganization.languages || []).indexOf(value.language) ===
       -1
     ) {
       return res.status(400).json({
         error: true,
-        message: `patientLanguage ${req.body.language} doesn't exist`,
+        message: `patientLanguage ${value.language} doesn't exist`,
       });
     }
 
@@ -285,23 +331,24 @@ module.exports = {
     try {
       // add other invite info
       // send invite to translator and guest
+
       const inviteData = {
-        phoneNumber: req.body.phoneNumber,
-        emailAddress: req.body.emailAddress,
-        gender: req.body.gender,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+        phoneNumber: value.phoneNumber,
+        emailAddress: value.emailAddress,
+        gender: value.gender,
+        firstName: value.firstName,
+        lastName: value.lastName,
         invitedBy: req.user.id,
-        scheduledFor: req.body.scheduledFor
-          ? new Date(req.body.scheduledFor)
+        scheduledFor: value.scheduledFor
+          ? new Date(value.scheduledFor)
           : undefined,
-        patientLanguage: req.body.language,
+        patientLanguage: value.language,
         type: 'PATIENT',
         //IMADTeam: req.body.IMADTeam,
-        birthDate: req.body.birthDate,
-        patientTZ: req.body.patientTZ,
+        birthDate: value.birthDate,
+        patientTZ: value.patientTZ,
         // metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
-        metadata: req.body.metadata,
+        metadata: value.metadata,
         //! passing metadata from request
       };
       if (doctor) {
@@ -316,12 +363,12 @@ module.exports = {
         inviteData.translationOrganization = translationOrganization.id;
       }
 
-      if (req.body.guestEmailAddress) {
-        inviteData.guestEmailAddress = req.body.guestEmailAddress;
+      if (value.guestEmailAddress) {
+        inviteData.guestEmailAddress = value.guestEmailAddress;
       }
 
-      if (req.body.guestPhoneNumber) {
-        inviteData.guestPhoneNumber = req.body.guestPhoneNumber;
+      if (value.guestPhoneNumber) {
+        inviteData.guestPhoneNumber = value.guestPhoneNumber;
       }
 
       if (req.body.messageService) {
