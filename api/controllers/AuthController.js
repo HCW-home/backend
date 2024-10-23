@@ -10,9 +10,15 @@ const passport = require("passport");
 const { samlStrategy } = require("../../config/passport");
 const jwt = require("jsonwebtoken");
 const validator = require('validator');
+const Joi = require('joi');
+const { i18n } = require('../../config/i18n');
 
 const SMS_CODE_LIFESPAN = 5 * 60;
 
+
+const headersSchema = Joi.object({
+  locale: Joi.string().optional(),
+});
 function generateVerificationCode() {
   const possible = "0123456789";
   let string = "";
@@ -21,6 +27,7 @@ function generateVerificationCode() {
   }
   return string;
 }
+
 
 const canLoginLocal = async (req) => {
   if (
@@ -230,7 +237,16 @@ module.exports = {
 
   // used only for admin
   async loginLocal(req, res) {
-    const { locale } = req.headers || {};
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        message: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
+
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
       return res.status(400).json({
@@ -363,7 +379,16 @@ module.exports = {
 
   // used only for admin
   loginSms(req, res) {
-    const { locale } = req.headers || {};
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        message: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
+
     passport.authenticate("sms", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
       if (err?.message === "User is not approved") {
@@ -404,7 +429,16 @@ module.exports = {
   },
 
   login2FA(req, res) {
-    const { locale } = req.headers || {};
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        message: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
+
     passport.authenticate("2FA", (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
       if (err.message === "User is not approved") {
@@ -544,13 +578,15 @@ module.exports = {
             return res.status(401).json({ error: "Unauthorized" });
           }
 
+          const version = validator.escape(req.query._version)
+
           try {
-            if (req.query._version) {
+            if (version) {
               await User.updateOne({
                 id: decoded.id,
                 email: decoded.email,
                 role: { in: ["doctor", "admin"] },
-              }).set({ doctorClientVersion: req.query._version });
+              }).set({ doctorClientVersion: version });
             } else {
               await User.updateOne({
                 id: decoded.id,

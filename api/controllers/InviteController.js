@@ -9,7 +9,8 @@ const { ObjectId } = require('mongodb');
 const Joi = require('joi');
 
 const moment = require('moment-timezone');
-const {importFileIfExists} = require('../utils/helpers');
+const { importFileIfExists } = require('../utils/helpers');
+const { i18n } = require('../../config/i18n');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 // /**
@@ -31,6 +32,10 @@ const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twi
  *
  * @param {object} invite
  */
+
+const headersSchema = Joi.object({
+  locale: Joi.string().optional(),
+});
 
 const inviteDataSchema = Joi.object({
   phoneNumber: Joi.string().min(8).max(15).allow('').optional()
@@ -171,7 +176,16 @@ module.exports = {
       lastName: req.user.lastName,
       role: req.user.role,
     };
-    const { locale } = req.headers || {};
+
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        error: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
 
     // validate
     if (req.body.isPatientInvite && !req.body.sendLinkManually) {
@@ -242,12 +256,12 @@ module.exports = {
       }
     }
 
-    if (req.body.patientTZ) {
-      const isTZValid = moment.tz.names().includes(req.body.patientTZ);
+    if (value.patientTZ) {
+      const isTZValid = moment.tz.names().includes(value.patientTZ);
       if (!isTZValid) {
         return res.status(400).json({
           success: false,
-          error: `Unknown timezone identifier ${req.body.patientTZ}`,
+          error: `Unknown timezone identifier ${value.patientTZ}`,
         });
       }
     }
@@ -276,7 +290,7 @@ module.exports = {
       if (!doctor) {
         return res.status(400).json({
           success: false,
-          error: `Doctor with email ${req.body.doctorEmail} not found`,
+          error: `Doctor with email ${value.doctorEmail || ''} not found`,
         });
       }
       // a
@@ -371,12 +385,12 @@ module.exports = {
         inviteData.guestPhoneNumber = value.guestPhoneNumber;
       }
 
-      if (req.body.messageService) {
-        inviteData.messageService = req.body.messageService
+      if (value.messageService) {
+        inviteData.messageService = value.messageService;
       }
 
-      if (req.body.guestMessageService) {
-        inviteData.guestMessageService = req.body.guestMessageService
+      if (value.guestMessageService) {
+        inviteData.guestMessageService = value.guestMessageService;
       }
 
       invite = await PublicInvite.create(inviteData).fetch();
@@ -389,7 +403,7 @@ module.exports = {
 
       if (Array.isArray(experts)) {
         for (const contact of experts) {
-          const {expertContact, messageService} = contact || {};
+          const { expertContact, messageService } = contact || {};
           if (typeof expertContact === 'string') {
             const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
             const isEmail = expertContact.includes('@');
@@ -397,10 +411,10 @@ module.exports = {
             if (isPhoneNumber && !isEmail) {
               //  WhatsApp
               if (messageService === '1') {
-                const type = "please use this link";
+                const type = 'please use this link';
                 const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[inviteData?.patientLanguage] || TwilioWhatsappConfig?.['en'];
                 const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-                const params = {1: invite.expertToken}
+                const params = { 1: invite.expertToken };
 
                 await sails.helpers.sms.with({
                   phoneNumber: expertContact,

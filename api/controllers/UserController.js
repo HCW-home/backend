@@ -137,7 +137,7 @@ module.exports = {
     try {
       const userId = validator.escape(req.param('id')).trim();
 
-      const newStatus = req.body.status;
+      const newStatus = validator.escape(req.body.status).trim();
 
       const allowedStatuses = ['approved', 'not-approved'];
       if (!allowedStatuses.includes(newStatus)) {
