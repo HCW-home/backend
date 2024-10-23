@@ -35,7 +35,7 @@ const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twi
 
 const headersSchema = Joi.object({
   locale: Joi.string().optional(),
-});
+}).unknown(true);
 
 const inviteDataSchema = Joi.object({
   phoneNumber: Joi.string().min(8).max(15).allow('').optional()

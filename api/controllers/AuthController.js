@@ -18,7 +18,7 @@ const SMS_CODE_LIFESPAN = 5 * 60;
 
 const headersSchema = Joi.object({
   locale: Joi.string().optional(),
-});
+}).unknown(true);
 function generateVerificationCode() {
   const possible = "0123456789";
   let string = "";
