@@ -578,7 +578,7 @@ module.exports = {
             return res.status(401).json({ error: "Unauthorized" });
           }
 
-          const version = validator.escape(req.query._version)
+          const version = validator.escape(req.query._version || '')
 
           try {
             if (version) {
@@ -902,8 +902,11 @@ module.exports = {
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
         : "", //! sending metadata to the front in config
-      formMeta: process.env.FORM_META
-        ? process.env.FORM_META.split(",")
+      formMeta: process.env.FORM_DOCTOR_META
+        ? process.env.FORM_DOCTOR_META.split(",")
+        : "",
+      formRequesterMeta: process.env.FORM_REQUESTER_META
+        ? process.env.FORM_REQUESTER_META.split(",")
         : "",
     });
   },
