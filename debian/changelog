@@ -7,7 +7,7 @@ hcw-athome-backend (5.2.14) focal; urgency=medium
   * handle new params in whatsapp templates for invite reminders
   * new env var FORM_REQUESTER_META,for requester form custom fields
 
- -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 25 Oct 2024 15:31:20 +0200
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 28 Oct 2024 09:08:03 +0100
 
 hcw-athome-backend (5.2.13) focal; urgency=medium
 
