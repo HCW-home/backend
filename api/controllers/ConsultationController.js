@@ -37,11 +37,11 @@ module.exports = {
     }
 
     if (req.user && req.user.role === "translator") {
-      match = [{ translator: ObjectId(req.user.id) }];
+      match = [{ translator: new ObjectId(req.user.id) }];
     }
 
     if (req.user && req.user.role === "guest") {
-      match = [{ guest: ObjectId(req.user.id) }];
+      match = [{ guest: new ObjectId(req.user.id) }];
     }
 
     if (req.user && req.user.role === "expert") {

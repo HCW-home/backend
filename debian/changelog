@@ -1,3 +1,21 @@
+hcw-athome-backend (5.2.15) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #7765, Backend crash when guest is joining consultation
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 28 Oct 2024 11:03:51 +0100
+
+hcw-athome-backend (5.2.14) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * parse reminder time
+  * add joi for validation
+  * add joi schema for headers
+  * handle new params in whatsapp templates for invite reminders
+  * new env var FORM_REQUESTER_META,for requester form custom fields
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 28 Oct 2024 09:08:03 +0100
+
 hcw-athome-backend (5.2.13) focal; urgency=medium
 
   [ Gor Grigoryan ]

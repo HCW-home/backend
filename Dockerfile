@@ -1,5 +1,7 @@
 FROM node:18 AS builder
 
+ENV VERSION=5.2.15
+
 WORKDIR /usr/src/app
 
 COPY package.json ./

@@ -70,5 +70,6 @@
     "invalid file type": "Impossible d'envoyer le fichier, seuls les types de fichiers PDF, JPEG et PNG sont autorisés.",
     "no file": "Impossible d'envoyer le fichier, aucun fichier n'a été fourni.",
     "max file size": "Impossible d'envoyer le fichier, la taille dépasse la limite configurée.",
-    "invite error": "Erreur pendant l'envoi de l'invitation"
+    "invite error": "Erreur pendant l'envoi de l'invitation",
+    "not approved": "Utilisateur non approuvé"
 }

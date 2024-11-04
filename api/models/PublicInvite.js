@@ -28,6 +28,45 @@ function parseTime(value, defaultValue) {
   }
 }
 
+function parseTimeOverride(envVar) {
+  const match = envVar.match(/^(\d+)([smhd])$/);
+
+  if (!match) {
+    throw new Error(`Invalid format for time override: ${envVar}`);
+  }
+
+  const number = parseInt(match[1], 10);
+  const unit = match[2];
+
+  return { number, unit };
+}
+
+function generateTimePhrase(count, unit, locale) {
+  const timeUnits = {
+    m: {
+      singular: sails._t(locale, 'minute'),
+      plural: sails._t(locale, 'minutes'),
+    },
+    h: {
+      singular: sails._t(locale, 'hour'),
+      plural: sails._t(locale, 'hours'),
+    },
+    d: {
+      singular: sails._t(locale, 'day'),
+      plural: sails._t(locale, 'days'),
+    },
+  };
+
+  const timeUnit = count === 1 ? timeUnits[unit].singular : timeUnits[unit].plural;
+
+  return sails._t(locale, 'in %(count)s %(unit)s', {
+    count,
+    unit: timeUnit,
+  });
+}
+
+
+
 const OVERRIDE_FIRST_INVITE_REMINDER = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
 const OVERRIDE_SECOND_INVITE_REMINDER = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
 const OVERRIDE_TIME_UNTIL_SCHEDULE = process.env.OVERRIDE_TIME_UNTIL_SCHEDULE;
@@ -549,24 +588,75 @@ module.exports = {
     const doctorName =
       (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
 
-    const firstReminderType = invite.type === 'PATIENT' ? 'first invite reminder' : 'first guest invite reminder';
+    const firstInviteReminder = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
+    const defaultFirstReminderTime = { number: 1, unit: 'd' };
+
+    let parsedFirstInviteReminderTime;
+    try {
+      parsedFirstInviteReminderTime = firstInviteReminder
+        ? parseTimeOverride(firstInviteReminder)
+        : defaultFirstReminderTime;
+    } catch (error) {
+      parsedFirstInviteReminderTime = defaultFirstReminderTime;
+    }
+
+    const firstReminderTranslationHelper = {
+      count: parsedFirstInviteReminderTime.number,
+      unitOfMeasurement: parsedFirstInviteReminderTime.unit,
+    };
+
+    const firstTimePhrase = generateTimePhrase(
+      firstReminderTranslationHelper.count,
+      firstReminderTranslationHelper.unitOfMeasurement,
+      locale
+    );
+
+    const firstReminderType =
+      invite.type === 'PATIENT' ? 'first invite reminder' : 'first guest invite reminder';
     const firstReminderMessage = sails._t(locale, firstReminderType, {
       inviteTime,
       branding: process.env.BRANDING,
       doctorName,
+      timePhrase: firstTimePhrase,
     });
 
+    const secondInviteReminder = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
+    const defaultSecondReminderTime = { number: 1, unit: 'm' };
+    let parsedSecondInviteReminderTime;
+    try {
+      parsedSecondInviteReminderTime = secondInviteReminder
+        ? parseTimeOverride(secondInviteReminder)
+        : defaultSecondReminderTime;
+    } catch (error) {
+      parsedSecondInviteReminderTime = defaultSecondReminderTime;
+    }
 
-    const secondReminderType = invite.type === 'PATIENT' ? 'second invite reminder' : 'second guest invite reminder';
-    const secondReminderMessage = sails._t(locale, secondReminderType, { url, doctorName });
+    const secondReminderTranslationHelper = {
+      count: parsedSecondInviteReminderTime.number,
+      unitOfMeasurement: parsedSecondInviteReminderTime.unit,
+    };
+
+    const secondTimePhrase = generateTimePhrase(
+      secondReminderTranslationHelper.count,
+      secondReminderTranslationHelper.unitOfMeasurement,
+      locale
+    );
+
+    const secondReminderType =
+      invite.type === 'PATIENT' ? 'second invite reminder' : 'second guest invite reminder';
+    const secondReminderMessage = sails._t(locale, secondReminderType, {
+      url,
+      doctorName,
+      timePhrase: secondTimePhrase,
+    });
 
     return {
       firstReminderMessage,
       secondReminderMessage,
       firstReminderType,
       secondReminderType,
-      firstReminderParams: { 1: process.env.BRANDING, 2: inviteTime },
-      secondReminderParams: { 1: invite.inviteToken }
+      firstReminderParams: { 1: process.env.BRANDING, 2: firstTimePhrase, 3: inviteTime, },
+      secondReminderParams: { 1: secondTimePhrase, 2: invite.inviteToken,  },
     };
   },
 

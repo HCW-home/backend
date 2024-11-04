@@ -525,11 +525,11 @@ module.exports = {
     }
 
     if (user && user.role === "translator") {
-      match = [{ translator: ObjectId(user.id) }];
+      match = [{ translator: new ObjectId(user.id) }];
     }
 
     if (user && user.role === "guest") {
-      match = [{ guest: ObjectId(user.id) }];
+      match = [{ guest: new ObjectId(user.id) }];
     }
 
     if (user && user.role === "expert") {
