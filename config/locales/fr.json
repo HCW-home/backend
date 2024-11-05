@@ -71,5 +71,13 @@
     "no file": "Impossible d'envoyer le fichier, aucun fichier n'a été fourni.",
     "max file size": "Impossible d'envoyer le fichier, la taille dépasse la limite configurée.",
     "invite error": "Erreur pendant l'envoi de l'invitation",
-    "not approved": "Utilisateur non approuvé"
+    "not approved": "Utilisateur non approuvé",
+    "day": "jour",
+    "days": "jours",
+    "consultation past time": "L'heure de la consultation ne peut pas être dans le passé",
+    "minute": "minute",
+    "minutes": "minutes",
+    "hour": "heure",
+    "hours": "heures",
+    "in %(count)s %(unit)s": "dans %(count)s %(unit)s"
 }
