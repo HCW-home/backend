@@ -1006,7 +1006,9 @@ module.exports = {
     if (!fs.existsSync(filePath)) {
       return res.notFound();
     }
+    res.setHeader("Content-Type", msg.mimeType);
     const readStream = fs.createReadStream(filePath);
+    readStream.on('error', () => res.serverError());
 
     readStream.pipe(res);
   },
