@@ -207,7 +207,14 @@ function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, contentVari
         to: `whatsapp:${phoneNumber}`,
       })
       .then((message) => {
+          console.log("paylod", {
+            contentSid: contentSid,
+            contentVariables: JSON.stringify(contentVariables),
+            from: `whatsapp:${twilioPhoneNumber}`,
+            to: `whatsapp:${phoneNumber}`,
+          })
         console.log('Twilio whatsapp SMS sent:', message.sid);
+        console.log('Twilio Template Id', contentSid);
         resolve(message.sid);
       })
       .catch((error) => {
