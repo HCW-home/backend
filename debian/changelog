@@ -1,3 +1,9 @@
+hcw-athome-backend (5.2.17) UNRELEASED; urgency=medium
+
+  * add payload log for twillo whatsapp
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 15 Nov 2024 15:04:11 +0000
+
 hcw-athome-backend (5.2.16) focal; urgency=medium
 
   [ Olivier Bitsch ]
