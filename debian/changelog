@@ -1,4 +1,4 @@
-hcw-athome-backend (5.2.17) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.2.18) UNRELEASED; urgency=medium
 
   * add payload log for twillo whatsapp
 
