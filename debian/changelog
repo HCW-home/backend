@@ -1,3 +1,14 @@
+hcw-athome-backend (0.5.4) UNRELEASED; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Moving to new builder
+  * Moving to new builder
+
+  [ Gor Grigoryan ]
+  * create helper for creating whatsapp params
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 18 Nov 2024 11:36:29 +0000
+
 hcw-athome-backend (0.5.3) focal; urgency=medium
 
   * add payload log for twillo whatsapp
