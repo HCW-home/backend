@@ -29,24 +29,24 @@ function createParamsFromJson(args) {
 
   templateParams.forEach((placeholder, index) => {
     let value;
-    switch (placeholder) {
-      case '$(branding)s':
-        value = process.env.BRANDING;
+    switch (true) {
+      case placeholder.includes('$(branding)s'):
+        value = placeholder.replace('$(branding)s', process.env.BRANDING || 'DefaultBranding');
         break;
-      case '%(url)s':
-        value = url;
+      case placeholder.includes('%(url)s'):
+        value = placeholder.replace('%(url)s', url || '');
         break;
-      case '%(inviteTime)s':
-        value = inviteTime;
+      case placeholder.includes('%(inviteTime)s'):
+        value = placeholder.replace('%(inviteTime)s', inviteTime || '');
         break;
-      case '%(inviteDateTime)s':
-        value = inviteDateTime;
+      case placeholder.includes('%(inviteDateTime)s'):
+        value = placeholder.replace('%(inviteDateTime)s', inviteDateTime || '');
         break;
-      case '%(timePhrase)s':
-        value = timePhrase;
+      case placeholder.includes('%(timePhrase)s'):
+        value = placeholder.replace('%(timePhrase)s', timePhrase || '');
         break;
       default:
-        value = '';
+        value = placeholder;
     }
 
     params[index + 1] = value;
