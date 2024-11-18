@@ -83,7 +83,7 @@ const TIME_UNTIL_SCHEDULE = parseTime(OVERRIDE_TIME_UNTIL_SCHEDULE, DEFAULT_TIME
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
 const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
 const crypto = require('crypto');
-const { importFileIfExists } = require('../utils/helpers');
+const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 async function generateToken() {
@@ -429,21 +429,16 @@ module.exports = {
           const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? 'scheduled patient invite' : 'patient invite';
           const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
           const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-          let params = {};
-          switch (type) {
-            case 'patient invite':
-              params = {
-                1: process.env.BRANDING,
-                2: invite.inviteToken
-              };
-              break;
-            case 'scheduled patient invite':
-              params = {
-                1: process.env.BRANDING,
-                2: inviteTime
-              };
-              break;
+
+          const args = {
+            language: invite?.patientLanguage || 'en',
+            type,
+            languageConfig: TwilioWhatsappConfig,
+            url: invite.inviteToken,
+            inviteDateTime: inviteTime,
           }
+
+          const params = createParamsFromJson(args);
 
           try {
             await sails.helpers.sms.with({
@@ -527,21 +522,16 @@ module.exports = {
         const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? 'scheduled guest invite' : 'guest invite';
         const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
         const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-        let params = {};
-        switch (type) {
-          case 'guest invite':
-            params = {
-              1: process.env.BRANDING,
-              2: invite.inviteToken
-            };
-            break;
-          case 'scheduled guest invite':
-            params = {
-              1: process.env.BRANDING,
-              2: inviteTime,
-            };
-            break;
+
+        const args = {
+          language: invite?.patientLanguage || 'en',
+          type: type,
+          languageConfig: TwilioWhatsappConfig,
+          url: invite.inviteToken,
+          inviteTime,
         }
+
+        const params = createParamsFromJson(args);
 
         try {
           await sails.helpers.sms.with({
@@ -650,13 +640,35 @@ module.exports = {
       timePhrase: secondTimePhrase,
     });
 
+    const args = {
+      language: invite?.patientLanguage || 'en',
+      type: firstReminderType,
+      languageConfig: TwilioWhatsappConfig,
+      url: invite.inviteToken,
+      inviteTime,
+      timePhrase: firstTimePhrase,
+    }
+
+    const firstReminderParams = createParamsFromJson(args)
+
+    const secondArgs = {
+      language: invite?.patientLanguage || 'en',
+      type: secondReminderType,
+      languageConfig: TwilioWhatsappConfig,
+      url: invite.inviteToken,
+      inviteTime,
+      timePhrase: secondTimePhrase,
+    }
+
+    const secondReminderParams = createParamsFromJson(secondArgs)
+
     return {
       firstReminderMessage,
       secondReminderMessage,
       firstReminderType,
       secondReminderType,
-      firstReminderParams: { 1: process.env.BRANDING, 2: firstTimePhrase, 3: inviteTime, },
-      secondReminderParams: { 1: secondTimePhrase, 2: invite.inviteToken,  },
+      firstReminderParams,
+      secondReminderParams
     };
   },
 

@@ -1,4 +1,4 @@
-const {importFileIfExists} = require('../utils/helpers');
+const {importFileIfExists, createParamsFromJson } = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 module.exports = {
   sendExpertLink: async function (req, res) {
@@ -22,7 +22,14 @@ module.exports = {
           const type = "please use this link";
           const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[req?.body?.language] || TwilioWhatsappConfig?.['en'];
           const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-          const params = {1: expertLink?.expertLink}
+
+          const args = {
+            language: req?.body?.language || "en",
+            type: type,
+            languageConfig: TwilioWhatsappConfig,
+            url: expertLink?.expertLink,
+          }
+          const params = createParamsFromJson(args);
 
           await sails.helpers.sms.with({
             phoneNumber: to,

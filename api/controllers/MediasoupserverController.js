@@ -21,11 +21,11 @@ module.exports = {
 
   update: async function (req, res) {
     try {
-      const url = validator.escape(req.body.url).trim();
+      const url = req.body.url;
       const username = validator.escape(req.body.username).trim();
       const password = validator.escape(req.body.password).trim();
-      const maxNumberOfSessions = validator.escape(req.body.maxNumberOfSessions).trim();
-      const active = validator.escape(req.body.active).trim();
+      const maxNumberOfSessions = req.body.maxNumberOfSessions
+      const active = req.body.active;
       const  data = {
         url,
         username,

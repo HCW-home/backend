@@ -9,8 +9,8 @@ const { ObjectId } = require('mongodb');
 const Joi = require('joi');
 
 const moment = require('moment-timezone');
-const { importFileIfExists } = require('../utils/helpers');
 const { i18n } = require('../../config/i18n');
+const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 // /**
@@ -414,7 +414,13 @@ module.exports = {
                 const type = 'please use this link';
                 const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[inviteData?.patientLanguage] || TwilioWhatsappConfig?.['en'];
                 const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-                const params = { 1: invite.expertToken };
+                const args = {
+                  language: inviteData?.patientLanguage || "en",
+                  type,
+                  languageConfig: TwilioWhatsappConfig,
+                  url: invite.expertToken,
+                }
+                const params = createParamsFromJson(args)
 
                 await sails.helpers.sms.with({
                   phoneNumber: expertContact,
