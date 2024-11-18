@@ -529,6 +529,7 @@ module.exports = {
           languageConfig: TwilioWhatsappConfig,
           url: invite.inviteToken,
           inviteTime,
+          inviteDateTime: inviteTime
         }
 
         const params = createParamsFromJson(args);
@@ -647,6 +648,7 @@ module.exports = {
       url: invite.inviteToken,
       inviteTime,
       timePhrase: firstTimePhrase,
+      inviteDateTime: inviteTime
     }
 
     const firstReminderParams = createParamsFromJson(args)
@@ -658,6 +660,7 @@ module.exports = {
       url: invite.inviteToken,
       inviteTime,
       timePhrase: secondTimePhrase,
+      inviteDateTime: inviteTime
     }
 
     const secondReminderParams = createParamsFromJson(secondArgs)

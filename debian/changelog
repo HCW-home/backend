@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.4) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.5) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Moving to new builder
@@ -6,8 +6,9 @@ hcw-athome-backend (0.5.4) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * create helper for creating whatsapp params
+  * support text in whatsapp config params
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 18 Nov 2024 11:36:29 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 18 Nov 2024 16:10:41 +0000
 
 hcw-athome-backend (0.5.3) focal; urgency=medium
 
