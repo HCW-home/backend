@@ -497,6 +497,18 @@ module.exports = {
         });
 
         for (const provider of providers) {
+
+          const prefixes = provider.prefix?.split(",");
+          const matchesPrefix = prefixes?.some((prefix) =>
+            prefix === "*" || phoneNumber?.startsWith(prefix)
+          );
+
+          if (!matchesPrefix) {
+            console.log(`Skipping provider ${provider.provider} - no matching prefix.`);
+            continue;
+          }
+
+
           try {
             console.log(`Sending an SMS to ${phoneNumber} through ${provider.provider}`);
 

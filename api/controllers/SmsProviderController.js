@@ -20,14 +20,6 @@ module.exports = {
       return res.badRequest({ message: 'Provider ID is required.' });
     }
 
-    if (!order) {
-      return res.badRequest({ message: 'Order must be a valid number.' });
-    }
-
-    if (!prefix ) {
-      return res.badRequest({ message: 'Prefix must contain only alphanumeric characters.' });
-    }
-
     order = validator.escape(order.toString());
     prefix = validator.escape(prefix);
 
