@@ -8,6 +8,8 @@
 const { ObjectId } = require('mongodb');
 const _ = require("@sailshq/lodash");
 const moment = require('moment');
+const {importFileIfExists, createParamsFromJson } = require('../utils/helpers');
+const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 const columns = [
   { colName: "Invite sent at", key: "inviteCreatedAt" },
@@ -714,11 +716,32 @@ module.exports = {
       const doctorLanguage =
         doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
-      await sails.helpers.sms.with({
-        phoneNumber: doctor.notifPhoneNumber,
-        message: sails._t(doctorLanguage, "patient is ready", { url }),
-        senderEmail: doctor?.email,
-      });
+      if (doctor.messageService === '1') {
+        const type = "patient is ready";
+        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[doctorLanguage] || TwilioWhatsappConfig?.['en'];
+        const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
+        const args = {
+          language: doctorLanguage,
+          type,
+          languageConfig: TwilioWhatsappConfig,
+          url: tokenString,
+        }
+        const params = createParamsFromJson(args);
+        await sails.helpers.sms.with({
+          phoneNumber: doctor.notifPhoneNumber,
+          message: sails._t(doctorLanguage, "patient is ready", { url }),
+          senderEmail: doctor?.email,
+          whatsApp: true,
+          params,
+          twilioTemplatedId
+        });
+      } else {
+        await sails.helpers.sms.with({
+          phoneNumber: doctor.notifPhoneNumber,
+          message: sails._t(doctorLanguage, "patient is ready", { url }),
+          senderEmail: doctor?.email,
+        });
+      }
     }
   },
   // afterUpdate(consultation){

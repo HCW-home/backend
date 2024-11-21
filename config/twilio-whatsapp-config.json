@@ -60,5 +60,16 @@
         "%(inviteDateTime)s"
       ]
     }
+  },
+  "en": {
+    "patient is ready": {
+      "twilio_template_id": "HXe53115fa308b637296e2e78f590fc502",
+      "params": [
+        "%(url)s"
+      ]
+    },
+    "notification for offline action text for doctor": {
+      "twilio_template_id": "HX6c0499f1fcdacdd445ddca7cc1f864b9"
+    }
   }
 }

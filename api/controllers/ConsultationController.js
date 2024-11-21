@@ -1245,6 +1245,7 @@ module.exports = {
         consultation: consultationId,
         type: "text",
         to: consultation.owner,
+        from: token.user,
       }).fetch();
       await Message.afterCreate(message, (err, message) => {});
 

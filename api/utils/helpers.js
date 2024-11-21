@@ -21,13 +21,14 @@ function createParamsFromJson(args) {
   const templateConfig = TwilioWhatsappConfigLanguage?.[type];
 
   if (!templateConfig) {
-    throw new Error(`No template configuration found for type: ${type}`);
+    console.warn(`No template configuration found for type: ${type}`);
+    return {};
   }
 
   const templateParams = templateConfig.params;
   const params = {};
 
-  templateParams.forEach((placeholder, index) => {
+  templateParams?.forEach((placeholder, index) => {
     let value;
     switch (true) {
       case placeholder.includes('$(branding)s'):

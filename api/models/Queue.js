@@ -33,10 +33,26 @@ module.exports = {
     const queuesUsers = await results.toArray();
 
     const userCollection = db.collection('user');
-    const doctorsCurs = await userCollection.find({ role: 'doctor', $or: [{ viewAllQueues: true }, { _id: { $in: queuesUsers.map(qu => new ObjectId(qu.user_allowedQueues)) } }] });
+    const doctorsAndAdmins = await userCollection.find({
+      $or: [
+        {
+          role: sails.config.globals.ROLE_DOCTOR,
+          $or: [
+            { viewAllQueues: true },
+            { _id: { $in: queuesUsers.map(qu => new ObjectId(qu.user_allowedQueues)) } }
+          ]
+        },
+        {
+          role: sails.config.globals.ROLE_ADMIN,
+          $or: [
+            { viewAllQueues: true },
+            { _id: { $in: queuesUsers.map(qu => new ObjectId(qu.user_allowedQueues)) } }
+          ]
+        }
+      ]
+    });
 
-    const doctors = await doctorsCurs.toArray();
-    return doctors
+    return await doctorsAndAdmins.toArray()
   }
 
 
