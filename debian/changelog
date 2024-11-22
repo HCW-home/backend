@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.5) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.5) focal; urgency=medium
 
   [ Olivier Bitsch ]
   * Moving to new builder
@@ -7,8 +7,10 @@ hcw-athome-backend (0.5.5) UNRELEASED; urgency=medium
   [ Gor Grigoryan ]
   * create helper for creating whatsapp params
   * support text in whatsapp config params
+  * refs #7645, add messageService for user
+  * refs #7645, Add a way for the doctor to get his notification over whatsapp
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 18 Nov 2024 16:10:41 +0000
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 22 Nov 2024 10:38:30 +0100
 
 hcw-athome-backend (0.5.3) focal; urgency=medium
 
