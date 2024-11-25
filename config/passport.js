@@ -454,6 +454,16 @@ if (process.env.LOGIN_METHOD === 'openid') {
           return cb(new Error(err));
         }
         let user
+
+        let conflictingUser = await User.findOne({
+          email,
+          role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+        });
+
+        if (conflictingUser) {
+          return cb(new Error('A user with this email already exists with a different role'));
+        }
+
         user = await User.findOne({
           email,
           role: sails.config.globals.ROLE_DOCTOR
@@ -579,8 +589,18 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
         }
         let user = await User.findOne({
           email: profile[process.env.EMAIL_FIELD],
-          role: "doctor",
+          role: sails.config.globals.ROLE_DOCTOR,
         }).populate("allowedQueues");
+
+
+        let conflictingUser = await User.findOne({
+          email: profile[process.env.EMAIL_FIELD],
+          role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+        });
+
+        if (conflictingUser) {
+          return cb(new Error('A user with this email already exists with a different role'));
+        }
 
 
         if (!user) {
