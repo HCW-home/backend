@@ -455,14 +455,6 @@ if (process.env.LOGIN_METHOD === 'openid') {
         }
         let user
 
-        let conflictingUsers = await User.find({
-          email: profile[process.env.EMAIL_FIELD],
-          role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
-        });
-
-        if (conflictingUsers && conflictingUsers.length > 0) {
-          return cb(new Error('A user with this email already exists with a different role'));
-        }
 
         user = await User.findOne({
           email,
@@ -484,6 +476,15 @@ if (process.env.LOGIN_METHOD === 'openid') {
         }
 
         if (!user) {
+          let conflictingUsers = await User.find({
+            email: profile[process.env.EMAIL_FIELD],
+            role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+          });
+
+          if (conflictingUsers && conflictingUsers.length > 0) {
+            return cb(new Error('A user with this email already exists with a different role'));
+          }
+
           user = await User.create({
             email: email,
             firstName: firstName || '',
@@ -593,18 +594,17 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
         }).populate("allowedQueues");
 
 
-        let conflictingUsers = await User.find({
-          email: profile[process.env.EMAIL_FIELD],
-          role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
-        });
-
-        if (conflictingUsers && conflictingUsers.length > 0) {
-          return cb(new Error('A user with this email already exists with a different role'));
-        }
-
-
         if (!user) {
-            user = await User.create({
+          let conflictingUsers = await User.find({
+            email: profile[process.env.EMAIL_FIELD],
+            role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+          });
+
+          if (conflictingUsers && conflictingUsers.length > 0) {
+            return cb(new Error('A user with this email already exists with a different role'));
+          }
+
+          user = await User.create({
               email: profile[process.env.EMAIL_FIELD],
               firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
               lastName: profile[process.env.SAML_LASTNAME_FIELD],
