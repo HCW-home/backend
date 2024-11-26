@@ -477,8 +477,8 @@ if (process.env.LOGIN_METHOD === 'openid') {
 
         if (!user) {
           let conflictingUsers = await User.find({
-            email: profile[process.env.EMAIL_FIELD],
-            role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+            email: email,
+            role: { in: [sails.config.globals.ROLE_NURSE, sails.config.globals.ROLE_SCHEDULER] }
           });
 
           if (conflictingUsers && conflictingUsers.length > 0) {
@@ -597,7 +597,7 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
         if (!user) {
           let conflictingUsers = await User.find({
             email: profile[process.env.EMAIL_FIELD],
-            role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+            role: { in: [sails.config.globals.ROLE_NURSE, sails.config.globals.ROLE_SCHEDULER] }
           });
 
           if (conflictingUsers && conflictingUsers.length > 0) {
