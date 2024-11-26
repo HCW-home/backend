@@ -1,3 +1,10 @@
+hcw-athome-backend (0.5.6) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #7880, Auto-create should not auto create doctor if same email exists as another role
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 26 Nov 2024 11:11:43 +0100
+
 hcw-athome-backend (0.5.5) focal; urgency=medium
 
   [ Olivier Bitsch ]
