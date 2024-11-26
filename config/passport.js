@@ -593,12 +593,12 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
         }).populate("allowedQueues");
 
 
-        let conflictingUser = await User.findOne({
+        let conflictingUsers = await User.find({
           email: profile[process.env.EMAIL_FIELD],
           role: { '!=': [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
         });
 
-        if (conflictingUser) {
+        if (conflictingUsers && conflictingUsers.length > 0) {
           return cb(new Error('A user with this email already exists with a different role'));
         }
 
