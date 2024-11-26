@@ -1,9 +1,10 @@
-hcw-athome-backend (0.5.8) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.9) UNRELEASED; urgency=medium
 
   * fix crash on finding conflicting Users
   * fix crash on finding conflicting Users
+  * change check for conflicting user
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 26 Nov 2024 16:24:08 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 26 Nov 2024 16:30:20 +0000
 
 hcw-athome-backend (0.5.6) focal; urgency=medium
 
