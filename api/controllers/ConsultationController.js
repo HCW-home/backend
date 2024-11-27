@@ -926,7 +926,8 @@ module.exports = {
           if (err.code === "E_EXCEEDS_UPLOAD_LIMIT") {
             return res.status(413).send(sails._t(sanitizedLocale, "max file size"));
           }
-          return res.status(500).send(err);
+          sails.log.error("Upload error:", err);
+          return res.status(500).send(sails._t(sanitizedLocale, "server error"));
         }
         if (!uploadedFiles.length) {
           return res.status(400).send(sails._t(sanitizedLocale, "no file"));
