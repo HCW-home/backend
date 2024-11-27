@@ -114,10 +114,6 @@ module.exports = {
       defaultsTo: '0',
       required: false
     },
-    allowUseWhatsapp: {
-      type: 'boolean',
-      defaultsTo: false
-    },
     messageService: {
       type: 'string',
       isIn: ['1', '2'],
