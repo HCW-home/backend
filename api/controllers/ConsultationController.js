@@ -14,6 +14,7 @@ const fileType = require("file-type");
 
 const _ = require("@sailshq/lodash");
 const validator = require("validator");
+const sanitize = require('mongo-sanitize');
 
 const db = Consultation.getDatastore().manager;
 
@@ -271,8 +272,9 @@ module.exports = {
       if (!req.body.invitationToken) {
         return res.status(200).send(null);
       }
+
       const subInvite = await PublicInvite.findOne({
-        inviteToken: req.body.invitationToken,
+        inviteToken: sanitize(req.body.invitationToken),
       });
       if (!subInvite) {
         return res.status(400).send();
@@ -294,10 +296,11 @@ module.exports = {
       // find patient invite
 
       if (!invite) {
+        const sanitizedToken = sanitize(req.body.invitationToken)
         invite = await PublicInvite.findOne({
           or: [
-            { inviteToken: req.body.invitationToken },
-            { expertToken: req.body.invitationToken },
+            { inviteToken: sanitizedToken },
+            { expertToken: sanitizedToken },
           ],
         });
       }
@@ -754,7 +757,7 @@ module.exports = {
       msg.token = callerToken;
       return res.json({
         token: callerToken,
-        id: req.params.consultation,
+        id: sanitize(req.params.consultation),
         msg,
       });
     } catch (error) {
@@ -1108,7 +1111,7 @@ module.exports = {
       }
 
       const token = await sails.helpers.getMediasoupToken.with({
-        roomId: req.params.consultation,
+        roomId: sanitize(req.params.consultation),
         peerId: req.user.id,
         server: mediasoupServer,
       });

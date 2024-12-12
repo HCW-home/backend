@@ -1,5 +1,6 @@
 const {importFileIfExists} = require('../utils/helpers');
 const validator = require('validator');
+const sanitize = require('mongo-sanitize');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 /**
  * PublicInviteController
@@ -40,7 +41,7 @@ function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
 module.exports = {
 
   async update(req, res) {
-    const inviteId = req.params.id;
+    const inviteId = sanitize(req.params.id);
 
     const invite = await PublicInvite.findOne({id:inviteId});
 
@@ -49,7 +50,8 @@ module.exports = {
     }
 
     try {
-      const updatedInvite = await PublicInvite.updateOne({id:inviteId}).set(req.body);
+      const sanitizedBody  = sanitize(req.body);
+      const updatedInvite = await PublicInvite.updateOne({id:inviteId}).set(sanitizedBody);
 
 
       // TODO: update respective guest and translator invites

@@ -11,6 +11,7 @@ const Joi = require('joi');
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
 const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
+const sanitize = require('mongo-sanitize');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 // /**
@@ -987,7 +988,7 @@ module.exports = {
   async resend(req, res) {
     try {
       const patientInvite = await PublicInvite.findOne({
-        id: req.params.invite,
+        id: sanitize(req.params.invite),
       })
         .populate('guestInvite')
         .populate('translatorInvite')
@@ -1082,10 +1083,9 @@ module.exports = {
    * Finds the public invite linked to a consultation
    */
   async findByConsultation(req, res) {
-    req.params.consultation;
 
     const consultation = await Consultation.findOne({
-      id: req.params.consultation,
+      id: sanitize(req.params.consultation),
     });
     if (!consultation) {
       return res.notFound();

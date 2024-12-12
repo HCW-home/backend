@@ -5,10 +5,11 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const validator = require("validator");
+const sanitize = require('mongo-sanitize');
 
 module.exports = {
   ip(req, res) {
-    res.json({ ip: req.ip });
+    res.json({ ip: sanitize(req.ip) });
   },
 
   async addDoctorToQueue(req, res) {

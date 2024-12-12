@@ -12,6 +12,7 @@ const jwt = require("jsonwebtoken");
 const validator = require('validator');
 const Joi = require('joi');
 const { i18n } = require('../../config/i18n');
+const sanitize = require('mongo-sanitize');
 
 const SMS_CODE_LIFESPAN = 5 * 60;
 
@@ -474,7 +475,7 @@ module.exports = {
   },
 
   refreshToken: async function(req, res) {
-    const refreshToken = req.body.refreshToken;
+    const refreshToken = sanitize(req.body.refreshToken);
 
     if (!refreshToken) {
       return res.status(400).json({ error: 'Refresh token is required' });
