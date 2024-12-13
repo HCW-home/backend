@@ -12,8 +12,8 @@ HCW@Home is a scalable, institution-level secure teleconsultation system for typ
 - Send attachment or image
 - PDF reporting
 - Connect to external solution (OpenEMR)
-- Invite guess and translator
-- External authentication (SAML, JWT, Active Directory)
+- Invite guess or colleagues
+- External authentication (OpenID)
 
 ### Links
 
