@@ -1,4 +1,4 @@
-const validator = require('validator');
+const sanitize = require('mongo-sanitize');
 module.exports = {
   create: async function (req, res) {
     try {
@@ -21,11 +21,13 @@ module.exports = {
 
   update: async function (req, res) {
     try {
-      const url = req.body.url;
-      const username = validator.escape(req.body.username).trim();
-      const password = validator.escape(req.body.password).trim();
-      const maxNumberOfSessions = req.body.maxNumberOfSessions
-      const active = req.body.active;
+      const url = sanitize(req.body.url);
+      const username = sanitize(req.body.username);
+      const password = sanitize(req.body.password);
+      const maxNumberOfSessions = sanitize(req.body.maxNumberOfSessions);
+      const active = sanitize(req.body.active);
+      const serverId = sanitize(req.params.id);
+
       const  data = {
         url,
         username,
@@ -33,7 +35,6 @@ module.exports = {
         maxNumberOfSessions,
         active
       }
-      const serverId = validator.escape(req.params.id).trim();
       let server = await sails.models.mediasoupserver.updateOne({ id: serverId }).set(data);
       return res.ok(server);
     } catch (error) {
