@@ -11,15 +11,17 @@ const { ObjectId } = require('mongodb');
 module.exports = {
   schema: true,
   attributes: {
-
-
     name: {
       type: 'string',
       required: true
+    },
+    disableFeedback: {
+      type: 'boolean',
+      defaultsTo: false
     }
   },
+
   async getQueueUsers (nameOrId) {
-    console.log(nameOrId, 'nameOrId');
     const db = Consultation.getDatastore().manager;
     const queuesUsersCollection = db.collection('queue_allowedQueues_queue__user_allowedQueues');
     const queuesCollection = db.collection('queue');
@@ -31,10 +33,26 @@ module.exports = {
     const queuesUsers = await results.toArray();
 
     const userCollection = db.collection('user');
-    const doctorsCurs = await userCollection.find({ role: 'doctor', $or: [{ viewAllQueues: true }, { _id: { $in: queuesUsers.map(qu => new ObjectId(qu.user_allowedQueues)) } }] });
+    const doctorsAndAdmins = await userCollection.find({
+      $or: [
+        {
+          role: sails.config.globals.ROLE_DOCTOR,
+          $or: [
+            { viewAllQueues: true },
+            { _id: { $in: queuesUsers.map(qu => new ObjectId(qu.user_allowedQueues)) } }
+          ]
+        },
+        {
+          role: sails.config.globals.ROLE_ADMIN,
+          $or: [
+            { viewAllQueues: true },
+            { _id: { $in: queuesUsers.map(qu => new ObjectId(qu.user_allowedQueues)) } }
+          ]
+        }
+      ]
+    });
 
-    const doctors = await doctorsCurs.toArray();
-    return doctors
+    return await doctorsAndAdmins.toArray()
   }
 
 

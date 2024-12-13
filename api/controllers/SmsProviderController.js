@@ -1,3 +1,6 @@
+const validator = require("validator");
+
+
 module.exports = {
 
   list: async function(req, res) {
@@ -9,12 +12,16 @@ module.exports = {
     }
   },
   update: async function(req, res) {
-    const { id } = req.params;
-    const { order, prefix } = req.body;
+    const id = validator.escape(req.params.id).trim();
+
+    let { order, prefix } = req.body;
 
     if (!id) {
-      return res.badRequest({ message: 'Provider name is required.' });
+      return res.badRequest({ message: 'Provider ID is required.' });
     }
+
+    order = validator.escape(order.toString());
+    prefix = validator.escape(prefix);
 
     try {
       const updatedProvider = await SmsProvider.updateOne({ id })
@@ -23,8 +30,7 @@ module.exports = {
           prefix: prefix
         });
 
-      console.log(updatedProvider, 'updatedProvider')
-      if (updatedProvider) {
+      if (updatedProvider.id) {
         return res.ok(updatedProvider);
       } else {
         return res.notFound({ message: 'Provider not found.' });

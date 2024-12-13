@@ -2,10 +2,11 @@ const path = require('path');
 
 
 const i18n = new (require('i18n-2'))({
-  locales: ['fr', 'en', 'de', 'es'],
+  locales: ['ar','de', 'en','es', 'fa', 'fr', 'it', 'ru','ta' ,'ti' ],
   directory: path.join(__dirname, '../../config/locales'),
-  extension: '.json'
-
+  extension: '.json',
+  defaultLocale: 'en',
+  fallbacks: { 'fr-CA': 'fr', 'en-GB': 'en' },
 });
 
 const { vsprintf } = require('sprintf-js');

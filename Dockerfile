@@ -1,5 +1,7 @@
 FROM node:18 AS builder
 
+ENV VERSION=0.5.3
+
 WORKDIR /usr/src/app
 
 COPY package.json ./
@@ -18,6 +20,7 @@ FROM node:18
 
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/ /usr/src/app/
+COPY .version /usr/src/app/
 
 EXPOSE 1337
 

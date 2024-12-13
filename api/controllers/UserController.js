@@ -5,10 +5,11 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const validator = require("validator");
+const sanitize = require('mongo-sanitize');
 
 module.exports = {
   ip(req, res) {
-    res.json({ ip: req.ip });
+    res.json({ ip: sanitize(req.ip) });
   },
 
   async addDoctorToQueue(req, res) {
@@ -124,29 +125,42 @@ module.exports = {
     return res.status(200).json({ success: true });
   },
 
-  updateStatus: async function (req, res) {
-    try {
-      const userId = validator.escape(req.param("id")).trim();
-      const newStatus = req.body.status;
+  async updateTerms(req, res) {
+    const valuesToUpdate = {};
+    if (req.body.doctorTermsVersion !== undefined) {
+      valuesToUpdate.doctorTermsVersion = req.body.doctorTermsVersion;
+    }
+    const user = await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
+    return res.status(200).json({ ...user });
+  },
 
-      if (!["approved", "not-approved"].includes(newStatus)) {
-        return res.badRequest({ error: "Invalid status value." });
+  updateStatus: async function(req, res) {
+    try {
+      const userId = validator.escape(req.param('id')).trim();
+
+      const newStatus = validator.escape(req.body.status).trim();
+
+      const allowedStatuses = ['approved', 'not-approved'];
+      if (!allowedStatuses.includes(newStatus)) {
+        return res.badRequest({ error: 'Invalid status value.' });
       }
 
       const user = await User.findOne({ id: userId });
       if (!user) {
-        return res.notFound({ error: "User not found." });
+        return res.notFound({ error: 'User not found.' });
       }
 
       const updatedUser = await User.updateOne({ id: userId }).set({
-        status: newStatus,
+        status: newStatus
       });
+
+      updatedUser.status = validator.escape(updatedUser.status);
 
       return res.ok(updatedUser);
     } catch (error) {
       return res.serverError(error);
     }
-  },
+  }
 
   // async count(req, res){
   //   let count

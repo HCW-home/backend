@@ -9,9 +9,17 @@ const bodyParser = require("body-parser");
 const passport = require("passport");
 const { samlStrategy } = require("../../config/passport");
 const jwt = require("jsonwebtoken");
+const validator = require('validator');
+const Joi = require('joi');
+const { i18n } = require('../../config/i18n');
+const sanitize = require('mongo-sanitize');
 
 const SMS_CODE_LIFESPAN = 5 * 60;
 
+
+const headersSchema = Joi.object({
+  locale: Joi.string().optional(),
+}).unknown(true);
 function generateVerificationCode() {
   const possible = "0123456789";
   let string = "";
@@ -20,6 +28,7 @@ function generateVerificationCode() {
   }
   return string;
 }
+
 
 const canLoginLocal = async (req) => {
   if (
@@ -42,6 +51,7 @@ const canLoginLocal = async (req) => {
   }
   return false;
 };
+
 module.exports = {
   // login using client certificate
   loginCert(req, res) {
@@ -135,9 +145,11 @@ module.exports = {
         .toArray()
     )[0];
 
+    const appSecret = process.env.APP_SECRET || sails.config.globals.APP_SECRET;
+
     const resetPasswordToken = jwt.sign(
       { email: req.body.email.toLowerCase() },
-      sails.config.globals.APP_SECRET,
+      appSecret,
       { expiresIn: SMS_CODE_LIFESPAN }
     );
 
@@ -193,9 +205,10 @@ module.exports = {
 
       const password = await User.generatePassword(req.body.password);
 
-      const user = await User.findOne({ resetPasswordToken: req.body.token });
+      const token = validator.escape(req.body.token).trim()
+      const user = await User.findOne({ resetPasswordToken: token });
       await User.updateOne({
-        resetPasswordToken: req.body.token,
+        resetPasswordToken: token,
       }).set({
         password,
         resetPasswordToken: "",
@@ -225,7 +238,16 @@ module.exports = {
 
   // used only for admin
   async loginLocal(req, res) {
-    const { locale } = req.headers || {};
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        message: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
+
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
       return res.status(400).json({
@@ -253,9 +275,14 @@ module.exports = {
 
     passport.authenticate("local", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
+      if (err?.message === "User is not approved") {
+        return res.status(403).json({
+          message: sails._t(locale, "not approved"),
+        });
+      }
       if (err) {
         return res.status(500).json({
-          message: info.message || sails._t(locale, "server error"),
+          message: info.message || err?.message || sails._t(locale, "server error"),
         });
       }
       if (!user) {
@@ -353,11 +380,26 @@ module.exports = {
 
   // used only for admin
   loginSms(req, res) {
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        message: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
+
     passport.authenticate("sms", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
+      if (err?.message === "User is not approved") {
+        return res.status(403).json({
+          message: sails._t(locale, "not approved"),
+        });
+      }
       if (err) {
         return res.status(500).json({
-          message: info.message || "Server Error",
+          message: info.message || err?.message ||  "Server Error",
         });
       }
       if (!user) {
@@ -388,11 +430,26 @@ module.exports = {
   },
 
   login2FA(req, res) {
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        message: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
+
     passport.authenticate("2FA", (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
+      if (err.message === "User is not approved") {
+        return res.status(403).json({
+          message: sails._t(locale, "not approved"),
+        });
+      }
       if (err) {
         return res.status(500).json({
-          message: info.message || "Server Error",
+          message: info.message || err?.message ||  "Server Error",
         });
       }
       if (!user) {
@@ -418,7 +475,7 @@ module.exports = {
   },
 
   refreshToken: async function(req, res) {
-    const refreshToken = req.body.refreshToken;
+    const refreshToken = sanitize(req.body.refreshToken);
 
     if (!refreshToken) {
       return res.status(400).json({ error: 'Refresh token is required' });
@@ -427,7 +484,7 @@ module.exports = {
     try {
       const decoded = await TokenService.verifyToken(refreshToken, true);
       const user = await User.findOne({ id: decoded.id });
-      if (!user) {
+      if (!user || user.status !== 'approved') {
         return res.status(401).json({ error: 'User not found' });
       }
 
@@ -522,13 +579,15 @@ module.exports = {
             return res.status(401).json({ error: "Unauthorized" });
           }
 
+          const version = validator.escape(req.query._version || '')
+
           try {
-            if (req.query._version) {
+            if (version) {
               await User.updateOne({
                 id: decoded.id,
                 email: decoded.email,
                 role: { in: ["doctor", "admin"] },
-              }).set({ doctorClientVersion: req.query._version });
+              }).set({ doctorClientVersion: version });
             } else {
               await User.updateOne({
                 id: decoded.id,
@@ -738,7 +797,7 @@ module.exports = {
                 user,
               });
             }
-            if (user.role === sails.config.globals.ROLE_NURSE) {
+            if (user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
                 return res.redirect(
                   `${process.env["PUBLIC_URL"]}/requester?tk=${user.token}`
@@ -839,17 +898,25 @@ module.exports = {
       matomoUrl: sails.config.globals.MATOMO_URL,
       matomoId: sails.config.globals.MATOMO_ID,
       extraMimeTypes: !!sails.config.globals.EXTRA_MIME_TYPES,
+      doctorTermsVersion: sails.config.globals.DOCTOR_TERMS_VERSION,
+      defaultPatientLocale: process.env.DEFAULT_PATIENT_LOCALE,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(",")
         : "", //! sending metadata to the front in config
+      formMeta: process.env.FORM_DOCTOR_META
+        ? process.env.FORM_DOCTOR_META.split(",")
+        : "",
+      formRequesterMeta: process.env.FORM_REQUESTER_META
+        ? process.env.FORM_REQUESTER_META.split(",")
+        : "",
     });
   },
+
   externalAuth(req, res) {
     const { token } = req.query;
     if (!token) {
       return res.badRequest();
     }
-    console.log(5555555);
     jwt.verify(
       token,
       process.env.SHARED_EXTERNAL_AUTH_SECRET,
@@ -900,10 +967,11 @@ module.exports = {
           }
 
           const { token } = TokenService.generateToken(user);
+          const returnUrl = validator.escape(req.query.returnUrl);
 
           return res.redirect(
             `${process.env.DOCTOR_URL}/app?tk=${token}${
-              req.query.returnUrl ? `&returnUrl=${req.query.returnUrl}` : ""
+              returnUrl ? `&returnUrl=${returnUrl}` : ""
             }`
           );
         } catch (error) {
