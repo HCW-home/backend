@@ -101,6 +101,12 @@ module.exports.routes = {
   'POST /api/v1/translator/refuse/:translationRequestToken': 'TranslatorController.refuseRequest',
   'GET /api/v1/translator/consultation': 'TranslatorController.findConsultation',
 
+  'POST /api/v1/templates/create': 'WhatsappTemplateController.createTemplate',
+  'POST /api/v1/templates/submit': 'WhatsappTemplateController.submitTemplate',
+  'GET /api/v1/templates': 'WhatsappTemplateController.fetchTemplates',
+  'DELETE /api/v1/templates/delete': 'WhatsappTemplateController.deleteTemplate',
+  'GET /api/v1/templates/content-types': 'WhatsappTemplateController.fetchContentTypes',
+
   'GET /api/v1/languages': 'LocaleController.supportedLanguages',
 
   'POST /api/v1/send-expert-link': 'ExpertController.sendExpertLink',
