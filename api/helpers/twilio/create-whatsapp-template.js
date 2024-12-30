@@ -10,10 +10,11 @@ module.exports = {
     body: { type: 'string', required: true },
     category: { type: 'string', required: true },
     contentType: { type: 'string', defaultsTo: 'twilio/text', description: 'The content type of the template (e.g., twilio/text)' },
+    variables: { type: 'json', required: false },
   },
 
   async fn(inputs, exits) {
-    const { name, language, body, category, contentType } = inputs;
+    const { name, language, body, category, contentType, variables } = inputs;
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
 
@@ -27,6 +28,7 @@ module.exports = {
           types: {
             [contentType]: { body },
           },
+          ...(variables && { variables }),
         },
         {
           auth: {

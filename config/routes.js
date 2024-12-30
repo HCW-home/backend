@@ -106,6 +106,8 @@ module.exports.routes = {
   'GET /api/v1/templates': 'WhatsappTemplateController.fetchTemplates',
   'DELETE /api/v1/templates/delete': 'WhatsappTemplateController.deleteTemplate',
   'GET /api/v1/templates/content-types': 'WhatsappTemplateController.fetchContentTypes',
+  'POST /api/v1/templates/refresh-status': 'WhatsappTemplateController.refreshStatus',
+
 
   'GET /api/v1/languages': 'LocaleController.supportedLanguages',
 
