@@ -257,7 +257,7 @@ module.exports = {
 
     const isAdmin = await User.count({ email: req.body.email, role: "admin" });
     if (req.body._version) {
-      await User.updateOne({
+      await User.update({
         email: req.body.email,
         role: { in: ["doctor", "admin"] },
       }).set({ doctorClientVersion: req.body._version });
@@ -302,7 +302,7 @@ module.exports = {
       if (
         process.env.NODE_ENV !== "development" &&
         user.role === "doctor"
-        // || user.role === 'admin'
+        || user.role === 'admin'
       ) {
         const localLoginDetails = {
           id: user.id,
@@ -442,12 +442,12 @@ module.exports = {
 
     passport.authenticate("2FA", (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
-      if (err.message === "User is not approved") {
-        return res.status(403).json({
-          message: sails._t(locale, "not approved"),
-        });
-      }
       if (err) {
+        if (err?.message === "User is not approved") {
+          return res.status(403).json({
+            message: sails._t(locale, "not approved"),
+          });
+        }
         return res.status(500).json({
           message: info.message || err?.message ||  "Server Error",
         });

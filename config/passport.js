@@ -33,6 +33,7 @@ function getUserDetails(user) {
     viewAllQueues: user.viewAllQueues,
     doctorClientVersion: user.doctorClientVersion,
     notifPhoneNumber: user.notifPhoneNumber,
+    doctorTermsVersion: user.doctorTermsVersion,
     enableNotif: user.enableNotif,
   };
 }
@@ -295,7 +296,12 @@ passport.use(
           if (err) {
             return cb(err);
           }
-          if (!user ||( user.hasOwnProperty('status') && user.status !== "approved")) {
+          if (!user) {
+            return cb(null, false, {
+              message: sails._t(locale, 'invalid email'),
+            });
+          }
+          if (user && user.hasOwnProperty('status') && user.status !== "approved") {
             return cb(new Error('User is not approved'));
           }
           bcrypt.compare(password, user.password, (err, res) => {
