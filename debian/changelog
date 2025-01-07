@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.12) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.13) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * fix crash on finding conflicting Users
@@ -16,7 +16,21 @@ hcw-athome-backend (0.5.12) UNRELEASED; urgency=medium
   [ Gor Grigoryan ]
   * add uk translations
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 10 Dec 2024 11:01:16 +0000
+  [ Anonymous ]
+  * Translated using Weblate (Arabic)
+  * Translated using Weblate (Ukrainian)
+
+  [ Gor Grigoryan ]
+  * uk translations update
+  * sanitize some user inputs
+
+  [ Olivier Bitsch ]
+  * Add readme
+
+  [ Gor Grigoryan ]
+  * refs #7963, fix Backend crash
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 07 Jan 2025 10:30:12 +0000
 
 hcw-athome-backend (0.5.6) focal; urgency=medium
 
