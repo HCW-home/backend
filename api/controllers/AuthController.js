@@ -275,12 +275,12 @@ module.exports = {
 
     passport.authenticate("local", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
-      if (err?.message === "User is not approved") {
-        return res.status(403).json({
-          message: sails._t(locale, "not approved"),
-        });
-      }
       if (err) {
+        if (err?.message === "User is not approved") {
+          return res.status(403).json({
+            message: sails._t(locale, "not approved"),
+          });
+        }
         return res.status(500).json({
           message: info.message || err?.message || sails._t(locale, "server error"),
         });
@@ -392,12 +392,12 @@ module.exports = {
 
     passport.authenticate("sms", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
-      if (err?.message === "User is not approved") {
-        return res.status(403).json({
-          message: sails._t(locale, "not approved"),
-        });
-      }
       if (err) {
+        if (err?.message === "User is not approved") {
+          return res.status(403).json({
+            message: sails._t(locale, "not approved"),
+          });
+        }
         return res.status(500).json({
           message: info.message || err?.message ||  "Server Error",
         });
