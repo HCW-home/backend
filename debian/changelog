@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.15) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.16) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * fix crash on finding conflicting Users
