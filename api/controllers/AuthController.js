@@ -881,6 +881,13 @@ module.exports = {
   },
 
   getConfig(req, res) {
+    const doctorLanguages = sails.config.globals.i18nDoctorAppLanguages
+      ? sails.config.globals.i18nDoctorAppLanguages.split(',')
+      : [];
+    const patientLanguages = sails.config.globals.i18nPatientAppLanguages
+      ? sails.config.globals.i18nPatientAppLanguages.split(',')
+      : [];
+
     res.json({
       method: process.env.LOGIN_METHOD ? process.env.LOGIN_METHOD : "both",
       branding: process.env.BRANDING || "@HOME",
@@ -909,6 +916,8 @@ module.exports = {
       formRequesterMeta: process.env.FORM_REQUESTER_META
         ? process.env.FORM_REQUESTER_META.split(",")
         : "",
+      doctorLanguages,
+      patientLanguages
     });
   },
 
