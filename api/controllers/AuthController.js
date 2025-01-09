@@ -257,7 +257,7 @@ module.exports = {
 
     const isAdmin = await User.count({ email: req.body.email, role: "admin" });
     if (req.body._version) {
-      await User.updateOne({
+      await User.update({
         email: req.body.email,
         role: { in: ["doctor", "admin"] },
       }).set({ doctorClientVersion: req.body._version });
@@ -275,12 +275,12 @@ module.exports = {
 
     passport.authenticate("local", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
-      if (err?.message === "User is not approved") {
-        return res.status(403).json({
-          message: sails._t(locale, "not approved"),
-        });
-      }
       if (err) {
+        if (err?.message === "User is not approved") {
+          return res.status(403).json({
+            message: sails._t(locale, "not approved"),
+          });
+        }
         return res.status(500).json({
           message: info.message || err?.message || sails._t(locale, "server error"),
         });
@@ -302,7 +302,7 @@ module.exports = {
       if (
         process.env.NODE_ENV !== "development" &&
         user.role === "doctor"
-        // || user.role === 'admin'
+        || user.role === 'admin'
       ) {
         const localLoginDetails = {
           id: user.id,
@@ -392,12 +392,12 @@ module.exports = {
 
     passport.authenticate("sms", async (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
-      if (err?.message === "User is not approved") {
-        return res.status(403).json({
-          message: sails._t(locale, "not approved"),
-        });
-      }
       if (err) {
+        if (err?.message === "User is not approved") {
+          return res.status(403).json({
+            message: sails._t(locale, "not approved"),
+          });
+        }
         return res.status(500).json({
           message: info.message || err?.message ||  "Server Error",
         });
@@ -442,12 +442,12 @@ module.exports = {
 
     passport.authenticate("2FA", (err, user, info = {}) => {
       console.log("Authenticate now", err, user);
-      if (err.message === "User is not approved") {
-        return res.status(403).json({
-          message: sails._t(locale, "not approved"),
-        });
-      }
       if (err) {
+        if (err?.message === "User is not approved") {
+          return res.status(403).json({
+            message: sails._t(locale, "not approved"),
+          });
+        }
         return res.status(500).json({
           message: info.message || err?.message ||  "Server Error",
         });
@@ -881,6 +881,13 @@ module.exports = {
   },
 
   getConfig(req, res) {
+    const doctorLanguages = sails.config.globals.i18nDoctorAppLanguages
+      ? sails.config.globals.i18nDoctorAppLanguages.split(',')
+      : [];
+    const patientLanguages = sails.config.globals.i18nPatientAppLanguages
+      ? sails.config.globals.i18nPatientAppLanguages.split(',')
+      : [];
+
     res.json({
       method: process.env.LOGIN_METHOD ? process.env.LOGIN_METHOD : "both",
       branding: process.env.BRANDING || "@HOME",
@@ -909,6 +916,8 @@ module.exports = {
       formRequesterMeta: process.env.FORM_REQUESTER_META
         ? process.env.FORM_REQUESTER_META.split(",")
         : "",
+      doctorLanguages,
+      patientLanguages
     });
   },
 
