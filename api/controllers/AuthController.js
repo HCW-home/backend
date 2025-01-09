@@ -301,8 +301,7 @@ module.exports = {
       // factor one
       if (
         process.env.NODE_ENV !== "development" &&
-        user.role === "doctor"
-        || user.role === 'admin'
+        (user.role === "doctor" || user.role === 'admin')
       ) {
         const localLoginDetails = {
           id: user.id,
