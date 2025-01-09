@@ -1,55 +1,82 @@
 module.exports = {
   attributes: {
+    sid: {
+      type: 'string',
+      unique: true,
+      required: true,
+      description: 'The unique identifier for the template in Twilio.',
+    },
+
+    friendlyName: {
+      type: 'string',
+      required: true,
+      description: 'The human-readable name of the template.',
+    },
+
     language: {
       type: 'string',
       required: true,
+      description: 'The language of the template.',
     },
-    name: {
-      type: 'string',
-      required: true,
-    },
-    twilioTemplateId: {
-      type: 'string',
-      allowNull: true,
-    },
-    params: {
-      type: 'json',
-      defaultsTo: [],
-    },
+
     variables: {
       type: 'json',
-      defaultsTo: [],
+      description: 'Key-value pairs representing variable placeholders and their values.',
+      example: { name: 'foo' },
     },
-    contentType: {
-      type: 'string',
-      isIn: ['twilio/text', 'twilio/media', 'twilio/quick-replies', 'twilio/call-to-action', 'twilio/list-picker', 'twilio/card', 'whatsapp/card'],
+
+    types: {
+      type: 'json',
       required: true,
+      description: 'An object containing different template content types.',
+      example: {
+        'twilio/text': {
+          body: 'Foo Bar Co is located at 39.7392, 104.9903',
+        },
+        'twilio/location': {
+          longitude: 104.9903,
+          latitude: 39.7392,
+          label: 'Foo Bar Co',
+        },
+      },
     },
-    category: {
+
+    url: {
       type: 'string',
-      isIn: ['TRANSACTIONAL', 'MARKETING', 'OTP'],
       required: true,
+      description: 'The API URL for this template in Twilio.',
     },
-    status: {
+
+    dateCreated: {
       type: 'string',
-      isIn: ['draft','received','pending','approved','rejected'],
-      defaultsTo: 'PENDING',
+      columnType: 'datetime',
+      description: 'The date and time when this template was created.',
+      example: '2015-07-30T19:00:00Z',
+    },
+
+    dateUpdated: {
+      type: 'string',
+      columnType: 'datetime',
+      description: 'The date and time when this template was last updated.',
+      example: '2015-07-30T19:00:00Z',
+    },
+
+    links: {
+      type: 'json',
+      description: 'Links to related actions for this template, such as approval requests.',
+      example: {
+        approval_create: 'https://content.twilio.com/v1/Content/HX.../ApprovalRequests/whatsapp',
+        approval_fetch: 'https://content.twilio.com/v1/Content/HX.../ApprovalRequests',
+      },
+    },
+    approvalStatus: {
+      type: 'string',
+      isIn: ['pending', 'approved', 'rejected', 'draft', 'unknown'],
+      defaultsTo: 'draft',
     },
     rejectionReason: {
       type: 'string',
       allowNull: true,
     },
-  },
-  beforeCreate: async function (values, proceed) {
-    const existingTemplate = await WhatsappTemplate.findOne({
-      name: values.name,
-      language: values.language,
-    });
-
-    if (existingTemplate) {
-      return proceed(new Error('A template with the same name and language already exists.'));
-    }
-
-    return proceed();
   },
 };

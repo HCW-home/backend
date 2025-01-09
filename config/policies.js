@@ -148,12 +148,9 @@ module.exports.policies = {
   WhatsappTemplateController: {
     fetchTemplates: ["isLoggedIn", "isAdmin"],
     submitTemplate: ["isLoggedIn", "isAdmin"],
-    createTemplate: ["isLoggedIn", "isAdmin"],
     deleteTemplate: ["isLoggedIn", "isAdmin"],
-    fetchContentTypes: ["isLoggedIn", "isAdmin"],
     refreshStatus: ["isLoggedIn", "isAdmin"],
   },
-
   QueueController: {
     "*": false,
     find: ["isLoggedIn", "isDoctorOrAdminOrNurseOrScheduler"],

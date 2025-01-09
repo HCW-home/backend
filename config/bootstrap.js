@@ -94,6 +94,11 @@ module.exports.bootstrap = async function() {
     }
   }
 
+  // sails.log.info('Starting template sync with Twilio...');
+  // await SyncTwilioTemplates.syncTemplates();
+  // sails.log.info('Template sync completed.');
+
+
   // check and delete expired files
   setInterval(async () => {
 

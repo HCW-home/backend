@@ -1,36 +1,5 @@
 module.exports = {
-  async createTemplate(req, res) {
-    const { name, language, body, category, contentType, variables } = req.body;
 
-    if (!name || !language || !body || !category || !contentType) {
-      return res.badRequest({
-        error: 'Missing required fields: name, language, body, category, contentType',
-      });
-    }
-
-    try {
-      const formattedVariables = {};
-      if (variables && variables.length) {
-        variables.forEach((v, index) => {
-          formattedVariables[(index + 1).toString()] = v;
-        });
-      }
-
-      const newTemplate = await WhatsappTemplate.create({
-        name,
-        language,
-        body,
-        category,
-        contentType,
-        variables: formattedVariables,
-        status: 'draft',
-      }).fetch();
-
-      return res.ok({ message: 'Template created successfully', newTemplate });
-    } catch (error) {
-      return res.serverError({ error: 'Failed to create template', details: error });
-    }
-  },
   async submitTemplate(req, res) {
     const { id } = req.body;
 
@@ -74,10 +43,17 @@ module.exports = {
     }
   },
   async fetchTemplates(req, res) {
-    const { language } = req.query;
+    const { language, approvalStatus } = req.query;
 
     try {
-      const filters = language ? { language } : {};
+      const filters = {};
+      if (language) {
+        filters.language = language;
+      }
+      if (approvalStatus) {
+        filters.approvalStatus = approvalStatus;
+      }
+
       const templates = await WhatsappTemplate.find(filters);
 
       return res.json(templates);
@@ -149,17 +125,4 @@ module.exports = {
     }
   },
 
-  async fetchContentTypes(req, res) {
-    const contentTypes = [
-      { type: 'twilio/text', description: 'Text' },
-      { type: 'twilio/media', description: 'Media' },
-      { type: 'twilio/quick-replies', description: 'Quick Reply' },
-      { type: 'twilio/call-to-action', description: 'Call to action' },
-      { type: 'twilio/list-picker', description: 'List Picker' },
-      { type: 'twilio/card', description: 'Card' },
-      { type: 'whatsapp/card', description: 'WhatsApp Card' },
-    ];
-
-    return res.json(contentTypes);
-  },
 };
