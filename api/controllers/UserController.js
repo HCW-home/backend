@@ -160,7 +160,41 @@ module.exports = {
     } catch (error) {
       return res.serverError(error);
     }
-  }
+  },
+
+  getPaginatedUsers: async function (req, res) {
+    const { pageIndex, pageSize, roles, query } = req.query;
+
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      return res.json({ data: [], total: 0 });
+    }
+
+    const whereClause = {
+      role: { in: roles },
+    };
+
+    if (query && query.trim() !== '') {
+      whereClause.or = [
+        { firstName: { contains: query } },
+        { lastName: { contains: query } },
+        { email: { contains: query } },
+      ];
+    }
+
+    try {
+      const users = await User.find({
+        where: whereClause,
+        skip: pageIndex * pageSize,
+        limit: pageSize,
+      });
+
+      const total = await User.count(whereClause);
+
+      return res.json({ data: users, total });
+    } catch (error) {
+      return res.serverError(error);
+    }
+  },
 
   // async count(req, res){
   //   let count

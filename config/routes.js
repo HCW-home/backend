@@ -67,6 +67,7 @@ module.exports.routes = {
   'POST /api/v1/user/notif': 'UserController.updateNotif',
   'POST /api/v1/user/terms': 'UserController.updateTerms',
   'PUT /api/v1/user/:id/status': 'UserController.updateStatus',
+  'GET /api/v1/users/paginated': 'UserController.getPaginatedUsers',
 
   'POST /mediasoupserver': 'MediasoupserverController.create',
   'GET /mediasoupserver': 'MediasoupserverController.read',
