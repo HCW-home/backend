@@ -47,6 +47,7 @@ module.exports.policies = {
     "*": false,
     ip: ["isLoggedIn"],
     find: ["isLoggedIn", "isAdmin"],
+    getPaginatedUsers: ["isLoggedIn", "isAdmin"],
     findOne: ["isLoggedIn", "isAdmin"],
     populate: ["isLoggedIn", "isAdmin"],
     create: ["isLoggedIn", "isAdmin"],
