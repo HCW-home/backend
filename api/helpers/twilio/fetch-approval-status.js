@@ -5,7 +5,7 @@ module.exports = {
   description: 'Fetches the approval status of a WhatsApp template via Twilio',
 
   inputs: {
-    twilioTemplateId: {
+    sid: {
       type: 'string',
       required: true,
       description: 'The Twilio template ID to fetch status for',
@@ -13,13 +13,13 @@ module.exports = {
   },
 
   async fn(inputs, exits) {
-    const { twilioTemplateId } = inputs;
+    const { sid } = inputs;
     const accountSid = process.env.TWILIO_ACCOUNT_SID;
     const authToken = process.env.TWILIO_AUTH_TOKEN;
 
     try {
       const response = await axios.get(
-        `https://content.twilio.com/v1/Content/${twilioTemplateId}/ApprovalRequests`,
+        `https://content.twilio.com/v1/Content/${sid}/ApprovalRequests`,
         {
           auth: {
             username: accountSid,

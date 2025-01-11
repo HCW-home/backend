@@ -1,38 +1,58 @@
+const TemplatesConfig = require('../../config/templates');
+
 module.exports = {
   async syncTemplates() {
+    const requiredTemplates = TemplatesConfig.requiredTemplates;
+
     try {
-      const templates = await sails.helpers.twilio.fetchAllTemplatesWithStatus();
+      const supportedLanguages = sails.config.i18n.locales || [];
 
-      for (const template of templates) {
-        await WhatsappTemplate.findOrCreate(
-          { sid: template.sid },
-          {
-            sid: template.sid,
-            friendlyName: template.friendlyName,
-            language: template.language,
-            variables: template.variables || {},
-            types: template.types || {},
-            url: template.url,
-            dateCreated: template.dateCreated,
-            dateUpdated: template.dateUpdated,
-            links: template.links || {},
-            approvalStatus: template.approvalStatus,
-            rejectionReason: template.rejectionReason,
+      console.log(supportedLanguages, 'supportedLanguages');
+      const existingTemplates = await WhatsappTemplate.find();
 
-          }
-        ).exec(async (err, record) => {
-          if (!err && record) {
-            await WhatsappTemplate.updateOne({ id: record.id }).set({
-              approvalStatus: template.approvalStatus,
-              rejectionReason: template.rejectionReason,
+      for (const template of requiredTemplates) {
+        for (const language of supportedLanguages) {
+          const friendlyName = `${template.key
+            .replace(/\s+/g, "_")
+            .toLowerCase()}_${language}`;
+
+          const existingTemplate = existingTemplates.find(
+            (t) => t.key === template.key && t.language === language
+          );
+
+          if (!existingTemplate) {
+            sails.log.info(
+              `Template "${template.key}" is missing for language "${language}". Creating...`
+            );
+
+            await WhatsappTemplate.create({
+              key: template.key,
+              friendlyName: friendlyName,
+              body: sails._t(language, template.key),
+              language,
+              category: template.category,
+              contentType: template.contentType,
+              variables: template.variables.reduce((acc, param, index) => {
+                acc[(index + 1).toString()] = param;
+                return acc;
+              }, {}),
+              approvalStatus: "draft",
             });
+
+            sails.log.info(
+              `Template "${template.key}" created for language "${language}".`
+            );
+          } else {
+            sails.log.info(
+              `Template "${template.key}" already exists for language "${language}".`
+            );
           }
-        });
+        }
       }
 
-      sails.log.info(`Synced ${templates.length} templates from Twilio.`);
+      sails.log.info("Template synchronization completed.");
     } catch (error) {
-      sails.log.error('Failed to sync templates from Twilio:', error.message || error);
+      sails.log.error("Error during template synchronization:", error);
     }
   },
 };

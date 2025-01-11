@@ -14,14 +14,12 @@ module.exports = {
         return res.notFound({ error: 'Template not found' });
       }
 
-      if (template.status !== 'draft') {
+      if (template.approvalStatus !== 'draft') {
         return res.badRequest({ error: 'Only DRAFT templates can be submitted for approval' });
       }
 
-      console.log(template, 'template');
-
       const twilioResponse = await sails.helpers.twilio.createWhatsappTemplate.with({
-        name: template.name,
+        friendly_name: template.friendlyName,
         language: template.language,
         body: template.body,
         category: template.category,
@@ -29,9 +27,17 @@ module.exports = {
         variables: template.variables,
       });
 
+
+      await sails.helpers.twilio.submitWhatsappApproval.with({
+        sid: twilioResponse.sid,
+        name: template.friendlyName,
+        category: template.category,
+
+      });
+
       await WhatsappTemplate.updateOne({ id: id }).set({
-        twilioTemplateId: twilioResponse.twilioTemplateId,
-        status: 'pending',
+        sid: twilioResponse.sid,
+        approvalStatus: 'pending',
       });
 
       return res.ok({
@@ -42,6 +48,7 @@ module.exports = {
       return res.serverError({ error: 'Failed to submit template', details: error });
     }
   },
+
   async fetchTemplates(req, res) {
     const { language, approvalStatus } = req.query;
 
@@ -106,16 +113,16 @@ module.exports = {
     try {
       const template = await WhatsappTemplate.findOne({ id: id });
 
-      if (!template || !template.twilioTemplateId) {
+      if (!template || !template.sid) {
         return res.notFound({ error: 'Template not found or not yet submitted to Twilio' });
       }
 
       const approvalDetails = await sails.helpers.twilio.fetchApprovalStatus.with({
-        twilioTemplateId: template.twilioTemplateId,
+        sid: template.sid,
       });
 
       await WhatsappTemplate.updateOne({ id: id }).set({
-        status: approvalDetails.status,
+        approvalStatus: approvalDetails.status,
         rejectionReason: approvalDetails.rejectionReason
       });
 

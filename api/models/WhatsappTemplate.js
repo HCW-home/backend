@@ -3,31 +3,34 @@ module.exports = {
     sid: {
       type: 'string',
       unique: true,
-      required: true,
-      description: 'The unique identifier for the template in Twilio.',
     },
 
     friendlyName: {
       type: 'string',
       required: true,
-      description: 'The human-readable name of the template.',
     },
 
     language: {
       type: 'string',
       required: true,
-      description: 'The language of the template.',
+    },
+
+    category: {
+      type: 'string',
+      isIn: ['UTILITY', 'MARKETING', 'AUTHENTICATION'],
+    },
+
+    contentType: {
+      type: 'string',
     },
 
     variables: {
       type: 'json',
-      description: 'Key-value pairs representing variable placeholders and their values.',
       example: { name: 'foo' },
     },
 
     types: {
       type: 'json',
-      required: true,
       description: 'An object containing different template content types.',
       example: {
         'twilio/text': {
@@ -43,8 +46,6 @@ module.exports = {
 
     url: {
       type: 'string',
-      required: true,
-      description: 'The API URL for this template in Twilio.',
     },
 
     dateCreated: {
@@ -71,7 +72,7 @@ module.exports = {
     },
     approvalStatus: {
       type: 'string',
-      isIn: ['pending', 'approved', 'rejected', 'draft', 'unknown'],
+      isIn: ['pending', 'approved', 'rejected', 'draft', 'unknown', 'received'],
       defaultsTo: 'draft',
     },
     rejectionReason: {
