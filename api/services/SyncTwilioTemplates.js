@@ -32,10 +32,7 @@ module.exports = {
               language,
               category: template.category,
               contentType: template.contentType,
-              variables: template.variables.reduce((acc, param, index) => {
-                acc[(index + 1).toString()] = param;
-                return acc;
-              }, {}),
+              variables: template.variables,
               approvalStatus: "draft",
             });
 

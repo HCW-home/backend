@@ -119,6 +119,10 @@ module.exports = {
       type: 'string',
       required: false,
     },
+    whatsappMessageSid: {
+      type: 'string',
+      required: false,
+    },
     emailAddress: {
       type: 'string',
       isEmail: true,
@@ -131,7 +135,10 @@ module.exports = {
     },
     status: {
       type: 'string',
-      isIn: ['PENDING', 'SENT', 'ACCEPTED', 'COMPLETE', 'REFUSED', 'CANCELED'],
+      isIn: ['PENDING', 'SENT', 'ACCEPTED', 'COMPLETE', 'REFUSED', 'CANCELED',
+      //   whatsapp statuses
+      'QUEUED', 'SENDING', 'FAILED', 'DELIVERED', 'UNDELIVERED', 'RECEIVING', 'RECEIVED', 'SCHEDULED', 'READ', 'PARTIALLY_DELIVERED'
+      ],
       defaultsTo: 'SENT',
     },
     queue: {
@@ -441,14 +448,21 @@ module.exports = {
           const params = createParamsFromJson(args);
 
           try {
-            await sails.helpers.sms.with({
+            const whatsappMessageSid = await sails.helpers.sms.with({
               phoneNumber: invite.phoneNumber,
               message,
               senderEmail: invite?.doctor?.email,
               whatsApp: true,
               params,
-              twilioTemplatedId
+              twilioTemplatedId,
+              // TODO update statusCallback from env
+              statusCallback: 'https://789d-109-75-45-15.ngrok-free.app/api/v1/twilio/status-callback'
             });
+            if (whatsappMessageSid) {
+              await PublicInvite.updateOne({
+                id: invite.id,
+              }).set({ whatsappMessageSid });
+            }
           } catch (error) {
             console.log('ERROR SENDING SMS>>>>>>>> ', error);
             return Promise.reject(error);

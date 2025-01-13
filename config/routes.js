@@ -107,6 +107,7 @@ module.exports.routes = {
   'DELETE /api/v1/templates/delete': 'WhatsappTemplateController.deleteTemplate',
   'POST /api/v1/templates/refresh-status': 'WhatsappTemplateController.refreshStatus',
 
+  'POST /api/v1/twilio/status-callback': 'TwilioController.statusCallback',
 
   'GET /api/v1/languages': 'LocaleController.supportedLanguages',
 

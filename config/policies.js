@@ -171,6 +171,10 @@ module.exports.policies = {
   Translator: {
     "*": ["isLoggedIn", "isDoctorOrAdmin"],
   },
+  TwilioController: {
+    "*": false,
+    statusCallback: true,
+  },
   TranslatorController: {
     "*": false,
     acceptRequest: true,
