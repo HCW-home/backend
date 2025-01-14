@@ -14,14 +14,20 @@ const inviteJobs = {
       const type = reminderData.firstReminderType;
       const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
       const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-      await sails.helpers.sms.with({
+      const whatsappMessageSid = await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
         message: reminderData.firstReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: true,
         twilioTemplatedId,
         params: reminderData.firstReminderParams,
+        statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
       });
+      if (whatsappMessageSid) {
+        await PublicInvite.updateOne({
+          id: invite.id,
+        }).set({ whatsappMessageSid });
+      }
     } else {
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
@@ -40,14 +46,20 @@ const inviteJobs = {
       const type = reminderData.secondReminderType;
       const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
       const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-      await sails.helpers.sms.with({
+      const whatsappMessageSid = await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
         message: reminderData.secondReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: true,
         params: reminderData.secondReminderParams,
-        twilioTemplatedId
+        twilioTemplatedId,
+        statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
       });
+      if (whatsappMessageSid) {
+        await PublicInvite.updateOne({
+          id: invite.id,
+        }).set({ whatsappMessageSid });
+      }
     } else {
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,

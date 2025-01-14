@@ -455,8 +455,7 @@ module.exports = {
               whatsApp: true,
               params,
               twilioTemplatedId,
-              // TODO update statusCallback from env
-              statusCallback: 'https://789d-109-75-45-15.ngrok-free.app/api/v1/twilio/status-callback'
+              statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
             });
             if (whatsappMessageSid) {
               await PublicInvite.updateOne({
