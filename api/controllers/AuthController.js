@@ -356,6 +356,7 @@ module.exports = {
         return res.status(200).json({
           localLoginToken,
           user: user.id,
+          role: user.role,
         });
       } else {
         if (user.smsVerificationCode) {
