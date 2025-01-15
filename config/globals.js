@@ -82,6 +82,9 @@ module.exports.globals = {
   attachmentsDir:
     process.env.ATTACHMENTS_DIR || "/var/lib/hug-home/attachments",
 
+
+  hideCallerName: process.env.HIDE_CALLER_NAME === 'true',
+
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,
   WHITELISTED_PREFIXES: {

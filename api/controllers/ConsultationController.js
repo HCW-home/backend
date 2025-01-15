@@ -677,16 +677,22 @@ module.exports = {
         }
       }
 
+      const hideCallerName = sails.config.globals.hideCallerName;
       console.log("SEND CALL TO", calleeId);
       sails.sockets.broadcast(calleeId, "newCall", {
         data: {
           consultation: req.params.consultation,
           token: patientToken,
           id: req.params.consultation,
-          user: {
-            firstName: user.firstName,
-            lastName: user.lastName,
-          },
+          user: hideCallerName
+            ? {
+              firstName: "Anonymous",
+              lastName: "",
+            }
+            : {
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
           audioOnly: req.query.audioOnly === "true",
           msg: patientMsg,
         },

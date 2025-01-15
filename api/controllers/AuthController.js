@@ -915,6 +915,7 @@ module.exports = {
       formRequesterMeta: process.env.FORM_REQUESTER_META
         ? process.env.FORM_REQUESTER_META.split(",")
         : "",
+      hideCallerName: sails.config.globals.hideCallerName,
       doctorLanguages,
       patientLanguages
     });
