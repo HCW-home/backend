@@ -97,6 +97,8 @@ module.exports.routes = {
   'GET /api/v1/invite/:invite/consultation': 'InviteController.getConsultation',
   'POST /api/v1/invite/:invite/consultation/close': 'InviteController.closeConsultation',
   'GET /api/v1/invite/by-token/:invitationToken': 'InviteController.findByToken',
+  'GET /api/v1/invite/status/:invitationToken': 'InviteController.checkInviteStatus',
+  'POSt /api/v1/invite/acknowledge': 'InviteController.acknowledgeInvite',
 
   'POST /api/v1/translator/accept/:translationRequestToken': 'TranslatorController.acceptRequest',
   'POST /api/v1/translator/refuse/:translationRequestToken': 'TranslatorController.refuseRequest',

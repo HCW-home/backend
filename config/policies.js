@@ -137,6 +137,8 @@ module.exports.policies = {
       "isInviteOwner",
     ],
     findByToken: true,
+    checkInviteStatus: true,
+    acknowledgeInvite: true,
   },
 
   PublicInviteController: {

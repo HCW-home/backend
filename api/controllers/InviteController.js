@@ -1134,6 +1134,90 @@ module.exports = {
     res.json({ ...publicinvite, expertToken: '', ...expertBody });
   },
 
+  async checkInviteStatus(req, res) {
+    try {
+      const publicInvite = await PublicInvite.findOne({
+        or: [
+          { inviteToken: req.params.invitationToken },
+        ],
+      });
+
+      if (!publicInvite) {
+        return res.json({
+          success: false,
+          message: 'Invite not found',
+        });
+      }
+
+      const acknowledgmentStatuses = [
+        'PENDING',
+        'SENT',
+        'QUEUED',
+        'SENDING',
+        'FAILED',
+        'DELIVERED',
+        'UNDELIVERED',
+        'SCHEDULED',
+      ];
+
+      let requiresAcknowledgment = false;
+
+      for (const status of acknowledgmentStatuses) {
+        if (publicInvite.status === status) {
+          requiresAcknowledgment = true;
+          break;
+        }
+      }
+
+      return res.json({
+        success: true,
+        requiresAcknowledgment,
+      });
+
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'An unexpected error occurred',
+        error: error.message,
+      });
+    }
+  },
+  async acknowledgeInvite(req, res) {
+    try {
+    const { inviteToken } = req.body;
+
+    if (!inviteToken) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing inviteToken',
+      });
+    }
+
+    const invite = await PublicInvite.findOne({ inviteToken });
+
+    if (!invite) {
+      return res.status(404).json({
+        success: false,
+        message: 'Invite not found',
+      });
+    }
+
+    await PublicInvite.updateOne({ inviteToken }).set({ status: 'ACKNOWLEDGED' });
+
+    return res.json({
+      success: true,
+      message: 'Invite status updated to ACKNOWLEDGED',
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'An unexpected error occurred',
+      error: error.message,
+    });
+  }
+},
+
   async getConsultation(req, res) {
     const inviteId = req.params.invite || req.params.id;
     if (!inviteId) return res.status(500).send();
