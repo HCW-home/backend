@@ -33,4 +33,4 @@ Health Care Worker @Home is supported by:
 
 ### Installation
 
-The installation process has been moved into [https://hcw-at-home.com/slides/](https://hcw-at-home.com/slides/).
+The installation process has been moved into [https://docs.hcw-at-home.com](https://docs.hcw-at-home.com).
