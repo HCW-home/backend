@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.17) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.18) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * fix crash on finding conflicting Users
@@ -33,7 +33,13 @@ hcw-athome-backend (0.5.17) UNRELEASED; urgency=medium
   * refs #7956,User pagination issue in admin
   * fix condition in local login
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 09 Jan 2025 13:46:38 +0000
+  [ Olivier Bitsch ]
+  * Fix link to docs
+
+  [ Gor Grigoryan ]
+  * create admin with script
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 17 Jan 2025 10:20:21 +0000
 
 hcw-athome-backend (0.5.6) focal; urgency=medium
 
