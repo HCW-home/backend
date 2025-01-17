@@ -1,47 +1,61 @@
 require('dotenv').config();
-const sails = require('sails');
+const { MongoClient } = require('mongodb');
+const bcrypt = require('bcrypt');
 
-sails.lift({
-  environment: process.env.NODE_ENV || 'development',
-}, async (err) => {
-  if (err) {
-    console.error('Error lifting Sails app:', err);
-    process.exit(1);
-  }
-
+async function main() {
   const dbUri = process.env.DB_URI;
   const adminEmail = process.env.FIRST_ADMIN_EMAIL;
   const adminPassword = process.env.FIRST_ADMIN_PASSWORD;
 
   if (!dbUri || !adminEmail || !adminPassword) {
-    console.error('DB_URI, ADMIN_EMAIL, and ADMIN_PASSWORD must be set in the environment variables.');
-    return process.exit(1);
+    console.error('DB_URI, FIRST_ADMIN_EMAIL, and FIRST_ADMIN_PASSWORD must be set in the environment variables.');
+    process.exit(1);
   }
+
+  const client = new MongoClient(dbUri, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
   try {
-    const existingAdmins = await User.find({ role: 'admin' });
+    await client.connect();
+    console.log('Connected to the database.');
+
+    const database = client.db();
+    const usersCollection = database.collection('user');
+
+    const existingAdmins = await usersCollection.find({ role: 'admin' }).toArray();
 
     if (existingAdmins.length === 0) {
+      try {
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
-      await User.create({
-        email: adminEmail,
-        password: adminPassword,
-        role: 'admin',
-      });
+        await usersCollection.insertOne({
+          email: adminEmail,
+          password: hashedPassword,
+          role: 'admin',
+        });
 
-      console.log(`Admin user created with email: ${adminEmail}`);
+        console.log(`Admin user created with email: ${adminEmail}`);
+      } catch (creationError) {
+        console.error('Error creating admin user:', creationError);
+      } finally {
+        await client.close();
+        console.log('Disconnected from the database.');
+        process.exit();
+      }
     } else {
       console.log(`Admin user(s) already exist. Count: ${existingAdmins.length}`);
-    }
-
-  } catch (error) {
-    console.error('Error creating admin user:', error);
-  } finally {
-    sails.lower((lowerErr) => {
-      if (lowerErr) {
-        console.error('Error lowering Sails app:', lowerErr);
-      }
+      await client.close();
+      console.log('Disconnected from the database.');
       process.exit();
-    });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    await client.close();
+    process.exit(1);
   }
-});
+}
+
+main();
