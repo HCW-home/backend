@@ -1,6 +1,6 @@
 FROM node:18 AS builder
 
-ENV VERSION=0.5.19
+ENV VERSION=0.5.20
 
 WORKDIR /usr/src/app
 
@@ -15,6 +15,7 @@ COPY api ./api
 COPY config ./config
 COPY public ./public
 COPY views ./views
+COPY cli ./cli
 
 FROM node:18
 
