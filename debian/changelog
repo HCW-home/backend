@@ -1,3 +1,13 @@
+hcw-athome-backend (0.5.21) UNRELEASED; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update to version 0.5.20.
+
+  [ Gor Grigoryan ]
+  * update create admin script
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 17 Jan 2025 13:56:51 +0000
+
 hcw-athome-backend (0.5.20) focal; urgency=medium
 
   [ Gor Grigoryan ]
