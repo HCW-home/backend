@@ -15,6 +15,7 @@ COPY api ./api
 COPY config ./config
 COPY public ./public
 COPY views ./views
+COPY cli ./cli
 
 FROM node:18
 
