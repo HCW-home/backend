@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.18) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.19) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * fix crash on finding conflicting Users
@@ -38,8 +38,9 @@ hcw-athome-backend (0.5.18) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * create admin with script
+  * change create admin file location
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 17 Jan 2025 10:20:21 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 17 Jan 2025 10:29:46 +0000
 
 hcw-athome-backend (0.5.6) focal; urgency=medium
 

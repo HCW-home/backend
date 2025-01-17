@@ -1,6 +1,6 @@
 FROM node:18 AS builder
 
-ENV VERSION=0.5.18
+ENV VERSION=0.5.19
 
 WORKDIR /usr/src/app
 
