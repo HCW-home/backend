@@ -81,7 +81,7 @@ const TIME_UNTIL_SCHEDULE = parseTime(OVERRIDE_TIME_UNTIL_SCHEDULE, DEFAULT_TIME
 
 
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
-const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
+const testingUrl = `${process.env.PUBLIC_URL}/acknowledge-invite`;
 const crypto = require('crypto');
 const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
@@ -135,9 +135,12 @@ module.exports = {
     },
     status: {
       type: 'string',
-      isIn: ['PENDING', 'SENT', 'ACCEPTED', 'COMPLETE', 'REFUSED', 'CANCELED',
+      isIn: [
+        'PENDING', 'SENT', 'ACCEPTED', 'COMPLETE', 'REFUSED', 'CANCELED',
+        'ACKNOWLEDGED', 'SCHEDULED_FOR_INVITE',
       //   whatsapp statuses
-      'QUEUED', 'SENDING', 'FAILED', 'DELIVERED', 'UNDELIVERED', 'RECEIVING', 'RECEIVED', 'SCHEDULED', 'READ', 'PARTIALLY_DELIVERED'
+      'QUEUED', 'SENDING', 'FAILED', 'DELIVERED',
+      'UNDELIVERED', 'RECEIVING', 'RECEIVED', 'SCHEDULED', 'READ', 'PARTIALLY_DELIVERED'
       ],
       defaultsTo: 'SENT',
     },
@@ -383,11 +386,12 @@ module.exports = {
     }
     const timeUntilScheduled = scheduledTime - currentTime;
 
+    let testUrl = testingUrl + `/${invite.inviteToken}`;
     const message =
       invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
         ? sails._t(locale, 'scheduled patient invite', {
           inviteTime,
-          testingUrl,
+          testingUrl: testUrl,
           branding: process.env.BRANDING,
           doctorName,
         })
@@ -769,6 +773,7 @@ module.exports = {
             console.error('Error creating ICS event:', error);
             return;
           }
+          let testUrl = testingUrl + `/${invite.inviteToken}`;
 
           await sails.helpers.email.with({
             to: invite.emailAddress,
@@ -777,7 +782,7 @@ module.exports = {
             }),
             text: sails._t(locale, 'scheduled patient invite', {
               inviteTime,
-              testingUrl,
+              testingUrl: testUrl,
               branding: process.env.BRANDING,
               doctorName,
             }),

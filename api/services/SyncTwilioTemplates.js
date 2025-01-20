@@ -7,7 +7,6 @@ module.exports = {
     try {
       const supportedLanguages = sails.config.i18n.locales || [];
 
-      console.log(supportedLanguages, 'supportedLanguages');
       const existingTemplates = await WhatsappTemplate.find();
 
       for (const template of requiredTemplates) {
