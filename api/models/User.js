@@ -5,7 +5,6 @@
  * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
  */
 const bcrypt = require('bcrypt');
-const passport = require('passport');
 
 
 module.exports = {
@@ -108,8 +107,18 @@ module.exports = {
     status: {
       type: 'string',
       isIn: ['approved', 'not-approved'],
-      defaultsTo: 'not-approved'
-    }
+      defaultsTo: 'approved'
+    },
+    doctorTermsVersion: {
+      type: 'string',
+      defaultsTo: '0',
+      required: false
+    },
+    messageService: {
+      type: 'string',
+      isIn: ['1', '2'],
+      defaultsTo: '2'
+    },
   },
 
   generatePassword(clearPassword) {
@@ -168,37 +177,45 @@ module.exports = {
 
   async beforeUpdate(valuesToSet, proceed) {
 
-    if (valuesToSet.email) {
-      if (valuesToSet.password) {
-        bcrypt.genSalt(10, (err, salt) => {
-          if (err) {
-            return proceed(err);
-          }
-          bcrypt.hash(valuesToSet.password, salt, (err, hash) => {
+    try {
+      if (valuesToSet.email) {
+        if (valuesToSet.password) {
+          bcrypt.genSalt(10, (err, salt) => {
             if (err) {
               return proceed(err);
             }
-            valuesToSet.password = hash;
-            proceed();
+            bcrypt.hash(valuesToSet.password, salt, (err, hash) => {
+              if (err) {
+                return proceed(err);
+              }
+              valuesToSet.password = hash;
+              proceed();
+            });
           });
+        }
+
+        const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
+        if (currentUser && currentUser.email === valuesToSet.email) {
+          return proceed();
+        }
+
+        const existingUsers = await User.find({
+          email: valuesToSet.email,
+          id: { '!=': valuesToSet.id }
         });
-      }
 
-      const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
-      if (currentUser && currentUser.email === valuesToSet.email) {
-        return proceed();
+        if (existingUsers.length > 0) {
+          const err = new Error('Email have already been used');
+          err.name = 'DUPLICATE_EMAIL';
+          err.code = 400;
+          return proceed(err);
+        }
       }
-
-      const existing = await User.findOne({ email: valuesToSet.email, id: { '!=': valuesToSet.id } });
-
-      if (existing) {
-        const err = new Error('Email have already been used');
-        err.name = 'DUPLICATE_EMAIL';
-        err.code = 400;
-        return proceed(err);
-      }
+      proceed();
+    } catch (e) {
+      console.log(e , 'eeee');
     }
-    proceed();
+
 
   }
 

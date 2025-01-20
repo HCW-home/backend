@@ -12,8 +12,8 @@ HCW@Home is a scalable, institution-level secure teleconsultation system for typ
 - Send attachment or image
 - PDF reporting
 - Connect to external solution (OpenEMR)
-- Invite guess and translator
-- External authentication (SAML, JWT, Active Directory)
+- Invite guess or colleagues
+- External authentication (OpenID)
 
 ### Links
 
@@ -33,4 +33,4 @@ Health Care Worker @Home is supported by:
 
 ### Installation
 
-The installation process has been moved into [https://hcw-at-home.com/slides/](https://hcw-at-home.com/slides/).
+The installation process has been moved into [https://docs.hcw-at-home.com](https://docs.hcw-at-home.com).

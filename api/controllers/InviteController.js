@@ -6,8 +6,13 @@
  */
 const db = PublicInvite.getDatastore().manager;
 const { ObjectId } = require('mongodb');
+const Joi = require('joi');
 
 const moment = require('moment-timezone');
+const { i18n } = require('../../config/i18n');
+const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
+const sanitize = require('mongo-sanitize');
+const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 // /**
 //  *
@@ -28,6 +33,48 @@ const moment = require('moment-timezone');
  *
  * @param {object} invite
  */
+
+const headersSchema = Joi.object({
+  locale: Joi.string().optional(),
+}).unknown(true);
+
+const inviteDataSchema = Joi.object({
+  phoneNumber: Joi.string().min(8).max(15).allow('').optional()
+    .messages({
+      'string.min': 'Phone number should be at least 8 digits',
+      'string.max': 'Phone number should not exceed 15 digits',
+    }),
+  emailAddress: Joi.string().email().allow('').optional()
+    .messages({
+      'string.email': 'Email address must be a valid email',
+    }),
+  gender: Joi.string().valid('male', 'female')
+    .messages({
+      'any.only': 'Gender must be one of male, female, or other',
+    }),
+  firstName: Joi.string().min(1).max(40)
+    .messages({
+      'string.min': 'First name must be at least 1 character long',
+      'string.max': 'First name must be less than 40 characters',
+    }),
+  lastName: Joi.string().min(1).max(100)
+    .messages({
+      'string.min': 'Last name must be at least 1 character long',
+      'string.max': 'Last name must be less than 100 characters',
+    }),
+  invitedBy: Joi.string().allow('').optional(),
+  scheduledFor: Joi.date().optional().allow('')
+    .messages({
+      'date.base': 'ScheduledFor must be a valid date',
+    }),
+  language: Joi.string().optional().allow(''),
+  type: Joi.string().optional().allow(''),
+  birthDate: Joi.date().optional().allow(''),
+  patientTZ: Joi.string().optional().allow(''),
+  metadata: Joi.any().optional(),
+}).unknown(true);
+
+
 function validateInviteRequest(invite) {
   const errors = [];
   if (!invite.phoneNumber && !invite.emailAddress) {
@@ -116,6 +163,13 @@ module.exports = {
   async invite(req, res) {
     let invite = null;
     console.log('create invite now');
+    const { error, value } = inviteDataSchema.validate(req.body, { abortEarly: false });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: error.details,
+      });
+    }
     const currentUserPublic = {
       id: req.user.id,
       firstName: req.user.firstName,
@@ -123,6 +177,16 @@ module.exports = {
       lastName: req.user.lastName,
       role: req.user.role,
     };
+
+    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
+    if (headersErrors) {
+      return res.status(400).json({
+        success: false,
+        error: headersErrors.details,
+      });
+    }
+
+    const locale = headers.locale || i18n.defaultLocale;
 
     // validate
     if (req.body.isPatientInvite && !req.body.sendLinkManually) {
@@ -168,10 +232,19 @@ module.exports = {
       });
     }
 
-    if (req.body.scheduledFor && new Date(req.body.scheduledFor) < new Date()) {
+    if (req.body.scheduledFor && req.body.patientTZ) {
+      const scheduledTimeUTC = moment.tz(req.body.scheduledFor, 'UTC').valueOf();
+      const currentTimeUTC = moment().utc().valueOf();
+      if (scheduledTimeUTC < currentTimeUTC) {
+        return res.status(400).json({
+          success: false,
+          error: sails._t(locale, 'consultation past time'),
+        });
+      }
+    } else if (req.body.scheduledFor && new Date(req.body.scheduledFor) < new Date()) {
       return res.status(400).json({
         success: false,
-        error: 'Consultation Time cannot be in the past',
+        error: sails._t(locale, 'consultation past time'),
       });
     }
 
@@ -184,12 +257,12 @@ module.exports = {
       }
     }
 
-    if (req.body.patientTZ) {
-      const isTZValid = moment.tz.names().includes(req.body.patientTZ);
+    if (value.patientTZ) {
+      const isTZValid = moment.tz.names().includes(value.patientTZ);
       if (!isTZValid) {
         return res.status(400).json({
           success: false,
-          error: `Unknown timezone identifier ${req.body.patientTZ}`,
+          error: `Unknown timezone identifier ${value.patientTZ}`,
         });
       }
     }
@@ -218,7 +291,7 @@ module.exports = {
       if (!doctor) {
         return res.status(400).json({
           success: false,
-          error: `Doctor with email ${req.body.doctorEmail} not found`,
+          error: `Doctor with email ${value.doctorEmail || ''} not found`,
         });
       }
       // a
@@ -227,44 +300,44 @@ module.exports = {
     }
 
     let queue;
-    if (req.body.queue) {
+    if (value.queue) {
       queue = await Queue.findOne({
-        or: [{ name: req.body.queue }, { id: req.body.queue }],
+        or: [{ name: value.queue }, { id: value.queue }],
       });
     }
 
-    if (req.body.queue && !queue) {
+    if (value.queue && !queue) {
       return res.status(400).json({
         error: true,
-        message: `queue ${req.body.queue} doesn't exist`,
+        message: `queue ${value.queue} doesn't exist`,
       });
     }
 
     let translationOrganization;
-    if (req.body.translationOrganization) {
+    if (value.translationOrganization) {
       translationOrganization = await TranslationOrganization.findOne({
         or: [
-          { name: req.body.translationOrganization },
-          { id: req.body.translationOrganization },
+          { name: value.translationOrganization },
+          { id: value.translationOrganization },
         ],
       });
     }
 
-    if (req.body.translationOrganization && !translationOrganization) {
+    if (value.translationOrganization && !translationOrganization) {
       return res.status(400).json({
         error: true,
-        message: `translationOrganization ${req.body.translationOrganization} doesn't exist`,
+        message: `translationOrganization ${value.translationOrganization} doesn't exist`,
       });
     }
 
     if (
       translationOrganization &&
-      (translationOrganization.languages || []).indexOf(req.body.language) ===
+      (translationOrganization.languages || []).indexOf(value.language) ===
       -1
     ) {
       return res.status(400).json({
         error: true,
-        message: `patientLanguage ${req.body.language} doesn't exist`,
+        message: `patientLanguage ${value.language} doesn't exist`,
       });
     }
 
@@ -273,23 +346,24 @@ module.exports = {
     try {
       // add other invite info
       // send invite to translator and guest
+
       const inviteData = {
-        phoneNumber: req.body.phoneNumber,
-        emailAddress: req.body.emailAddress,
-        gender: req.body.gender,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
+        phoneNumber: value.phoneNumber,
+        emailAddress: value.emailAddress,
+        gender: value.gender,
+        firstName: value.firstName,
+        lastName: value.lastName,
         invitedBy: req.user.id,
-        scheduledFor: req.body.scheduledFor
-          ? new Date(req.body.scheduledFor)
+        scheduledFor: value.scheduledFor
+          ? new Date(value.scheduledFor)
           : undefined,
-        patientLanguage: req.body.language,
+        patientLanguage: value.language,
         type: 'PATIENT',
         //IMADTeam: req.body.IMADTeam,
-        birthDate: req.body.birthDate,
-        patientTZ: req.body.patientTZ,
+        birthDate: value.birthDate,
+        patientTZ: value.patientTZ,
         // metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
-        metadata: req.body.metadata,
+        metadata: value.metadata,
         //! passing metadata from request
       };
       if (doctor) {
@@ -304,16 +378,20 @@ module.exports = {
         inviteData.translationOrganization = translationOrganization.id;
       }
 
-      if (req.body.guestEmailAddress) {
-        inviteData.guestEmailAddress = req.body.guestEmailAddress;
+      if (value.guestEmailAddress) {
+        inviteData.guestEmailAddress = value.guestEmailAddress;
       }
 
-      if (req.body.guestPhoneNumber) {
-        inviteData.guestPhoneNumber = req.body.guestPhoneNumber;
+      if (value.guestPhoneNumber) {
+        inviteData.guestPhoneNumber = value.guestPhoneNumber;
       }
 
-      if (req.body.messageService) {
-        inviteData.messageService = req.body.messageService
+      if (value.messageService) {
+        inviteData.messageService = value.messageService;
+      }
+
+      if (value.guestMessageService) {
+        inviteData.guestMessageService = value.guestMessageService;
       }
 
       invite = await PublicInvite.create(inviteData).fetch();
@@ -326,7 +404,7 @@ module.exports = {
 
       if (Array.isArray(experts)) {
         for (const contact of experts) {
-          const {expertContact, messageService} = contact || {};
+          const { expertContact, messageService } = contact || {};
           if (typeof expertContact === 'string') {
             const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
             const isEmail = expertContact.includes('@');
@@ -334,13 +412,26 @@ module.exports = {
             if (isPhoneNumber && !isEmail) {
               //  WhatsApp
               if (messageService === '1') {
+                const type = 'please use this link';
+                const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[inviteData?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+                const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
+                const args = {
+                  language: inviteData?.patientLanguage || "en",
+                  type,
+                  languageConfig: TwilioWhatsappConfig,
+                  url: invite.expertToken,
+                }
+                const params = createParamsFromJson(args)
+
                 await sails.helpers.sms.with({
                   phoneNumber: expertContact,
-                  message: sails._t(doctorLanguage, 'please use this link', {
+                  message: sails._t(doctorLanguage, type, {
                     expertLink: expertLink,
                   }),
                   senderEmail: inviteData.doctorData?.email,
                   whatsApp: true,
+                  params,
+                  twilioTemplatedId
                 });
               } else if (messageService === '2') {
                 await sails.helpers.sms.with({
@@ -387,9 +478,11 @@ module.exports = {
           type: 'GUEST',
           guestEmailAddress: inviteData.guestEmailAddress,
           guestPhoneNumber: inviteData.guestPhoneNumber,
+          guestMessageService: inviteData?.guestMessageService || '',
           emailAddress: inviteData.guestEmailAddress,
           phoneNumber: inviteData.guestPhoneNumber,
           patientLanguage: req.body.language,
+          patientTZ: inviteData.patientTZ,
         };
 
         guestInvite = await PublicInvite.create(guestInviteDate).fetch();
@@ -552,6 +645,7 @@ module.exports = {
       cancelGuestInvite,
       cancelTranslationRequestInvite,
       cancelScheduledFor,
+      metadata
     } = req.body;
 
     // validate provided fields
@@ -569,21 +663,20 @@ module.exports = {
       });
     }
 
-    if (scheduledFor && new Date(scheduledFor) < new Date()) {
+    if (scheduledFor && patientTZ) {
+      const scheduledTimeUTC = moment.tz(scheduledFor, 'UTC').valueOf();
+      const currentTimeUTC = moment().utc().valueOf();
+      if (scheduledTimeUTC < currentTimeUTC) {
+        return res.status(400).json({
+          success: false,
+          error: 'Consultation Time cannot be in the past',
+        });
+      }
+    } else if (scheduledFor && new Date(scheduledFor) < new Date()) {
       return res.status(400).json({
         success: false,
         error: 'Consultation Time cannot be in the past',
       });
-    }
-
-    if (patientTZ) {
-      const isTZValid = moment.tz.names().includes(patientTZ);
-      if (!isTZValid) {
-        return res.status(400).json({
-          success: false,
-          error: `Unknown timezone identifier ${patientTZ}`,
-        });
-      }
     }
 
     let doctor;
@@ -672,6 +765,7 @@ module.exports = {
         IMADTeam: IMADTeam,
         birthDate: birthDate,
         patientTZ: patientTZ,
+        metadata: metadata
       };
       // remove undefined values
       inviteData = JSON.parse(JSON.stringify(inviteData));
@@ -894,7 +988,7 @@ module.exports = {
   async resend(req, res) {
     try {
       const patientInvite = await PublicInvite.findOne({
-        id: req.params.invite,
+        id: sanitize(req.params.invite),
       })
         .populate('guestInvite')
         .populate('translatorInvite')
@@ -989,10 +1083,9 @@ module.exports = {
    * Finds the public invite linked to a consultation
    */
   async findByConsultation(req, res) {
-    req.params.consultation;
 
     const consultation = await Consultation.findOne({
-      id: req.params.consultation,
+      id: sanitize(req.params.consultation),
     });
     if (!consultation) {
       return res.notFound();

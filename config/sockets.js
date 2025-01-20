@@ -177,7 +177,6 @@ module.exports.sockets = {
         sails.config.globals.APP_SECRET,
         async (err, decoded) => {
           if (err) {
-            sails.log('error ', err)
             return proceed(false)
           }
           const user = await User.findOne({

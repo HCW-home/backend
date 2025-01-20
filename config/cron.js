@@ -1,15 +1,26 @@
 const { CronJob } = require('cron');
+const {importFileIfExists} = require('../api/utils/helpers');
+const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 const CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000;
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
 const inviteJobs = {
   FIRST_INVITE_REMINDER_SMS: async (invite) => {
-    if (invite.messageService === '1') {
+    const isWhatsApp = (invite.type === "PATIENT" && invite.messageService === '1') ||
+      (invite.type !== "PATIENT" && invite.guestMessageService === '1')
+
+    if (isWhatsApp) {
+      const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
+      const type = reminderData.firstReminderType;
+      const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+      const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
-        message: sails.models.publicinvite.getReminderMessage(invite).firstReminderMessage,
+        message: reminderData.firstReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: true,
+        twilioTemplatedId,
+        params: reminderData.firstReminderParams,
       });
     } else {
       await sails.helpers.sms.with({
@@ -21,12 +32,21 @@ const inviteJobs = {
     }
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
-    if (invite.messageService === '1') {
+    const isWhatsApp = (invite.type === "PATIENT" && invite.messageService === '1') ||
+      (invite.type !== "PATIENT" && invite.guestMessageService === '1')
+
+    if (isWhatsApp) {
+      const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
+      const type = reminderData.secondReminderType;
+      const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
+      const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
-        message: sails.models.publicinvite.getReminderMessage(invite).secondReminderMessage,
+        message: reminderData.secondReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: true,
+        params: reminderData.secondReminderParams,
+        twilioTemplatedId
       });
     } else {
       await sails.helpers.sms.with({
@@ -39,7 +59,7 @@ const inviteJobs = {
   },
   FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
     await sails.helpers.email.with({
@@ -54,7 +74,7 @@ const inviteJobs = {
   },
   SECOND_INVITE_REMINDER_EMAIL: async (invite) => {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
     await sails.helpers.email.with({

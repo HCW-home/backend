@@ -7,38 +7,39 @@
 
 const { ObjectId } = require('mongodb');
 const _ = require("@sailshq/lodash");
-const jwt = require("jsonwebtoken");
+const moment = require('moment');
+const {importFileIfExists, createParamsFromJson } = require('../utils/helpers');
+const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 const columns = [
-  { colName: "Invitation envoyée le", key: "inviteCreatedAt" },
-  { colName: "Consultation planifiée le", key: "inviteScheduledFor" },
-  { colName: "File d'attente", key: "queue.name" },
-  { colName: "Patient consultation demandée à", key: "consultationCreatedAt" },
-  { colName: "IMAD equipe", key: "IMADTeam" },
-  { colName: "Consultation clôturée le", key: "closedAt" },
-  { colName: "Total appel avec réponse", key: "successfulCallsCount" },
-  { colName: "Total appel sans réponse", key: "missedCallsCount" },
-  { colName: "Moyenne durée appel", key: "averageCallDuration" },
-  { colName: "Patient taux satisfaction", key: "patientRating" },
-  { colName: "Patient satisfaction message", key: "patientComment" },
-  { colName: "Docteur taux satisfaction", key: "doctorRating" },
-  { colName: "Docteur satisfaction message", key: "doctorComment" },
+  { colName: "Invite sent at", key: "inviteCreatedAt" },
+  { colName: "Consultation scheduled at", key: "inviteScheduledFor" },
+  { colName: "Waiting queue", key: "queue.name" },
+  { colName: "Patient jointed consultation at", key: "consultationCreatedAt" },
+  { colName: "Consultation closed at", key: "closedAt" },
+  { colName: "Total call with answer", key: "successfulCallsCount" },
+  { colName: "Total call without answer", key: "missedCallsCount" },
+  { colName: "Call average", key: "averageCallDuration" },
+  { colName: "Satisfaction rate patient", key: "patientRating" },
+  { colName: "Satisfaction message patient", key: "patientComment" },
+  { colName: "Satisfaction rate caregiver", key: "doctorRating" },
+  { colName: "Satisfaction message caregiver", key: "doctorComment" },
   { colName: "Department", key: "acceptedBy.department" },
   { colName: "Function", key: "acceptedBy._function" },
-  { colName: "Docteur ID", key: "acceptedBy.id" },
+  { colName: "caregiver ID", key: "acceptedBy.id" },
   {
-    colName: "Nombre de participants effectifs",
+    colName: "Number of participant joined",
     key: "numberOfEffectiveParticipants",
   },
   {
-    colName: "Nombre de participants prévus",
+    colName: "Number of participant expected",
     key: "numberOfPlannedParticipants",
   },
-  { colName: "Langues", key: "languages" },
-  { colName: "Organisation d'interprétariat", key: "translationOrganization" },
-  { colName: "Nom de l'interprète", key: "interpreterName" },
-  { colName: "Prise en charge estimée", key: "consultationEstimatedAt" },
-  { colName: "Premier appel effectué", key: "firstCallAt" },
+  { colName: "Languages", key: "languages" },
+  { colName: "Translation organization", key: "translationOrganization" },
+  { colName: "Translator name", key: "interpreterName" },
+  { colName: "Handling estimated at", key: "consultationEstimatedAt" },
+  { colName: "First call at", key: "firstCallAt" },
 ];
 
 module.exports = {
@@ -526,11 +527,11 @@ module.exports = {
     }
 
     if (user && user.role === "translator") {
-      match = [{ translator: ObjectId(user.id) }];
+      match = [{ translator: new ObjectId(user.id) }];
     }
 
     if (user && user.role === "guest") {
-      match = [{ guest: ObjectId(user.id) }];
+      match = [{ guest: new ObjectId(user.id) }];
     }
 
     if (user && user.role === "expert") {
@@ -658,8 +659,29 @@ module.exports = {
       consultation.acceptedBy.name = `${consultation.acceptedBy.firstName} ${consultation.acceptedBy.lastName}`;
     }
     const mappedConsultation = {};
+    const dateFields = [
+      'createdAt',
+      'updatedAt',
+      'acceptedAt',
+      'closedAt',
+      'inviteScheduledFor',
+      'consultationCreatedAt',
+      'inviteCreatedAt',
+      'consultationEstimatedAt',
+      'firstCallAt',
+      'acceptedBy.createdAt',
+      'acceptedBy.updatedAt',
+      'owner.createdAt',
+      'owner.updatedAt'
+    ];
+
     columns.forEach((col) => {
-      mappedConsultation[col.colName] = _.get(consultation, col.key);
+      let value = _.get(consultation, col.key);
+
+      if (dateFields.includes(col.key) && typeof value === 'number' && value) {
+        value = moment(value).format('MM/DD/YYYY HH:mm:ss');
+      }
+      mappedConsultation[col.colName] = value;
     });
     return mappedConsultation;
   },
@@ -694,11 +716,32 @@ module.exports = {
       const doctorLanguage =
         doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
-      await sails.helpers.sms.with({
-        phoneNumber: doctor.notifPhoneNumber,
-        message: sails._t(doctorLanguage, "patient is ready", { url }),
-        senderEmail: doctor?.email,
-      });
+      if (doctor.messageService === '1') {
+        const type = "patient is ready";
+        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[doctorLanguage] || TwilioWhatsappConfig?.['en'];
+        const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
+        const args = {
+          language: doctorLanguage,
+          type,
+          languageConfig: TwilioWhatsappConfig,
+          url: tokenString,
+        }
+        const params = createParamsFromJson(args);
+        await sails.helpers.sms.with({
+          phoneNumber: doctor.notifPhoneNumber,
+          message: sails._t(doctorLanguage, "patient is ready", { url }),
+          senderEmail: doctor?.email,
+          whatsApp: true,
+          params,
+          twilioTemplatedId
+        });
+      } else {
+        await sails.helpers.sms.with({
+          phoneNumber: doctor.notifPhoneNumber,
+          message: sails._t(doctorLanguage, "patient is ready", { url }),
+          senderEmail: doctor?.email,
+        });
+      }
     }
   },
   // afterUpdate(consultation){

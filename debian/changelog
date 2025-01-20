@@ -1,3 +1,302 @@
+hcw-athome-backend (0.5.21) UNRELEASED; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Update to version 0.5.20.
+
+  [ Gor Grigoryan ]
+  * update create admin script
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 17 Jan 2025 13:56:51 +0000
+
+hcw-athome-backend (0.5.20) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix crash on finding conflicting Users
+  * fix crash on finding conflicting Users
+  * change check for conflicting user
+  * fix conflicting users search
+  * remove allowUseWhatsapp
+  * add server error on upload
+
+  [ Olivier Bitsch ]
+  * Added translation using Weblate (Ukrainian)
+  * Deleted translation using Weblate (Ukrainian)
+  * Added translation using Weblate (Ukrainian)
+
+  [ Gor Grigoryan ]
+  * add uk translations
+
+  [ Anonymous ]
+  * Translated using Weblate (Arabic)
+  * Translated using Weblate (Ukrainian)
+
+  [ Gor Grigoryan ]
+  * uk translations update
+  * sanitize some user inputs
+
+  [ Olivier Bitsch ]
+  * Add readme
+
+  [ Gor Grigoryan ]
+  * refs #7963, fix Backend crash
+  * update error not approved
+  * refs #7956,User pagination issue in admin
+  * fix condition in local login
+
+  [ Olivier Bitsch ]
+  * Fix link to docs
+
+  [ Gor Grigoryan ]
+  * create admin with script
+  * change create admin file location
+
+  [ Olivier Bitsch ]
+  * Adding cli folder into packages
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 17 Jan 2025 14:12:18 +0100
+
+hcw-athome-backend (0.5.6) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #7880, Auto-create should not auto create doctor if same email exists as another role
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 26 Nov 2024 11:11:43 +0100
+
+hcw-athome-backend (0.5.5) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Moving to new builder
+  * Moving to new builder
+
+  [ Gor Grigoryan ]
+  * create helper for creating whatsapp params
+  * support text in whatsapp config params
+  * refs #7645, add messageService for user
+  * refs #7645, Add a way for the doctor to get his notification over whatsapp
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 22 Nov 2024 10:38:30 +0100
+
+hcw-athome-backend (0.5.3) focal; urgency=medium
+
+  * add payload log for twillo whatsapp
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 15 Nov 2024 15:04:11 +0000
+
+hcw-athome-backend (5.2.16) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * New release 5.2.15
+  * Adding version in Dockerfile
+  * Translated using Weblate (French)
+  * Update README
+  * Update README
+  * Update README
+  * Update README
+
+  [ Weblate Admin ]
+  * Translated using Weblate (Italian)
+
+  [ Olivier Bitsch ]
+  * Update CSV header to english
+
+  [ Weblate Admin ]
+  * Translated using Weblate (French)
+
+  [ Gor Grigoryan ]
+  * refs #7818, Unable to save picture on Edge
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 05 Nov 2024 11:21:52 +0000
+
+hcw-athome-backend (5.2.15) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * refs #7765, Backend crash when guest is joining consultation
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 28 Oct 2024 11:03:51 +0100
+
+hcw-athome-backend (5.2.14) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * parse reminder time
+  * add joi for validation
+  * add joi schema for headers
+  * handle new params in whatsapp templates for invite reminders
+  * new env var FORM_REQUESTER_META,for requester form custom fields
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 28 Oct 2024 09:08:03 +0100
+
+hcw-athome-backend (5.2.13) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix Admin role cannot login in requester interface
+  * fix Admin role  login in requester interface
+  * fix variable in translation file
+  * change emails when consultation time is less than time now + configured reminder time
+  * fix for guest invite sms
+  * Disable survey by queue. Update the closing screen
+  * add metadata in invite form
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Thu, 17 Oct 2024 15:41:24 +0200
+
+hcw-athome-backend (5.2.9) focal; urgency=medium
+
+  * add patientTz to guestInvite
+  * fix timezone in invite
+  * fix variable in translation file
+  * set default timezone to utc if not provided, instead of guessing
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 14 Oct 2024 14:31:05 +0000
+
+hcw-athome-backend (5.2.6) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * add new locale
+  * fix create invite with patient timezone
+  * update invite fixes
+
+  [ Olivier Bitsch ]
+  * New release 5.2.5
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 14 Oct 2024 09:44:03 +0200
+
+hcw-athome-backend (5.2.5) focal; urgency=medium
+
+  * Handle timezone in patient time
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Oct 2024 18:07:20 +0200
+
+hcw-athome-backend (5.2.4) focal; urgency=medium
+
+  * Fix nginx default rules
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Fri, 11 Oct 2024 13:28:02 +0200
+
+hcw-athome-backend (5.2.3) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * New release 5.2.2
+  * Add version in root html
+
+  [ Gor Grigoryan ]
+  * add timezone to message
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 08 Oct 2024 15:49:26 +0200
+
+hcw-athome-backend (5.2.2) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix Log Forging and Reflected XSS issues
+  * refs #7620, Have parameter to choose <x> minute before sending reminder
+  * change autocreate user logic
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 02 Oct 2024 13:53:01 +0200
+
+hcw-athome-backend (5.2.1) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix security issues
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 30 Sep 2024 13:02:03 +0200
+
+hcw-athome-backend (5.2.0) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * New release 5.2.0
+
+  [ Gor Grigoryan ]
+  * refs #6765, Date for schedule invite are in english
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 24 Sep 2024 16:38:29 +0200
+
+hcw-athome-backend (5.1.10) focal; urgency=medium
+
+  [ Olivier Bitsch ]
+  * Adding terms variable and quick explanation
+  * Adding missing CONFIG_FILES vars
+
+  [ Gor Grigoryan ]
+  * handle crash on update user
+
+  [ Olivier Bitsch ]
+  * Adding terms variable and quick explanation
+  * Adding missing CONFIG_FILES vars
+
+  [ Gor Grigoryan ]
+  * handle crash on update user
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 24 Sep 2024 13:30:09 +0200
+
+hcw-athome-backend (5.1.9) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * fix not approved users login
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 24 Sep 2024 08:54:53 +0200
+
+hcw-athome-backend (5.1.8) focal; urgency=medium
+
+  [ Aram ]
+  * feat: set fallback language for whatsapp templates to english
+  * fix: backend crashed issue
+
+  [ Gor Grigoryan ]
+  * refs #7578, Remove Imad team column from csv
+  * refs #7472 Be able to edit and remove requesters in admin interfac
+  * refs #6640, Don't show message in backend when jwt expired
+  * refs #6829, Add Terms acceptance for Doctor
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Tue, 24 Sep 2024 08:21:18 +0200
+
+hcw-athome-backend (0.5.1.7) focal; urgency=medium
+
+  [ Aram ]
+  * fix:change guest invite ids
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 17:44:35 +0200
+
+hcw-athome-backend (0.5.1.5) focal; urgency=medium
+
+  [ Aram ]
+  * fix: twilio messages
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 17:38:29 +0200
+
+hcw-athome-backend (0.5.1.4) focal; urgency=medium
+
+  [ Aram ]
+  * add logs
+  * fix: sneding sms on scheduled invite
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 15:11:51 +0200
+
+hcw-athome-backend (0.5.1.3) focal; urgency=medium
+
+  [ Aram ]
+  * fix: move helpers.js to api/utils folder
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 13:11:38 +0200
+
+hcw-athome-backend (0.5.1.2) focal; urgency=medium
+
+  [ Aram ]
+  * feat: add CONFIG_FILES var to env and add safe import function
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 10:34:39 +0200
+
+hcw-athome-backend (0.5.1.1) focal; urgency=medium
+
+  [ Gor Grigoryan ]
+  * update password when updating user
+
+  [ Isshak Mrabet Deraoui ]
+  * Translated using Weblate (German)
+
+  [ Aram ]
+  * feat: add twilio teamplate config for whatsapp
+  * fix: twilio template variables order
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 16 Sep 2024 09:17:24 +0200
+
 hcw-athome-backend (5.1.0) focal; urgency=medium
 
   [ Gor Grigoryan ]

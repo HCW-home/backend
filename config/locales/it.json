@@ -45,5 +45,15 @@
     "translator is ready": "Salve,\n \nl'interprete ha accettato l'invito a partecipare al tuo consulto. Si prega di effettuare l'accesso a %(brand)s per attivare il servizio di assistenza.",
     "patient is ready": "C'è un paziente in attesa. È possibile fornire una stima del tempo di attesa utilizzando il seguente link %(url)s",
     "doctor delay in minutes": "Grazie per aver inoltrato la richiesta, prenderò in carico questo consulto tra circa %(ritardo)s minuti.",
-    "invalid email": "Email o password sbagliate"
+    "invalid email": "Email o password sbagliate",
+    "login successful": "Accesso riuscito",
+    "user not found": "Utente non trovato",
+    "expired code": "Codice scaduto",
+    "invalid verification code": "Codice di verifica non valido",
+    "SMS login successful": "Accesso SMS riuscito",
+    "expired token": "Token scaduto",
+    "password login is disabled": "L'accesso con password è disabilitato",
+    "browser cache": "La cache del tuo browser non è aggiornata, devi aggiornarla con CTRL+F5!",
+    "invalid token": "Token non valido",
+    "2FA login successful": "Accesso 2FA riuscito"
 }

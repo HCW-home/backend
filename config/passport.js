@@ -11,6 +11,7 @@ const passportCustom = require("passport-custom");
 const CustomStrategy = passportCustom.Strategy;
 
 const ActiveDirectory = require("activedirectory");
+const validator = require('validator');
 const config = {
   url: process.env.AD_URIS,
   baseDN: process.env.AD_BASE,
@@ -32,6 +33,7 @@ function getUserDetails(user) {
     viewAllQueues: user.viewAllQueues,
     doctorClientVersion: user.doctorClientVersion,
     notifPhoneNumber: user.notifPhoneNumber,
+    doctorTermsVersion: user.doctorTermsVersion,
     enableNotif: user.enableNotif,
   };
 }
@@ -39,6 +41,7 @@ function getUserDetails(user) {
 passport.serializeUser((user, cb) => {
   cb(null, user.id);
 });
+
 passport.deserializeUser((id, cb) => {
   User.findOne({ id }, (err, user) => {
     if (err) {
@@ -51,11 +54,11 @@ passport.deserializeUser((id, cb) => {
 passport.use(
   "invite",
   new CustomStrategy(async (req, callback) => {
-    // Do your custom user finding logic here, or set to false based on req object
+    const token = validator.escape(req.body.inviteToken)
     const invite = await PublicInvite.findOne({
       or: [
-        { inviteToken: req.body.inviteToken },
-        { expertToken: req.body.inviteToken }
+        { inviteToken: token },
+        { expertToken: token }
       ]
     });
 
@@ -67,7 +70,7 @@ passport.use(
       return callback({ invite: "cannot use this invite for login" }, null);
     }
 
-    const isExpert = invite.expertToken === req.body.inviteToken;
+    const isExpert = invite.expertToken === token;
 
     if (
       !isExpert && (
@@ -80,7 +83,7 @@ passport.use(
     }
 
     if (invite.status === "SENT") {
-      await PublicInvite.updateOne({ inviteToken: req.body.inviteToken }).set({
+      await PublicInvite.updateOne({ inviteToken: token }).set({
         status: "ACCEPTED",
       });
     }
@@ -88,6 +91,9 @@ passport.use(
     let user = await User.findOne({ role: { '!=': 'expert' }, username: invite.id });
 
     if (user && !isExpert) {
+      if (user.hasOwnProperty('status') && user.status !== "approved") {
+        return callback(new Error("User is not approved"));
+      }
       return callback(null, user);
     }
 
@@ -108,14 +114,14 @@ passport.use(
       newUser.phoneNumber = invite.phoneNumber;
     }
     if (req.body.phoneNumber) {
-      newUser.phoneNumberEnteredByPatient = req.body.phoneNumber;
+      newUser.phoneNumberEnteredByPatient = validator.escape(req.body.phoneNumber);
     }
 
     if (req.body.firstName) {
-      newUser.firstName = req.body.firstName;
+      newUser.firstName = validator.escape(req.body.firstName);
     }
     if (req.body.lastName) {
-      newUser.lastName = req.body.lastName;
+      newUser.lastName = validator.escape(req.body.lastName);
     }
 
     user = await User.create(newUser).fetch();
@@ -181,8 +187,8 @@ passport.use(
   new CustomStrategy(async (req, cb) => {
     const user = await User.findOne({ id: req.body.user });
     const { locale } = req.headers || {};
-    if (!user) {
-      return cb(null, false, { message: sails._t(locale, 'user not found') });
+    if (!user || (user.hasOwnProperty('status') && user.status !== "approved")) {
+      return cb(new Error('User is not approved'));
     }
     jwt.verify(
       user.smsVerificationCode,
@@ -214,13 +220,6 @@ passport.use(
         return cb(null, user, { message: sails._t(locale, 'SMS login successful') });
       }
     );
-    // bcrypt.compare(req.body.smsVerificationCode, user.smsVerificationCode, (err, res) => {
-    //   if (err) { return cb(err); }
-
-    //   if (!res) { return cb(null, false, { message: 'Invalid token' }); }
-
-    //   return cb(null, user, { message: 'SMS Login Successful' });
-    // });
   })
 );
 
@@ -229,8 +228,8 @@ passport.use(
   new CustomStrategy(async (req, cb) => {
     const user = await User.findOne({ id: req.body.user });
     const { locale } = req.headers || {};
-    if (!user) {
-      return cb(null, false, { message: sails._t(locale, 'user not found') });
+    if (!user || (user.hasOwnProperty('status') && user.status !== "approved")) {
+      return cb(new Error('User is not approved'));
     }
 
     jwt.verify(
@@ -277,6 +276,7 @@ passport.use(
     );
   })
 );
+
 passport.use(
   new LocalStrategy(
     {
@@ -300,6 +300,9 @@ passport.use(
             return cb(null, false, {
               message: sails._t(locale, 'invalid email'),
             });
+          }
+          if (user && user.hasOwnProperty('status') && user.status !== "approved") {
+            return cb(new Error('User is not approved'));
           }
           bcrypt.compare(password, user.password, (err, res) => {
             if (err) {
@@ -360,6 +363,9 @@ if ( process.env.LOGIN_METHOD === 'openid') {
         });
 
         if (user) {
+          if (user.hasOwnProperty('status') && user.status !== "approved") {
+            return cb(new Error('User is not approved'));
+          }
           const { token, refreshToken } = TokenService.generateToken(user) || {};
 
           user.token = token;
@@ -377,7 +383,6 @@ if ( process.env.LOGIN_METHOD === 'openid') {
   )
   passport.use('openidconnect_admin', openidConnectAdminStrategy);
 }
-
 
 let openidConnectNurseStrategy
 if (process.env.LOGIN_METHOD === 'openid') {
@@ -406,8 +411,15 @@ if (process.env.LOGIN_METHOD === 'openid') {
         });
 
         if (!user) {
-          return cb(new Error('User is not allowed to use this app'));
-        } else if (user && user.status === 'approved') {
+          const adminUser = await User.findOne({ email, role: sails.config.globals.ROLE_ADMIN });
+          if (adminUser) {
+            user = adminUser;
+          } else {
+            return cb(new Error('User is not allowed to use this app'));
+          }
+        }
+
+        if (user && user.status === 'approved') {
           const { token, refreshToken } = TokenService.generateToken(user) || {};
           user.token = token;
           user.refreshToken = refreshToken;
@@ -448,12 +460,17 @@ if (process.env.LOGIN_METHOD === 'openid') {
           return cb(new Error(err));
         }
         let user
+
+
         user = await User.findOne({
           email,
           role: sails.config.globals.ROLE_DOCTOR
         });
 
         if (user && user.role === sails.config.globals.ROLE_DOCTOR) {
+          if (user.hasOwnProperty('status') && user.status !== "approved") {
+            return cb(new Error('User is not approved'));
+          }
           user = await User.findOne({ id: user.id }).populate("allowedQueues");
         }
 
@@ -464,142 +481,33 @@ if (process.env.LOGIN_METHOD === 'openid') {
           });
         }
 
-
-        if (process.env.AD_ENABLE && process.env.AD_ENABLE !== "false") {
-          console.log(
-            "Sending AD request with filter: ",
-            `${ process.env.AD_ATTR_LOGIN }=${ profile[process.env.EMAIL_FIELD] }`
-          );
-          console.log("AD_URIS", process.env.AD_URIS);
-          var opts = {
-            filter: `${ process.env.AD_ATTR_LOGIN }=${ email }`,
-            includeMembership: ["user"],
-            includeDeleted: false,
-            attributes: [],
-          };
-          ad.find(opts, async function (err, results) {
-            if (err) {
-              console.error("ERROR: " + JSON.stringify(err));
-              return;
-            }
-
-            if (results.users && results.users.length) {
-              const adUser = results.users[0];
-              console.log("AD USER ", adUser);
-
-              const isHugMember = adUser.groups.find(
-                (g) => g.cn === process.env.AD_DOCTOR_GROUP
-              );
-              if (!isHugMember) {
-                console.log(
-                  `user is not a member of ${ process.env.AD_DOCTOR_GROUP } group `
-                );
-                return cb(new Error("User not member of Doctors group"));
-              }
-
-              if (!user) {
-                user = await User.create({
-                  email: adUser[process.env.AD_ATTR_EMAIL],
-                  firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
-                  lastName: adUser[process.env.AD_ATTR_LASTNAME],
-                  role: sails.config.globals.ROLE_DOCTOR,
-                  _function: adUser[process.env.AD_ATTR_FUNCTION],
-                  department: adUser[process.env.AD_ATTR_DEPARTMENT],
-                }).fetch();
-              } else {
-                await User.update({ id: user.id }).set({
-                  // email: adUser[process.env.AD_ATTR_EMAIL],
-                  firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
-                  lastName: adUser[process.env.AD_ATTR_LASTNAME],
-                  role: sails.config.globals.ROLE_DOCTOR,
-                  _function: adUser[process.env.AD_ATTR_FUNCTION],
-                  department: adUser[process.env.AD_ATTR_DEPARTMENT],
-                });
-              }
-
-              // remove user from all queues
-              if (user.allowedQueues && user.allowedQueues.length) {
-                await Promise.all(
-                  user.allowedQueues.map((queue) =>
-                    User.removeFromCollection(user.id, "allowedQueues", queue.id)
-                  )
-                );
-              }
-
-              // if queues
-              const queueNameRgx = new RegExp(process.env.AD_QUEUE_MAP);
-
-              const queueNames = adUser.groups
-                .map((g) =>
-                  g.cn.match(queueNameRgx) ? g.cn.match(queueNameRgx)[1] : null
-                )
-                .filter((q) => q);
-
-              console.log("Queues matched from ad ", queueNames);
-              if (queueNames.length) {
-                const db = Consultation.getDatastore().manager;
-                const queuesCollection = db.collection("queue");
-
-                // get queues by names regardless of case
-                const queuesCurs = await queuesCollection.find({
-                  name: { $in: queueNames.map((qn) => new RegExp(qn, "i")) },
-                });
-
-                const queues = await queuesCurs.toArray();
-
-                console.log("Got queues from db", queues);
-                await Promise.all(
-                  queues.map((queue) => {
-                    return User.addToCollection(
-                      user.id,
-                      "allowedQueues",
-                      queue._id.toString()
-                    );
-                  })
-                );
-              }
-
-              const { token, refreshToken } = TokenService.generateToken(user) || {};
-
-              user.token = token;
-              user.refreshToken = refreshToken;
-              return cb(null, user, { message: "Login Successful" });
-            } else {
-              console.log(
-                "%cpassport.js line:366 couldnt find user in AD",
-                "color: #007acc;",
-                `${ process.env.AD_ATTR_LOGIN }=${
-                  profile[process.env.AD_ATTR_EMAIL]
-                }`
-              );
-              return cb(new Error("User not found"));
-            }
+        if (!user) {
+          let conflictingUsers = await User.find({
+            email: email,
+            role: { in: [sails.config.globals.ROLE_NURSE, sails.config.globals.ROLE_SCHEDULER] }
           });
-        } else {
-          if (!user) {
-            console.log("Autocreate enabled, create user", profile);
-            if (process.env.OPENID_AUTOCREATE_USER && process.env.OPENID_AUTOCREATE_USER == 'true') {
-              user = await User.create({
-                email: email,
-                firstName: firstName || '',
-                lastName: lastName || '',
-                role: sails.config.globals.ROLE_DOCTOR
-              }).fetch();
-            } else {
-              return cb(new Error("User not found"));
-            }
 
+          if (conflictingUsers && conflictingUsers.length > 0) {
+            return cb(new Error('A user with this email already exists with a different role'));
           }
-          const { token, refreshToken } = TokenService.generateToken(user) || {};
 
-          user.token = token;
-          user.refreshToken = refreshToken;
-
-          console.log("JWT INFO", user);
-          return cb(null, user, { message: "Login Successful" });
+          user = await User.create({
+            email: email,
+            firstName: firstName || '',
+            lastName: lastName || '',
+            status: process.env.OPENID_AUTOCREATE_USER === 'true' ? 'approved' : 'not-approved',
+            role: sails.config.globals.ROLE_DOCTOR
+          }).fetch();
         }
+
+        const { token, refreshToken } = TokenService.generateToken(user) || {};
+
+        user.token = token;
+        user.refreshToken = refreshToken;
+
+        return cb(null, user, { message: "Login Successful" });
       } catch (error) {
-        sails.log("error cerating user ", error);
+        sails.log("error creating user ", error);
         return cb(error);
       }
     }
@@ -617,12 +525,10 @@ passport.use(
     const userDn = requestHeaders["x-ssl-client-s-dn"];
     const CNMatch = userDn.match(/CN=([^\/]+)/);
     const emailMatch = userDn.match(/emailAddress=([^\/\s]+)/);
-    // let email =  emailMatch? emailMatch[1] : null;
     const login = CNMatch && CNMatch[1] ? CNMatch[1].split(/\s+/)[0] : null;
     const firstName = login;
     const email = `${ firstName }@imad.ch`;
     const lastName = "UNKNOWN";
-    // let lastName = (CNMatch && CNMatch[1])? CNMatch[1].split(/\s+/)[1] : null;
 
     sails.log.debug("headers ", userDn, firstName, lastName, email);
 
@@ -646,6 +552,10 @@ passport.use(
         }
       }
 
+      if (user.hasOwnProperty('status') && user.status !== "approved") {
+        return cb(new Error('User is not approved'));
+      }
+
       const { token, refreshToken } = TokenService.generateToken(user) || {};
 
       user.token = token;
@@ -660,7 +570,6 @@ passport.use(
 
 const SamlStrategy = require("@node-saml/passport-saml").Strategy;
 let samlStrategy;
-console.log("env >>>> ", process.env.NODE_ENV);
 
 if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')) {
   samlStrategy = new SamlStrategy(
@@ -675,9 +584,7 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
       issuer: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? process.env.SAML_ISSUER : '',
       cert: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? process.env.SAML_CERT : '',
       decryptionPvk: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8") : '',
-      //signingCert: process.env.SAML_CERT,
       privateKey: (process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml') ? fs.readFileSync(process.env.SAML_PATH_KEY, "utf-8") : '',
-      //identifierFormat: "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
     },
     async (profile, cb) => {
       try {
@@ -689,151 +596,43 @@ if ((process.env.LOGIN_METHOD === 'both' || process.env.LOGIN_METHOD === 'saml')
         }
         let user = await User.findOne({
           email: profile[process.env.EMAIL_FIELD],
-          role: "doctor",
+          role: sails.config.globals.ROLE_DOCTOR,
         }).populate("allowedQueues");
 
-        if (process.env.AD_ENABLE && process.env.AD_ENABLE !== "false") {
-          console.log(
-            "Sending AD request with filter: ",
-            `${ process.env.AD_ATTR_LOGIN }=${ profile[process.env.EMAIL_FIELD] }`
-          );
-          console.log("AD_URIS", process.env.AD_URIS);
-          var opts = {
-            filter: `${ process.env.AD_ATTR_LOGIN }=${
-              profile[process.env.EMAIL_FIELD]
-            }`,
-            includeMembership: ["user"],
-            includeDeleted: false,
-            attributes: [],
-          };
-          ad.find(opts, async function (err, results) {
-            if (err) {
-              console.error("ERROR: " + JSON.stringify(err));
-              return;
-            }
 
-            if (results.users && results.users.length) {
-              const adUser = results.users[0];
-              console.log("AD USER ", adUser);
-
-              const isHugMember = adUser.groups.find(
-                (g) => g.cn === process.env.AD_DOCTOR_GROUP
-              );
-              if (!isHugMember) {
-                console.log(
-                  `user is not a member of ${ process.env.AD_DOCTOR_GROUP } group `
-                );
-                return cb(new Error("User not member of Doctors group"));
-              }
-
-              if (!user) {
-                user = await User.create({
-                  email: adUser[process.env.AD_ATTR_EMAIL],
-                  firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
-                  lastName: adUser[process.env.AD_ATTR_LASTNAME],
-                  role: sails.config.globals.ROLE_DOCTOR,
-                  _function: adUser[process.env.AD_ATTR_FUNCTION],
-                  department: adUser[process.env.AD_ATTR_DEPARTMENT],
-                }).fetch();
-              } else {
-                await User.update({ id: user.id }).set({
-                  // email: adUser[process.env.AD_ATTR_EMAIL],
-                  firstName: adUser[process.env.AD_ATTR_FIRSTNAME],
-                  lastName: adUser[process.env.AD_ATTR_LASTNAME],
-                  role: sails.config.globals.ROLE_DOCTOR,
-                  _function: adUser[process.env.AD_ATTR_FUNCTION],
-                  department: adUser[process.env.AD_ATTR_DEPARTMENT],
-                });
-              }
-
-              // remove user from all queues
-              if (user.allowedQueues && user.allowedQueues.length) {
-                await Promise.all(
-                  user.allowedQueues.map((queue) =>
-                    User.removeFromCollection(user.id, "allowedQueues", queue.id)
-                  )
-                );
-              }
-
-              // if queues
-              const queueNameRgx = new RegExp(process.env.AD_QUEUE_MAP);
-
-              const queueNames = adUser.groups
-                .map((g) =>
-                  g.cn.match(queueNameRgx) ? g.cn.match(queueNameRgx)[1] : null
-                )
-                .filter((q) => q);
-
-              console.log("Queues matched from ad ", queueNames);
-              if (queueNames.length) {
-                const db = Consultation.getDatastore().manager;
-                const queuesCollection = db.collection("queue");
-
-                // get queues by names regardless of case
-                const queuesCurs = await queuesCollection.find({
-                  name: { $in: queueNames.map((qn) => new RegExp(qn, "i")) },
-                });
-
-                const queues = await queuesCurs.toArray();
-
-                console.log("Got queues from db", queues);
-                await Promise.all(
-                  queues.map((queue) => {
-                    return User.addToCollection(
-                      user.id,
-                      "allowedQueues",
-                      queue._id.toString()
-                    );
-                  })
-                );
-              }
-
-              const { token, refreshToken } = TokenService.generateToken(user) || {};
-
-              user.token = token;
-              user.refreshToken = refreshToken;
-              return cb(null, user, { message: "Login Successful" });
-            } else {
-              console.log(
-                "%cpassport.js line:366 couldnt find user in AD",
-                "color: #007acc;",
-                `${ process.env.AD_ATTR_LOGIN }=${
-                  profile[process.env.AD_ATTR_EMAIL]
-                }`
-              );
-              return cb(new Error("User not found"));
-            }
+        if (!user) {
+          let conflictingUsers = await User.find({
+            email: profile[process.env.EMAIL_FIELD],
+            role: { in: [sails.config.globals.ROLE_NURSE, sails.config.globals.ROLE_SCHEDULER] }
           });
-        } else {
-          if (!user) {
-            console.log("Autocreate enabled, create user", profile);
-            if (process.env.SAML_AUTOCREATE_USER && process.env.SAML_AUTOCREATE_USER == 'true') {
-              user = await User.create({
-                email: profile[process.env.EMAIL_FIELD],
-                firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
-                lastName: profile[process.env.SAML_LASTNAME_FIELD],
-                role: sails.config.globals.ROLE_DOCTOR
-              }).fetch();
-            } else {
-              return cb(new Error("User not found"));
-            }
 
+          if (conflictingUsers && conflictingUsers.length > 0) {
+            return cb(new Error('A user with this email already exists with a different role'));
           }
-          const { token, refreshToken } = TokenService.generateToken(user) || {};
 
-          user.token = token;
-          user.refreshToken = refreshToken;
+          user = await User.create({
+              email: profile[process.env.EMAIL_FIELD],
+              firstName: profile[process.env.SAML_FIRSTNAME_FIELD],
+              lastName: profile[process.env.SAML_LASTNAME_FIELD],
+              role: sails.config.globals.ROLE_DOCTOR,
+              status: process.env.SAML_AUTOCREATE_USER === 'true' ? 'approved' : 'not-approved'
+            }).fetch();
+          }
 
-          return cb(null, user, { message: "Login Successful" });
-        }
+        const { token, refreshToken } = TokenService.generateToken(user) || {};
+
+        user.token = token;
+        user.refreshToken = refreshToken;
+
+        return cb(null, user, { message: "Login Successful" });
       } catch (error) {
-        sails.log("error cerating user ", error);
+        sails.log("error creating user ", error);
         return cb(error);
       }
     }
   );
 
   passport.use(samlStrategy);
-
 }
+
 exports.samlStrategy = samlStrategy;

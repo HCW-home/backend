@@ -14,6 +14,7 @@ const fileType = require("file-type");
 
 const _ = require("@sailshq/lodash");
 const validator = require("validator");
+const sanitize = require('mongo-sanitize');
 
 const db = Consultation.getDatastore().manager;
 
@@ -37,11 +38,11 @@ module.exports = {
     }
 
     if (req.user && req.user.role === "translator") {
-      match = [{ translator: ObjectId(req.user.id) }];
+      match = [{ translator: new ObjectId(req.user.id) }];
     }
 
     if (req.user && req.user.role === "guest") {
-      match = [{ guest: ObjectId(req.user.id) }];
+      match = [{ guest: new ObjectId(req.user.id) }];
     }
 
     if (req.user && req.user.role === "expert") {
@@ -227,7 +228,7 @@ module.exports = {
           "doctor.phoneNumber": 1,
           "nurse.firstName": 1,
           "nurse.lastName": 1,
-          "queue.name": 1,
+          "queue": 1,
           guest: {
             $arrayElemAt: ["$guest", 0],
           },
@@ -271,8 +272,9 @@ module.exports = {
       if (!req.body.invitationToken) {
         return res.status(200).send(null);
       }
+
       const subInvite = await PublicInvite.findOne({
-        inviteToken: req.body.invitationToken,
+        inviteToken: sanitize(req.body.invitationToken),
       });
       if (!subInvite) {
         return res.status(400).send();
@@ -294,10 +296,11 @@ module.exports = {
       // find patient invite
 
       if (!invite) {
+        const sanitizedToken = sanitize(req.body.invitationToken)
         invite = await PublicInvite.findOne({
           or: [
-            { inviteToken: req.body.invitationToken },
-            { expertToken: req.body.invitationToken },
+            { inviteToken: sanitizedToken },
+            { expertToken: sanitizedToken },
           ],
         });
       }
@@ -524,8 +527,9 @@ module.exports = {
 
       const mediasoupServer = mediasoupServers[serverIndex];
 
+      const id = validator.escape(req.params.consultation)
       const consultation = await Consultation.findOne({
-        _id: req.params.consultation,
+        _id: id,
       });
 
       const callerToken = await sails.helpers.getMediasoupToken.with({
@@ -753,7 +757,7 @@ module.exports = {
       msg.token = callerToken;
       return res.json({
         token: callerToken,
-        id: req.params.consultation,
+        id: sanitize(req.params.consultation),
         msg,
       });
     } catch (error) {
@@ -908,7 +912,8 @@ module.exports = {
 
   uploadFile(req, res) {
     const fileId = uuid.v4();
-    const { locale } = req.headers || {};
+    const locale = validator.escape(req.headers?.locale || 'en').trim();
+    const sanitizedLocale = locale || 'en';
 
     req.file("attachment").upload(
       {
@@ -922,12 +927,13 @@ module.exports = {
       async function whenDone(err, uploadedFiles) {
         if (err) {
           if (err.code === "E_EXCEEDS_UPLOAD_LIMIT") {
-            return res.status(413).send(sails._t(locale, "max file size"));
+            return res.status(413).send(sails._t(sanitizedLocale, "max file size"));
           }
-          return res.status(500).send(err);
+          sails.log.error("Upload error:", err);
+          return res.status(500).send(sails._t(sanitizedLocale, "server error"));
         }
         if (!uploadedFiles.length) {
-          return res.status(400).send(sails._t(locale, "no file"));
+          return res.status(400).send(sails._t(sanitizedLocale, "no file"));
         }
 
         const uploadedFile = uploadedFiles[0];
@@ -997,17 +1003,16 @@ module.exports = {
         "Content-disposition",
         `attachment; filename=${msg.fileName}`
       );
-      // res.setHeader(
-      //   "content-type",
-      //   "application/pdf"
-      // );
     }
+
     const filePath = `${sails.config.globals.attachmentsDir}/${msg.filePath}`;
 
     if (!fs.existsSync(filePath)) {
       return res.notFound();
     }
+    res.setHeader("Content-Type", msg.mimeType);
     const readStream = fs.createReadStream(filePath);
+    readStream.on('error', () => res.serverError());
 
     readStream.pipe(res);
   },
@@ -1106,7 +1111,7 @@ module.exports = {
       }
 
       const token = await sails.helpers.getMediasoupToken.with({
-        roomId: req.params.consultation,
+        roomId: sanitize(req.params.consultation),
         peerId: req.user.id,
         server: mediasoupServer,
       });
@@ -1244,6 +1249,7 @@ module.exports = {
         consultation: consultationId,
         type: "text",
         to: consultation.owner,
+        from: token.user,
       }).fetch();
       await Message.afterCreate(message, (err, message) => {});
 

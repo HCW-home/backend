@@ -1,3 +1,5 @@
+const {importFileIfExists, createParamsFromJson } = require('../utils/helpers');
+const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 module.exports = {
   sendExpertLink: async function (req, res) {
     try {
@@ -17,16 +19,30 @@ module.exports = {
       if (isPhoneNumber && !isEmail) {
         if (messageService === '1') {
           // WhatsApp
+          const type = "please use this link";
+          const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[req?.body?.language] || TwilioWhatsappConfig?.['en'];
+          const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
+
+          const args = {
+            language: req?.body?.language || "en",
+            type: type,
+            languageConfig: TwilioWhatsappConfig,
+            url: expertLink?.expertLink,
+          }
+          const params = createParamsFromJson(args);
+
           await sails.helpers.sms.with({
             phoneNumber: to,
-            message: sails._t(locale, "please use this link", {
+            message: sails._t(locale, type, {
               expertLink: expertLink?.expertLink,
             }),
             senderEmail: consultation.doctor?.email,
             whatsApp: true,
+            params,
+            twilioTemplatedId
           });
-        } else if(messageService === '2')  {
-        //   SMS
+        } else if (messageService === '2') {
+          //   SMS
           await sails.helpers.sms.with({
             phoneNumber: to,
             message: sails._t(locale, "please use this link", {

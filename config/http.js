@@ -9,9 +9,6 @@
  * https://sailsjs.com/config/http
  */
 
-const express = require('express');
-const bodyParser = require("body-parser");
-var skipper = require('skipper');
   module.exports.http = {
 
   /** **************************************************************************

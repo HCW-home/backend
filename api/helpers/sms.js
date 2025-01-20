@@ -187,10 +187,12 @@ function sendSmsWithTwilio(phoneNumber, message) {
  *
  * @param {string} message
  * @param {string} phoneNumber
+ * @param {string} contentSid
+ * @param {object} contentVariables
  * @returns {void}
  */
 
-function sendSmsWithTwilioWhatsapp(phoneNumber, message) {
+function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, contentVariables) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const twilioPhoneNumber = process.env.TWILIO_WHATSAPP_PHONE_NUMBER;
@@ -199,12 +201,20 @@ function sendSmsWithTwilioWhatsapp(phoneNumber, message) {
   return new Promise((resolve, reject) => {
     client.messages
       .create({
-        body: message,
+        contentSid: contentSid,
+        contentVariables: JSON.stringify(contentVariables),
         from: `whatsapp:${twilioPhoneNumber}`,
         to: `whatsapp:${phoneNumber}`,
       })
       .then((message) => {
+          console.log("paylod", {
+            contentSid: contentSid,
+            contentVariables: JSON.stringify(contentVariables),
+            from: `whatsapp:${twilioPhoneNumber}`,
+            to: `whatsapp:${phoneNumber}`,
+          })
         console.log('Twilio whatsapp SMS sent:', message.sid);
+        console.log('Twilio Template Id', contentSid);
         resolve(message.sid);
       })
       .catch((error) => {
@@ -453,6 +463,14 @@ module.exports = {
       type: 'boolean',
       required: false,
     },
+    params: {
+      type: {},
+      required: false,
+    },
+    twilioTemplatedId: {
+      type: 'string',
+      required: false,
+    },
   },
   exits: {
     success: {
@@ -462,7 +480,7 @@ module.exports = {
 
   async fn(inputs, exits) {
     try {
-      const { message, phoneNumber, senderEmail, whatsApp } = inputs;
+      const {message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params} = inputs || {};
 
       if (process.env.NODE_ENV === "development") {
         await sendSmsWithInLog(phoneNumber, message);
@@ -470,7 +488,7 @@ module.exports = {
       }
 
       if (whatsApp) {
-        sendSmsWithTwilioWhatsapp(phoneNumber, message);
+         await sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params);
         return exits.success();
       } else {
         const providers = await SmsProvider.find({
@@ -479,6 +497,18 @@ module.exports = {
         });
 
         for (const provider of providers) {
+
+          const prefixes = provider.prefix?.split(",");
+          const matchesPrefix = prefixes?.some((prefix) =>
+            prefix === "*" || phoneNumber?.startsWith(prefix)
+          );
+
+          if (!matchesPrefix) {
+            console.log(`Skipping provider ${provider.provider} - no matching prefix.`);
+            continue;
+          }
+
+
           try {
             console.log(`Sending an SMS to ${phoneNumber} through ${provider.provider}`);
 
