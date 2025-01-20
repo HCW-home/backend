@@ -25,6 +25,8 @@ hcw-athome-backend (0.5.20) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * add uk translations
+  * create appointment fhir crud
+  * fhire appointment imporovements
 
   [ Anonymous ]
   * Translated using Weblate (Arabic)
