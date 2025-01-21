@@ -483,6 +483,7 @@ module.exports = {
   async sendGuestInvite(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const testCallUrl =  `${process.env.PUBLIC_URL}/test-call`;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -504,7 +505,7 @@ module.exports = {
       invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
         ? sails._t(locale, 'scheduled guest invite', {
           inviteTime,
-          testingUrl,
+          testingUrl: testCallUrl,
           branding: process.env.BRANDING,
           doctorName,
         })
@@ -729,6 +730,7 @@ module.exports = {
           }),
           text: message,
         });
+        await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
       } catch (error) {
         console.log('error Sending patient invite email', error);
         if (!invite.phoneNumber) {
@@ -765,9 +767,6 @@ module.exports = {
 
         console.log('Creating ICS event...');
         ics.createEvent(event, async (error, value) => {
-          // const filePath = 'assets/event.ics';
-          // Save the .ics file data to disk
-          // fs.writeFileSync(filePath, value);
 
           if (error) {
             console.error('Error creating ICS event:', error);

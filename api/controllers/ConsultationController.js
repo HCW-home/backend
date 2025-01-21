@@ -600,7 +600,7 @@ module.exports = {
       ) {
         await PublicInvite.updateOne({
           inviteToken: consultation.invitationToken,
-        }).set({ status: "SENT" });
+        }).set({ status: 'SENT' });
 
         const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
         const locale =

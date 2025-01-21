@@ -67,6 +67,11 @@ const inviteJobs = {
         senderEmail: invite?.doctor?.email,
         whatsApp: false,
       });
+      if (invite.type === "PATIENT") {
+        await PublicInvite.updateOne({
+          id: invite.id,
+        }).set({ status: 'SENT' });
+      }
     }
   },
   FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
@@ -98,6 +103,11 @@ const inviteJobs = {
       }),
       text: sails.models.publicinvite.getReminderMessage(invite).secondReminderMessage,
     });
+    if (invite.type === "PATIENT") {
+      await PublicInvite.updateOne({
+        id: invite.id,
+      }).set({ status: 'SENT' });
+    }
   },
 };
 

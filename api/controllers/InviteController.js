@@ -565,6 +565,7 @@ module.exports = {
     if (invite.scheduledFor) {
       if (shouldSend) {
         invite.doctor = doctor;
+        await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SCHEDULED_FOR_INVITE' });
         await PublicInvite.setPatientOrGuestInviteReminders(invite);
         if (invite.emailAddress) {
           await PublicInvite.createAndSendICS(invite);
@@ -1150,14 +1151,15 @@ module.exports = {
       }
 
       const acknowledgmentStatuses = [
-        'PENDING',
         'SENT',
         'QUEUED',
+        'PENDING',
         'SENDING',
         'FAILED',
+        'SCHEDULED',
         'DELIVERED',
         'UNDELIVERED',
-        'SCHEDULED',
+        'SCHEDULED_FOR_INVITE',
       ];
 
       let requiresAcknowledgment = false;

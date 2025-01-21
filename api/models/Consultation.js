@@ -209,7 +209,7 @@ module.exports = {
     if (consultation.invitationToken) {
       await PublicInvite.updateOne({
         inviteToken: consultation.invitationToken,
-      }).set({ status: "SENT" });
+      }).set({ status: 'SENT' });
     }
 
     sails.sockets.broadcast(
