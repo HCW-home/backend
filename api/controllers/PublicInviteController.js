@@ -43,11 +43,12 @@ module.exports = {
   async createFhirAppointment(req, res) {
     try {
       const appointmentData = req.body;
+      console.log('appointmentData',appointmentData)
 
       FhirService.validateAppointmentData(appointmentData);
 
-      const inviteData = FhirService.serializeAppointmentToInvite(appointmentData);
-
+      const metadata = FhirService.createAppointmentMetadata(appointmentData)
+      const inviteData = FhirService.serializeAppointmentToInvite(appointmentData, metadata);
 
       const newInvite = await PublicInvite.create(inviteData).fetch();
 
