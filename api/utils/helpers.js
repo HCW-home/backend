@@ -56,8 +56,30 @@ function createParamsFromJson(args) {
   return params;
 }
 
+function parseTime(value, defaultValue) {
+  if (!value) return defaultValue;
+
+  const timeUnit = value.slice(-1);
+  const timeValue = parseInt(value.slice(0, -1), 10);
+
+  switch (timeUnit) {
+    case 's':
+      return timeValue * 1000;
+    case 'm':
+      return timeValue * 60 * 1000;
+    case 'h':
+      return timeValue * 60 * 60 * 1000;
+    case 'd':
+      return timeValue * 24 * 60 * 60 * 1000;
+    default:
+      return defaultValue;
+  }
+}
+
+
 
 module.exports = {
+  parseTime,
   importFileIfExists,
-  createParamsFromJson
+  createParamsFromJson,
 }

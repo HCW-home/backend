@@ -7,26 +7,9 @@
 const ics = require('ics');
 const moment = require('moment-timezone');
 moment.locale('fr');
+const crypto = require('crypto');
+const { importFileIfExists, createParamsFromJson, parseTime } = require('../utils/helpers');
 
-function parseTime(value, defaultValue) {
-  if (!value) return defaultValue;
-
-  const timeUnit = value.slice(-1);
-  const timeValue = parseInt(value.slice(0, -1), 10);
-
-  switch (timeUnit) {
-    case 's':
-      return timeValue * 1000;
-    case 'm':
-      return timeValue * 60 * 1000;
-    case 'h':
-      return timeValue * 60 * 60 * 1000;
-    case 'd':
-      return timeValue * 24 * 60 * 60 * 1000;
-    default:
-      return defaultValue;
-  }
-}
 
 function parseTimeOverride(envVar) {
   const match = envVar.match(/^(\d+)([smhd])$/);
@@ -82,8 +65,6 @@ const TIME_UNTIL_SCHEDULE = parseTime(OVERRIDE_TIME_UNTIL_SCHEDULE, DEFAULT_TIME
 
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
 const testingUrl = `${process.env.PUBLIC_URL}/acknowledge-invite`;
-const crypto = require('crypto');
-const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 async function generateToken() {

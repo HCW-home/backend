@@ -1,7 +1,15 @@
 const { CronJob } = require('cron');
-const {importFileIfExists} = require('../api/utils/helpers');
+const {importFileIfExists, parseTime } = require('../api/utils/helpers');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
-const CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000;
+
+const DELETE_CLOSED_CONSULTATION_AFTER = process.env.DELETE_CLOSED_CONSULTATION_AFTER;
+const DELETE_UNUSED_INVITE_AFTER = process.env.DELETE_UNUSED_INVITE_AFTER;
+
+const DEFAULT_CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000; // 1 day
+const DEFAULT_INVITATION_TIMEOUT = 24 * 60 * 60 * 1000; // 1 day
+
+const CONSULTATION_TIMEOUT = parseTime(DELETE_CLOSED_CONSULTATION_AFTER, DEFAULT_CONSULTATION_TIMEOUT);
+const INVITATION_TIMEOUT = parseTime(DELETE_UNUSED_INVITE_AFTER, DEFAULT_INVITATION_TIMEOUT);
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
 const inviteJobs = {
@@ -188,7 +196,7 @@ module.exports = {
               where: {
                 status: 'SENT',
                 type: 'PATIENT',
-                createdAt: { '<': new Date(now - CONSULTATION_TIMEOUT) },
+                createdAt: { '<': new Date(now - INVITATION_TIMEOUT) },
               }
             });
 
