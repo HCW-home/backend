@@ -15,6 +15,16 @@ function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   smsProviders.forEach(provider => {
     if (!provider.isDisabled && provider.prefix) {
       const prefixList = provider.prefix.split(',');
+      const excludedPrefixes = prefixList.filter(prefix => prefix.startsWith("!"));
+      const isExcluded = excludedPrefixes.some(excludedPrefix =>
+        phoneNumber.startsWith(excludedPrefix.substring(1))
+      );
+
+      if (isExcluded) {
+        console.log(`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+        return;
+      }
+
       if (prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix))) {
         const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[whatsappConfig?.language] || TwilioWhatsappConfig?.['en'];
         if (provider.provider.includes('WHATSAPP') && TwilioWhatsappConfigLanguage?.[whatsappConfig?.type]) {

@@ -521,6 +521,15 @@ module.exports = {
             continue;
           }
 
+          const excludedPrefixes = prefixes?.filter(prefix => prefix.startsWith("!"));
+          const isExcluded = excludedPrefixes?.some(excludedPrefix =>
+            phoneNumber?.startsWith(excludedPrefix.substring(1))
+          );
+
+          if (isExcluded) {
+            console.log(`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+            continue;
+          }
 
           try {
             console.log(`Sending an SMS to ${phoneNumber} through ${provider.provider}`);
@@ -559,7 +568,6 @@ module.exports = {
             console.error(`Failed to send SMS through ${provider.provider}:`, error);
           }
         }
-
       }
       console.error(
         'No SMS provider succeeded or phone number not whitelisted'
