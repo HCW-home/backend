@@ -113,6 +113,14 @@ module.exports = {
       model: "user",
       required: false,
     },
+    guestInvite: {
+      model: "publicInvite",
+      required: false,
+    },
+    translatorInvite: {
+      model: "publicInvite",
+      required: false,
+    },
     guest: {
       model: "user",
       required: false,

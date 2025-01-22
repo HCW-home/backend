@@ -111,7 +111,6 @@ module.exports = {
           lastMsg: {
             $arrayElemAt: ["$messages", -1],
           },
-
           messages: 1,
         },
       },
@@ -194,6 +193,14 @@ module.exports = {
         },
       },
       {
+        $lookup: {
+          from: "publicinvite",
+          localField: "consultation.guestInvite",
+          foreignField: "_id",
+          as: "guestInvite",
+        },
+      },
+      {
         $project: {
           guest: {
             phoneNumber: -1,
@@ -216,6 +223,9 @@ module.exports = {
           queue: {
             $arrayElemAt: ["$queue", 0],
           },
+          guestInvite: {
+            $arrayElemAt: ["$guestInvite", 0],
+          },
         },
       },
       {
@@ -229,6 +239,7 @@ module.exports = {
           "nurse.firstName": 1,
           "nurse.lastName": 1,
           "queue": 1,
+          guestInvite: 1,
           guest: {
             $arrayElemAt: ["$guest", 0],
           },
@@ -362,6 +373,9 @@ module.exports = {
           inviteToken: { in: subInvites.map((i) => i.id) },
           role: "guest",
         });
+        const guestInvite = subInvites.find((i) => i.type === "GUEST");
+        const translatorInvite = subInvites.find((i) => i.type === "TRANSLATOR");
+
         const translator = await User.findOne({
           inviteToken: { in: subInvites.map((i) => i.id) },
           role: "translator",
@@ -370,8 +384,14 @@ module.exports = {
         if (guest) {
           consultationJson.guest = guest.id;
         }
+        if (guestInvite) {
+          consultationJson.guestInvite = guestInvite.id;
+        }
         if (translator) {
           consultationJson.translator = translator.id;
+        }
+        if (translatorInvite) {
+          consultationJson.translatorInvite = translatorInvite.id;
         }
       }
     }

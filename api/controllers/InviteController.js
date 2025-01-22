@@ -390,6 +390,14 @@ module.exports = {
         inviteData.messageService = value.messageService;
       }
 
+      if (value.emailAddress) {
+        inviteData.messageService = '3';
+      }
+
+      if (value.sendLinkManually) {
+        inviteData.messageService = '4';
+      }
+
       if (value.guestMessageService) {
         inviteData.guestMessageService = value.guestMessageService;
       }
