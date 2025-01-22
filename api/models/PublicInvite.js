@@ -192,6 +192,10 @@ module.exports = {
       type: 'json',
       required: false,
     },
+    experts: {
+      type: 'json',
+      required: false,
+    },
   },
   customToJSON() {
     return _.omit(this, ['inviteToken', 'expertToken']);
@@ -877,6 +881,7 @@ module.exports = {
       }
     );
   },
+
   async refuseTranslatorRequest(translatorRequestInvite) {
     translatorRequestInvite = await PublicInvite.findOne({
       id: translatorRequestInvite.id,
@@ -936,6 +941,7 @@ module.exports = {
       translationOrganization: null,
     });
   },
+
   async cancelGuestInvite(patientInvite) {
     if (!patientInvite.guestInvite) return;
     await PublicInvite.updateOne({ id: patientInvite.id }).set({

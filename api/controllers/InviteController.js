@@ -394,9 +394,13 @@ module.exports = {
         inviteData.guestMessageService = value.guestMessageService;
       }
 
-      invite = await PublicInvite.create(inviteData).fetch();
+      if (value.experts && value.experts.length > 0) {
+        inviteData.experts = value.experts;
+      }
 
+      invite = await PublicInvite.create(inviteData).fetch();
       const experts = req.body.experts;
+
       const expertLink = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
 
       const doctorLanguage =
