@@ -236,6 +236,10 @@ module.exports = {
     const translator = await User.findOne({ id: consultation.translator });
     const guest = await User.findOne({ id: consultation.guest });
     const queue = await Queue.findOne({ id: consultation.queue });
+    let guestInvite = null;
+    if (consultation.guestInvite) {
+     guestInvite = await PublicInvite.findOne({ id: consultation.guestInvite });
+    }
 
     (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
@@ -249,11 +253,13 @@ module.exports = {
             translator,
             guest,
             queue,
+            guestInvite
           },
         });
       }
     );
   },
+
   async getConsultationParticipants(consultation) {
     const consultationParticipants = [consultation.owner];
     if (consultation.translator) {
