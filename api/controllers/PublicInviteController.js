@@ -2,6 +2,7 @@ const {importFileIfExists} = require('../utils/helpers');
 const validator = require('validator');
 const sanitize = require('mongo-sanitize');
 const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
+
 /**
  * PublicInviteController
  *
@@ -27,38 +28,51 @@ function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   });
 
   if (canSendSMS && canSendWhatsApp) {
-    return { code: 1, message: "You have to choose Whatsapp or SMS for sending this invite." };
+    return {code: 1, message: "You have to choose Whatsapp or SMS for sending this invite."};
   } else if (!canSendSMS && canSendWhatsApp) {
-    return { code: 2, message: "Invite will be send by WhatsApp." };
+    return {code: 2, message: "Invite will be send by WhatsApp."};
   } else if (canSendSMS && !canSendWhatsApp) {
-    return { code: 3, message: "Invite will be send by SMS." };
+    return {code: 3, message: "Invite will be send by SMS."};
   } else {
-    return { code: 0, message: "This phone number is not permitted to be used on this platform." };
+    return {code: 0, message: "This phone number is not permitted to be used on this platform."};
   }
 }
 
-
 module.exports = {
-
   async createFhirAppointment(req, res) {
     try {
       const appointmentData = req.body;
-      console.log('appointmentData',appointmentData)
 
-      FhirService.validateAppointmentData(appointmentData);
+      const {firstName, lastName, email} = await FhirService.validateAppointmentData(appointmentData);
 
       const metadata = FhirService.createAppointmentMetadata(appointmentData)
-      const inviteData = FhirService.serializeAppointmentToInvite(appointmentData, metadata);
+      const inviteData = FhirService.serializeAppointmentToInvite({
+        firstName,
+        lastName,
+        email,
+        appointmentData,
+        metadata
+      });
 
       const newInvite = await PublicInvite.create(inviteData).fetch();
 
-      console.log(newInvite, 'newInvite');
+      /** BEN **/
+      const userData = await FhirService.serializeAppointmentPatientToUser({
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        username: newInvite.id,
+        inviteToken: newInvite.id,
+      })
+
+      await User.create(userData);
+
       return res.status(201).json(newInvite);
     } catch (error) {
       if (error.message === 'Invalid FHIR data') {
-        return res.status(400).json({ error: error.message, details: error.details });
+        return res.status(400).json({error: error.message, details: error.details});
       }
-      return res.status(500).json({ error: 'An error occurred', details: error.message });
+      return res.status(500).json({error: 'An error occurred', details: error.message});
 
     }
   },
@@ -68,13 +82,13 @@ module.exports = {
       const invites = await PublicInvite.find();
       return res.status(200).json(invites);
     } catch (error) {
-      return res.status(500).json({ error: 'An error occurred', details: error.message });
+      return res.status(500).json({error: 'An error occurred', details: error.message});
     }
   },
 
   async getFhirAppointmentByField(req, res) {
     try {
-      const { inviteToken } = req.query;
+      const {inviteToken} = req.query;
 
       const publicInvite = await PublicInvite.findOne({
         inviteToken: inviteToken,
@@ -82,12 +96,12 @@ module.exports = {
 
 
       if (!publicInvite) {
-        return res.status(404).json({ error: 'Appointment not found' });
+        return res.status(404).json({error: 'Appointment not found'});
       }
 
       return res.status(200).json(publicInvite);
     } catch (error) {
-      return res.status(500).json({ error: 'An error occurred', details: error.message });
+      return res.status(500).json({error: 'An error occurred', details: error.message});
     }
   },
 
@@ -98,7 +112,7 @@ module.exports = {
       const appointmentData = req.body;
 
       if (!field || !value) {
-        return res.status(400).json({ error: 'Field and value are required' });
+        return res.status(400).json({error: 'Field and value are required'});
       }
 
       FhirService.validateAppointmentData(appointmentData);
@@ -110,56 +124,55 @@ module.exports = {
       }).set(inviteData);
 
       if (!updatedInvite) {
-        return res.status(404).json({ error: 'Appointment not found' });
+        return res.status(404).json({error: 'Appointment not found'});
       }
 
       return res.status(200).json(updatedInvite);
     } catch (error) {
       if (error.message === 'Invalid FHIR data') {
-        return res.status(400).json({ error: error.message, details: error.details });
+        return res.status(400).json({error: error.message, details: error.details});
       }
-      return res.status(500).json({ error: 'An error occurred', details: error.message });
+      return res.status(500).json({error: 'An error occurred', details: error.message});
     }
   },
 
-  async deleteFhirAppointmentByField (req, res) {
+  async deleteFhirAppointmentByField(req, res) {
     try {
 
-      const { inviteToken } = req.query;
+      const {inviteToken} = req.query;
 
       const deletedInvite = await PublicInvite.destroyOne({
         inviteToken: inviteToken,
       });
 
       if (!deletedInvite) {
-        return res.status(404).json({ error: 'Appointment not found' });
+        return res.status(404).json({error: 'Appointment not found'});
       }
 
-      return res.status(200).json({ message: 'Appointment deleted successfully' });
+      return res.status(200).json({message: 'Appointment deleted successfully'});
     } catch (error) {
-      return res.status(500).json({ error: 'An error occurred', details: error.message });
+      return res.status(500).json({error: 'An error occurred', details: error.message});
     }
   },
-
 
   async update(req, res) {
     const inviteId = sanitize(req.params.id);
 
-    const invite = await PublicInvite.findOne({id:inviteId});
+    const invite = await PublicInvite.findOne({id: inviteId});
 
-    if(!invite) {
+    if (!invite) {
       return res.notFound();
     }
 
     try {
-      const sanitizedBody  = sanitize(req.body);
-      const updatedInvite = await PublicInvite.updateOne({id:inviteId}).set(sanitizedBody);
+      const sanitizedBody = sanitize(req.body);
+      const updatedInvite = await PublicInvite.updateOne({id: inviteId}).set(sanitizedBody);
 
 
       // TODO: update respective guest and translator invites
-      if(invite.type === 'PATIENT'){
+      if (invite.type === 'PATIENT') {
         await PublicInvite.sendPatientInvite(invite)
-        if(invite.scheduledFor){
+        if (invite.scheduledFor) {
           await PublicInvite.setPatientOrGuestInviteReminders(invite)
         }
       }
@@ -176,7 +189,7 @@ module.exports = {
     const language = req.param('language');
     const phoneNumber = validator.escape(req.param('phoneNumber')).trim();
     if (!phoneNumber) {
-      return res.badRequest({ message: 'Phone number is required.' });
+      return res.badRequest({message: 'Phone number is required.'});
     }
 
     const providers = await SmsProvider.find({});
@@ -193,7 +206,6 @@ module.exports = {
 // async find (req, res) {
   //   console.log('getting public invites');
   //   const publicInviteCollection = db.collection('publicInvite');
-
 
 
   //   const parseBlueprintOptions = req.options.parseBlueprintOptions
