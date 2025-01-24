@@ -93,7 +93,6 @@ module.exports = {
         const patientInvite = await PublicInvite.findOne({ id: translatorRequestInvite.patientInvite }).populate('guestInvite').populate('doctor');
         await PublicInvite.sendTranslatorInvite(translatorInvite, newUser.email);
 
-        // send patient invite
         patientInvite.translatorInvite.doctor = patientInvite.doctor
 
         if (patientInvite.emailAddress || patientInvite.phoneNumber) {

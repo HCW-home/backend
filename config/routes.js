@@ -98,16 +98,18 @@ module.exports.routes = {
   'POST /api/v1/invite/:invite/consultation/close': 'InviteController.closeConsultation',
   'GET /api/v1/invite/by-token/:invitationToken': 'InviteController.findByToken',
   'GET /api/v1/invite/status/:invitationToken': 'InviteController.checkInviteStatus',
-  'POSt /api/v1/invite/acknowledge': 'InviteController.acknowledgeInvite',
+  'POST /api/v1/invite/acknowledge': 'InviteController.acknowledgeInvite',
 
   'POST /api/v1/translator/accept/:translationRequestToken': 'TranslatorController.acceptRequest',
   'POST /api/v1/translator/refuse/:translationRequestToken': 'TranslatorController.refuseRequest',
   'GET /api/v1/translator/consultation': 'TranslatorController.findConsultation',
 
   'POST /api/v1/templates/submit': 'WhatsappTemplateController.submitTemplate',
+  'POST /api/v1/templates/bulk-submit': 'WhatsappTemplateController.bulkSubmitTemplates',
   'GET /api/v1/templates': 'WhatsappTemplateController.fetchTemplates',
   'DELETE /api/v1/templates/delete': 'WhatsappTemplateController.deleteTemplate',
   'POST /api/v1/templates/refresh-status': 'WhatsappTemplateController.refreshStatus',
+  'PATCH /api/v1/templates/:id': 'WhatsappTemplateController.updateTemplateBody',
 
   'POST /api/v1/twilio/status-callback': 'TwilioController.statusCallback',
 

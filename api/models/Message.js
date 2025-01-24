@@ -6,8 +6,6 @@
  */
 const RINGING_TIMEOUT = 5 * 60 * 1000;
 const CALL_DURATION_TIMEOUT = 2 * 60 * 60 * 1000;
-const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 module.exports = {
   attributes: {
@@ -265,26 +263,31 @@ module.exports = {
             const type = 'notification for offline action text for doctor';
             const doctorLanguage =
               toUser.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
-            const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[doctorLanguage] || TwilioWhatsappConfig?.['en'];
-            const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
 
-            const args = {
-              language: doctorLanguage,
-              type,
-              languageConfig: TwilioWhatsappConfig,
-            };
-            const params = createParamsFromJson(args);
-            await sails.helpers.sms.with({
-              phoneNumber: toUser?.notifPhoneNumber,
-              message: sails._t(
-                doctorLang,
-                'notification for offline action text for doctor'
-              ),
-              senderEmail: toUser?.email,
-              whatsApp: true,
-              params,
-              twilioTemplatedId
-            });
+            if (doctorLanguage) {
+              const template = await WhatsappTemplate.findOne({ language: doctorLanguage, key: type, approvalStatus: 'approved' });
+              if (template && template.sid) {
+                const twilioTemplatedId = template.sid;
+                const params = {};
+                if (twilioTemplatedId) {
+                  await sails.helpers.sms.with({
+                    phoneNumber: toUser?.notifPhoneNumber,
+                    message: sails._t(
+                      doctorLang,
+                      'notification for offline action text for doctor'
+                    ),
+                    senderEmail: toUser?.email,
+                    whatsApp: true,
+                    params,
+                    twilioTemplatedId
+                  });
+                } else {
+                  console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+                }
+              } else {
+                console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+              }
+            }
           } else {
             await sails.helpers.sms.with({
               phoneNumber: toUser?.notifPhoneNumber,

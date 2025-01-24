@@ -24,8 +24,8 @@ module.exports = {
 
       const payload = {
         friendly_name,
-        language: language,
-        category: category,
+        language,
+        category,
         variables,
         types: {
           [contentType]: {

@@ -149,10 +149,13 @@ module.exports.policies = {
     findOne: ["isLoggedIn", "canInvite", "isInviteOwner"],
   },
   WhatsappTemplateController: {
-    fetchTemplates: ["isLoggedIn", "isAdmin"],
-    submitTemplate: ["isLoggedIn", "isAdmin"],
-    deleteTemplate: ["isLoggedIn", "isAdmin"],
+    "*": false,
     refreshStatus: ["isLoggedIn", "isAdmin"],
+    fetchTemplates: ["isLoggedIn", "isAdmin"],
+    deleteTemplate: ["isLoggedIn", "isAdmin"],
+    submitTemplate: ["isLoggedIn", "isAdmin"],
+    updateTemplateBody: ["isLoggedIn", "isAdmin"],
+    bulkSubmitTemplates: ["isLoggedIn", "isAdmin"],
   },
   QueueController: {
     "*": false,

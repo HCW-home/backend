@@ -1,6 +1,22 @@
 const TemplatesConfig = require('../../config/templates');
 
+function convertPlaceholders(template) {
+  if (!template) {
+    return '';
+  }
+
+  let index = 1;
+  return template.replace(/%\((.*?)\)s/g, (_, key) => {
+    if (key === 'url' || key === 'testingUrl') {
+      return '';
+    }
+    return `{{${index++}}}`;
+  });
+}
+
+
 module.exports = {
+
   async syncTemplates() {
     const requiredTemplates = TemplatesConfig.requiredTemplates;
 
@@ -12,7 +28,7 @@ module.exports = {
       for (const template of requiredTemplates) {
         for (const language of supportedLanguages) {
           const friendlyName = `${template.key
-            .replace(/\s+/g, "_")
+            .replace(/\s+/g, '_')
             .toLowerCase()}_${language}`;
 
           const existingTemplate = existingTemplates.find(
@@ -24,15 +40,26 @@ module.exports = {
               `Template "${template.key}" is missing for language "${language}". Creating...`
             );
 
+            const translatedActions = (template.actions || []).map((action) => ({
+              title: sails._t(language, `${action.title}`),
+              url: action.url,
+              type: action.type || 'URL',
+            }));
+
+
+            const body = convertPlaceholders(sails._t(language, template.key));
+
             await WhatsappTemplate.create({
               key: template.key,
               friendlyName: friendlyName,
-              body: sails._t(language, template.key),
+              // body: sails._t(language, 'whatsappTemplates.' + template.key),
+              body,
               language,
               category: template.category,
               contentType: template.contentType,
               variables: template.variables,
-              approvalStatus: "draft",
+              actions: translatedActions,
+              approvalStatus: 'draft',
             });
 
             sails.log.info(
@@ -46,9 +73,9 @@ module.exports = {
         }
       }
 
-      sails.log.info("Template synchronization completed.");
+      sails.log.info('Template synchronization completed.');
     } catch (error) {
-      sails.log.error("Error during template synchronization:", error);
+      sails.log.error('Error during template synchronization:', error);
     }
   },
 };

@@ -6,182 +6,179 @@
  */
 
 const { ObjectId } = require('mongodb');
-const _ = require("@sailshq/lodash");
+const _ = require('@sailshq/lodash');
 const moment = require('moment');
-const {importFileIfExists, createParamsFromJson } = require('../utils/helpers');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 const columns = [
-  { colName: "Invite sent at", key: "inviteCreatedAt" },
-  { colName: "Consultation scheduled at", key: "inviteScheduledFor" },
-  { colName: "Waiting queue", key: "queue.name" },
-  { colName: "Patient jointed consultation at", key: "consultationCreatedAt" },
-  { colName: "Consultation closed at", key: "closedAt" },
-  { colName: "Total call with answer", key: "successfulCallsCount" },
-  { colName: "Total call without answer", key: "missedCallsCount" },
-  { colName: "Call average", key: "averageCallDuration" },
-  { colName: "Satisfaction rate patient", key: "patientRating" },
-  { colName: "Satisfaction message patient", key: "patientComment" },
-  { colName: "Satisfaction rate caregiver", key: "doctorRating" },
-  { colName: "Satisfaction message caregiver", key: "doctorComment" },
-  { colName: "Department", key: "acceptedBy.department" },
-  { colName: "Function", key: "acceptedBy._function" },
-  { colName: "caregiver ID", key: "acceptedBy.id" },
+  { colName: 'Invite sent at', key: 'inviteCreatedAt' },
+  { colName: 'Consultation scheduled at', key: 'inviteScheduledFor' },
+  { colName: 'Waiting queue', key: 'queue.name' },
+  { colName: 'Patient jointed consultation at', key: 'consultationCreatedAt' },
+  { colName: 'Consultation closed at', key: 'closedAt' },
+  { colName: 'Total call with answer', key: 'successfulCallsCount' },
+  { colName: 'Total call without answer', key: 'missedCallsCount' },
+  { colName: 'Call average', key: 'averageCallDuration' },
+  { colName: 'Satisfaction rate patient', key: 'patientRating' },
+  { colName: 'Satisfaction message patient', key: 'patientComment' },
+  { colName: 'Satisfaction rate caregiver', key: 'doctorRating' },
+  { colName: 'Satisfaction message caregiver', key: 'doctorComment' },
+  { colName: 'Department', key: 'acceptedBy.department' },
+  { colName: 'Function', key: 'acceptedBy._function' },
+  { colName: 'caregiver ID', key: 'acceptedBy.id' },
   {
-    colName: "Number of participant joined",
-    key: "numberOfEffectiveParticipants",
+    colName: 'Number of participant joined',
+    key: 'numberOfEffectiveParticipants',
   },
   {
-    colName: "Number of participant expected",
-    key: "numberOfPlannedParticipants",
+    colName: 'Number of participant expected',
+    key: 'numberOfPlannedParticipants',
   },
-  { colName: "Languages", key: "languages" },
-  { colName: "Translation organization", key: "translationOrganization" },
-  { colName: "Translator name", key: "interpreterName" },
-  { colName: "Handling estimated at", key: "consultationEstimatedAt" },
-  { colName: "First call at", key: "firstCallAt" },
+  { colName: 'Languages', key: 'languages' },
+  { colName: 'Translation organization', key: 'translationOrganization' },
+  { colName: 'Translator name', key: 'interpreterName' },
+  { colName: 'Handling estimated at', key: 'consultationEstimatedAt' },
+  { colName: 'First call at', key: 'firstCallAt' },
 ];
 
 module.exports = {
   attributes: {
     firstName: {
-      type: "string",
+      type: 'string',
       required: true,
     },
     lastName: {
-      type: "string",
+      type: 'string',
       required: true,
     },
     gender: {
-      type: "string",
-      isIn: ["male", "female", "other", "unknown"],
+      type: 'string',
+      isIn: ['male', 'female', 'other', 'unknown'],
       required: true,
     },
     birthDate: {
-      type: "string",
+      type: 'string',
     },
     IMADTeam: {
-      type: "string",
+      type: 'string',
       required: true,
     },
     invitationToken: {
-      type: "string",
+      type: 'string',
       required: false,
     },
     expertInvitationURL: {
-      type: "string",
+      type: 'string',
       required: false,
     },
     flagPatientNotified: {
-      type: "boolean",
+      type: 'boolean',
       required: false,
     },
     flagDoctorNotified: {
-      type: "boolean",
+      type: 'boolean',
       required: false,
     },
     experts: {
-      type: "json",
-      columnType: "array",
+      type: 'json',
+      columnType: 'array',
       defaultsTo: [],
     },
     status: {
-      type: "string",
-      isIn: ["pending", "active", "closed"],
+      type: 'string',
+      isIn: ['pending', 'active', 'closed'],
       // default:'pending',
       required: true,
     },
     type: {
-      type: "string",
-      isIn: ["PATIENT", "GUEST", "TRANSLATOR"],
+      type: 'string',
+      isIn: ['PATIENT', 'GUEST', 'TRANSLATOR'],
     },
     queue: {
-      model: "queue",
+      model: 'queue',
       required: false,
     },
     acceptedBy: {
-      model: "user",
+      model: 'user',
     },
     owner: {
-      model: "user",
+      model: 'user',
       required: false,
     },
     invitedBy: {
-      model: "user",
+      model: 'user',
     },
     translator: {
-      model: "user",
+      model: 'user',
       required: false,
     },
     guestInvite: {
-      model: "publicInvite",
+      model: 'publicInvite',
       required: false,
     },
     translatorInvite: {
-      model: "publicInvite",
+      model: 'publicInvite',
       required: false,
     },
     guest: {
-      model: "user",
+      model: 'user',
       required: false,
     },
     acceptedAt: {
-      type: "number",
+      type: 'number',
     },
     closedAt: {
-      type: "number",
+      type: 'number',
     },
     patientRating: {
-      type: "string",
+      type: 'string',
       required: false,
     },
     patientComment: {
-      type: "string",
+      type: 'string',
       required: false,
     },
     doctorRating: {
-      type: "string",
+      type: 'string',
       required: false,
     },
     doctorComment: {
-      type: "string",
+      type: 'string',
       required: false,
     },
     // the doctor who sent the invite
     doctor: {
-      model: "user",
+      model: 'user',
       required: false,
     },
-    // patient invite
     invite: {
-      model: "PublicInvite",
+      model: 'PublicInvite',
       required: false,
     },
     flagPatientOnline: {
-      type: "boolean",
+      type: 'boolean',
       required: false,
     },
     flagGuestOnline: {
-      type: "boolean",
+      type: 'boolean',
       required: false,
     },
 
     flagTranslatorOnline: {
-      type: "boolean",
+      type: 'boolean',
       required: false,
     },
     flagDoctorOnline: {
-      type: "boolean",
+      type: 'boolean',
       required: false,
     },
     scheduledFor: {
-      type: "number",
+      type: 'number',
     },
     consultationEstimatedAt: {
-      type: "number",
+      type: 'number',
     },
     firstCallAt: {
-      type: "number",
+      type: 'number',
     },
   },
 
@@ -196,7 +193,7 @@ module.exports = {
       });
       if (defaultQueue) {
         console.log(
-          "Assigning the default queue to the consultation as no queue is set"
+          'Assigning the default queue to the consultation as no queue is set'
         );
         consultation.queue = defaultQueue.id;
       }
@@ -211,7 +208,7 @@ module.exports = {
   },
 
   async beforeDestroy(criteria, proceed) {
-    console.log("DELETE CONSULTATION", criteria);
+    console.log('DELETE CONSULTATION', criteria);
     const consultation = await Consultation.findOne({ _id: criteria.where.id });
     await Message.destroy({ consultation: criteria.where.id });
     if (consultation.invitationToken) {
@@ -222,9 +219,9 @@ module.exports = {
 
     sails.sockets.broadcast(
       consultation.queue || consultation.doctor,
-      "consultationCanceled",
+      'consultationCanceled',
       {
-        event: "consultationCanceled",
+        event: 'consultationCanceled',
         data: { _id: criteria.where.id, consultation: criteria.where },
       }
     );
@@ -238,13 +235,13 @@ module.exports = {
     const queue = await Queue.findOne({ id: consultation.queue });
     let guestInvite = null;
     if (consultation.guestInvite) {
-     guestInvite = await PublicInvite.findOne({ id: consultation.guestInvite });
+      guestInvite = await PublicInvite.findOne({ id: consultation.guestInvite });
     }
 
     (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
-        sails.sockets.broadcast(participant, "newConsultation", {
-          event: "newConsultation",
+        sails.sockets.broadcast(participant, 'newConsultation', {
+          event: 'newConsultation',
           data: {
             _id: consultation.id,
             unreadCount: 0,
@@ -274,7 +271,7 @@ module.exports = {
     if (consultation.owner) {
       consultationParticipants.push(consultation.owner);
     }
-    if (consultation.status === "pending" && consultation.queue) {
+    if (consultation.status === 'pending' && consultation.queue) {
       consultationParticipants.push(consultation.queue);
     }
     if (
@@ -292,7 +289,7 @@ module.exports = {
   },
 
   async findBy(args) {
-    return  Consultation.find(args);
+    return Consultation.find(args);
   },
 
   async getAnonymousDetails(consultation) {
@@ -329,11 +326,11 @@ module.exports = {
 
           const translatorInvite = await PublicInvite.findOne({
             patientInvite: invite.id,
-            type: "TRANSLATOR",
+            type: 'TRANSLATOR',
           });
           const guestInvite = await PublicInvite.findOne({
             patientInvite: invite.id,
-            type: "GUEST",
+            type: 'GUEST',
           });
 
           anonymousConsultation.numberOfPlannedParticipants =
@@ -343,14 +340,14 @@ module.exports = {
 
           const translationRequestInvite = await PublicInvite.findOne({
             patientInvite: invite.id,
-            type: "TRANSLATOR_REQUEST",
-          }).populate("translationOrganization");
+            type: 'TRANSLATOR_REQUEST',
+          }).populate('translationOrganization');
 
           if (translationRequestInvite) {
             anonymousConsultation.languages =
-              sails._t("fr", translationRequestInvite.doctorLanguage) +
-              ", " +
-              sails._t("fr", translationRequestInvite.patientLanguage);
+              sails._t('fr', translationRequestInvite.doctorLanguage) +
+              ', ' +
+              sails._t('fr', translationRequestInvite.patientLanguage);
 
             anonymousConsultation.translationOrganization =
               translationRequestInvite.translationOrganization.name;
@@ -364,7 +361,7 @@ module.exports = {
           }
         }
       } catch (error) {
-        console.log("Error finding invite ", error);
+        console.log('Error finding invite ', error);
       }
     }
 
@@ -372,28 +369,28 @@ module.exports = {
       const doctorTextMessagesCount = await Message.count({
         from: consultation.acceptedBy,
         consultation: consultation.id,
-        type: "text",
+        type: 'text',
       });
       const patientTextMessagesCount = await Message.count({
         from: consultation.owner,
         consultation: consultation.id,
-        type: "text",
+        type: 'text',
       });
       const missedCallsCount = await Message.count({
         consultation: consultation.id,
-        type: { in: ["videoCall", "audioCall"] },
+        type: { in: ['videoCall', 'audioCall'] },
         acceptedAt: 0,
       });
       const successfulCalls = await Message.find({
         consultation: consultation.id,
-        type: { in: ["videoCall", "audioCall"] },
-        acceptedAt: { "!=": 0 },
-        closedAt: { "!=": 0 },
-      }).populate("participants");
+        type: { in: ['videoCall', 'audioCall'] },
+        acceptedAt: { '!=': 0 },
+        closedAt: { '!=': 0 },
+      }).populate('participants');
       const successfulCallsCount = await Message.count({
         consultation: consultation.id,
-        type: { in: ["videoCall", "audioCall"] },
-        acceptedAt: { "!=": 0 },
+        type: { in: ['videoCall', 'audioCall'] },
+        acceptedAt: { '!=': 0 },
       });
 
       const callDurations = successfulCalls.map(
@@ -413,11 +410,11 @@ module.exports = {
       anonymousConsultation.successfulCallsCount = successfulCallsCount;
       anonymousConsultation.averageCallDuration = averageCallDuration;
 
-      console.log("anonymous consultation ", anonymousConsultation);
+      console.log('anonymous consultation ', anonymousConsultation);
     } catch (error) {
-      console.log("Error counting messages ", error);
+      console.log('Error counting messages ', error);
     }
-    console.log("create anonymous ", anonymousConsultation);
+    console.log('create anonymous ', anonymousConsultation);
 
     return anonymousConsultation;
   },
@@ -425,7 +422,7 @@ module.exports = {
     // emit consultation closed event with the consultation
     (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
-        sails.sockets.broadcast(participant, "consultationClosed", {
+        sails.sockets.broadcast(participant, 'consultationClosed', {
           data: {
             consultation,
             _id: consultation.id,
@@ -435,7 +432,7 @@ module.exports = {
     );
   },
   async closeConsultation(consultation) {
-    if (consultation.status === "closed") {
+    if (consultation.status === 'closed') {
       return;
     }
     const db = Consultation.getDatastore().manager;
@@ -448,7 +445,7 @@ module.exports = {
       );
       await AnonymousConsultation.create(anonymousConsultation);
     } catch (error) {
-      console.error("Error Saving anonymous details ", error);
+      console.error('Error Saving anonymous details ', error);
     }
 
     if (consultation.invitationToken) {
@@ -460,16 +457,16 @@ module.exports = {
           await PublicInvite.destroyPatientInvite(patientInvite);
         }
       } catch (error) {
-        console.error("Error destroying Invite ", error);
+        console.error('Error destroying Invite ', error);
       }
     }
 
-    const messageCollection = db.collection("message");
-    const consultationCollection = db.collection("consultation");
+    const messageCollection = db.collection('message');
+    const consultationCollection = db.collection('consultation');
     try {
       const callMessages = await Message.find({
         consultation: consultation.id,
-        type: { in: ["videoCall", "audioCall"] },
+        type: { in: ['videoCall', 'audioCall'] },
       });
       // const callMessages = await callMessagesCursor.toArray();
       // save info for stats
@@ -481,10 +478,10 @@ module.exports = {
           })
         );
       } catch (error) {
-        console.log("Error creating anonymous calls ", error);
+        console.log('Error creating anonymous calls ', error);
       }
     } catch (error) {
-      console.log("Error finding messages ", error);
+      console.log('Error finding messages ', error);
     }
     if (!consultation.queue) {
       consultation.queue = null;
@@ -495,7 +492,7 @@ module.exports = {
       { _id: new ObjectId(consultation.id) },
       {
         $set: {
-          status: "closed",
+          status: 'closed',
           closedAtISO: closedAt,
           closedAt: closedAt.getTime(),
         },
@@ -514,7 +511,7 @@ module.exports = {
       { multi: true }
     );
 
-    consultation.status = "closed";
+    consultation.status = 'closed';
     consultation.closedAtISO = closedAt;
     consultation.closedAt = closedAt.getTime();
 
@@ -528,7 +525,7 @@ module.exports = {
         owner: new ObjectId(user.id),
       },
     ];
-    if (user && user.role === "doctor") {
+    if (user && user.role === 'doctor') {
       match = [
         {
           acceptedBy: new ObjectId(user.id),
@@ -540,19 +537,19 @@ module.exports = {
       ];
     }
 
-    if (user && user.role === "translator") {
+    if (user && user.role === 'translator') {
       match = [{ translator: new ObjectId(user.id) }];
     }
 
-    if (user && user.role === "guest") {
+    if (user && user.role === 'guest') {
       match = [{ guest: new ObjectId(user.id) }];
     }
 
-    if (user && user.role === "expert") {
+    if (user && user.role === 'expert') {
       match = [{ experts: user.id }];
     }
 
-    if (user && user.role === "admin") {
+    if (user && user.role === 'admin') {
       match = [
         {
           acceptedBy: new ObjectId(user.id),
@@ -568,7 +565,7 @@ module.exports = {
         (queue) => new ObjectId(queue.id)
       );
       match.push({
-        status: "pending",
+        status: 'pending',
         queue: { $in: queues },
       });
     }
@@ -577,7 +574,7 @@ module.exports = {
       const queues = user.allowedQueues.map((queue) => new ObjectId(queue.id));
 
       match.push({
-        status: "pending",
+        status: 'pending',
         queue: { $in: queues },
       });
     }
@@ -587,7 +584,7 @@ module.exports = {
 
   async changeOnlineStatus(user, isOnline) {
     const db = Consultation.getDatastore().manager;
-    const consultationCollection = db.collection("consultation");
+    const consultationCollection = db.collection('consultation');
 
     const match = await Consultation.getUserConsultationsFilter(user);
     const result = await consultationCollection.find({ $or: match });
@@ -595,8 +592,8 @@ module.exports = {
 
     for (const consultation of userConsultations) {
       switch (user.role) {
-        case "patient":
-        case "nurse":
+        case 'patient':
+        case 'nurse':
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagPatientOnline: isOnline,
             flagPatientNotified: false,
@@ -604,20 +601,20 @@ module.exports = {
           consultation.flagPatientOnline = isOnline;
           consultation.flagPatientNotified = false;
           break;
-        case "guest":
+        case 'guest':
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagGuestOnline: isOnline,
           });
           consultation.flagGuestOnline = isOnline;
           break;
-        case "translator":
+        case 'translator':
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagTranslatorOnline: isOnline,
           });
           consultation.flagTranslatorOnline = isOnline;
           break;
-        case "admin":
-        case "doctor":
+        case 'admin':
+        case 'doctor':
           await Consultation.update({ id: consultation._id.toString() }).set({
             flagDoctorOnline: isOnline,
             flagDoctorNotified: false,
@@ -625,7 +622,7 @@ module.exports = {
           consultation.flagDoctorOnline = isOnline;
           consultation.flagDoctorNotified = false;
           break;
-        case "expert":
+        case 'expert':
           const expertsFlags = await Consultation.findOne({
             id: consultation._id.toString(),
           });
@@ -648,7 +645,7 @@ module.exports = {
         const participantId = participant.toString();
         if (participantId === user.id) continue;
 
-        sails.sockets.broadcast(participantId, "onlineStatusChange", {
+        sails.sockets.broadcast(participantId, 'onlineStatusChange', {
           data: {
             consultation: {
               flagPatientOnline: consultation.flagPatientOnline,
@@ -717,7 +714,7 @@ module.exports = {
         value: consultation.id,
       }).fetch();
       const db = Consultation.getDatastore().manager;
-      const tokenCollection = db.collection("token");
+      const tokenCollection = db.collection('token');
       await tokenCollection.updateOne(
         { _id: new ObjectId(token.id) },
         {
@@ -731,28 +728,36 @@ module.exports = {
         doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
       if (doctor.messageService === '1') {
-        const type = "patient is ready";
-        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[doctorLanguage] || TwilioWhatsappConfig?.['en'];
-        const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-        const args = {
-          language: doctorLanguage,
-          type,
-          languageConfig: TwilioWhatsappConfig,
-          url: tokenString,
+        const type = 'patient is ready';
+        if (doctorLanguage) {
+          const template = await WhatsappTemplate.findOne({ language: doctorLanguage, key: type, approvalStatus: 'approved' });
+          if (template && template.sid) {
+            const twilioTemplatedId = template.sid;
+            const params = {
+              1: tokenString
+            };
+            if (twilioTemplatedId) {
+              await sails.helpers.sms.with({
+                phoneNumber: doctor.notifPhoneNumber,
+                message: sails._t(doctorLanguage, 'patient is ready', { url }),
+                senderEmail: doctor?.email,
+                whatsApp: true,
+                params,
+                twilioTemplatedId
+              });
+            } else {
+              console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+            }
+          } else {
+            console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+          }
         }
-        const params = createParamsFromJson(args);
-        await sails.helpers.sms.with({
-          phoneNumber: doctor.notifPhoneNumber,
-          message: sails._t(doctorLanguage, "patient is ready", { url }),
-          senderEmail: doctor?.email,
-          whatsApp: true,
-          params,
-          twilioTemplatedId
-        });
+
+
       } else {
         await sails.helpers.sms.with({
           phoneNumber: doctor.notifPhoneNumber,
-          message: sails._t(doctorLanguage, "patient is ready", { url }),
+          message: sails._t(doctorLanguage, 'patient is ready', { url }),
           senderEmail: doctor?.email,
         });
       }

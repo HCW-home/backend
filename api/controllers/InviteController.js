@@ -10,9 +10,7 @@ const Joi = require('joi');
 
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
-const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
 const sanitize = require('mongo-sanitize');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
 // /**
 //  *
@@ -425,26 +423,32 @@ module.exports = {
               //  WhatsApp
               if (messageService === '1') {
                 const type = 'please use this link';
-                const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[inviteData?.patientLanguage] || TwilioWhatsappConfig?.['en'];
-                const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-                const args = {
-                  language: inviteData?.patientLanguage || "en",
-                  type,
-                  languageConfig: TwilioWhatsappConfig,
-                  url: invite.expertToken,
+                if (inviteData.patientLanguage) {
+                  const template = await WhatsappTemplate.findOne({ language: inviteData.patientLanguage, key: type, approvalStatus: 'approved' });
+                  console.log(template, 'template');
+                  if (template && template.sid) {
+                    const twilioTemplatedId = template.sid;
+                    const params = {
+                      1: invite.expertToken
+                    };
+                    if (twilioTemplatedId) {
+                      await sails.helpers.sms.with({
+                        phoneNumber: expertContact,
+                        message: sails._t(doctorLanguage, type, {
+                          expertLink: expertLink,
+                        }),
+                        senderEmail: inviteData.doctorData?.email,
+                        whatsApp: true,
+                        params,
+                        twilioTemplatedId
+                      });
+                    } else {
+                      console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+                    }
+                  } else {
+                    console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+                  }
                 }
-                const params = createParamsFromJson(args)
-
-                await sails.helpers.sms.with({
-                  phoneNumber: expertContact,
-                  message: sails._t(doctorLanguage, type, {
-                    expertLink: expertLink,
-                  }),
-                  senderEmail: inviteData.doctorData?.email,
-                  whatsApp: true,
-                  params,
-                  twilioTemplatedId
-                });
               } else if (messageService === '2') {
                 await sails.helpers.sms.with({
                   phoneNumber: expertContact,
@@ -1198,39 +1202,39 @@ module.exports = {
   },
   async acknowledgeInvite(req, res) {
     try {
-    const { inviteToken } = req.body;
+      const { inviteToken } = req.body;
 
-    if (!inviteToken) {
-      return res.status(400).json({
+      if (!inviteToken) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing inviteToken',
+        });
+      }
+
+      const invite = await PublicInvite.findOne({ inviteToken });
+
+      if (!invite) {
+        return res.status(404).json({
+          success: false,
+          message: 'Invite not found',
+        });
+      }
+
+      await PublicInvite.updateOne({ inviteToken }).set({ status: 'ACKNOWLEDGED' });
+
+      return res.json({
+        success: true,
+        message: 'Invite status updated to ACKNOWLEDGED',
+      });
+
+    } catch (error) {
+      return res.status(500).json({
         success: false,
-        message: 'Missing inviteToken',
+        message: 'An unexpected error occurred',
+        error: error.message,
       });
     }
-
-    const invite = await PublicInvite.findOne({ inviteToken });
-
-    if (!invite) {
-      return res.status(404).json({
-        success: false,
-        message: 'Invite not found',
-      });
-    }
-
-    await PublicInvite.updateOne({ inviteToken }).set({ status: 'ACKNOWLEDGED' });
-
-    return res.json({
-      success: true,
-      message: 'Invite status updated to ACKNOWLEDGED',
-    });
-
-  } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: 'An unexpected error occurred',
-      error: error.message,
-    });
-  }
-},
+  },
 
   async getConsultation(req, res) {
     const inviteId = req.params.invite || req.params.id;

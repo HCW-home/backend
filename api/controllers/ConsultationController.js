@@ -297,14 +297,12 @@ module.exports = {
         return res.status(400).send();
       }
 
-      // if the patient invite has contact details
       if (invite.emailAddress || invite.phoneNumber) {
         return res.status(200).send(null);
       }
       req.body.invitationToken = invite.inviteToken;
     }
     if (req.body.invitationToken) {
-      // find patient invite
 
       if (!invite) {
         const sanitizedToken = sanitize(req.body.invitationToken)

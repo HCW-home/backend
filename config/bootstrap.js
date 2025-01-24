@@ -79,9 +79,9 @@ module.exports.bootstrap = async function() {
     }
   }
 
-  // sails.log.info("Starting template synchronization...");
-  // await syncTemplates();
-  // sails.log.info("Template synchronization completed.");
+  sails.log.info("Starting template synchronization...");
+  await syncTemplates();
+  sails.log.info("Template synchronization completed.");
 
 
   // check and delete expired files
