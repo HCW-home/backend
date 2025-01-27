@@ -111,7 +111,6 @@ module.exports = {
           lastMsg: {
             $arrayElemAt: ["$messages", -1],
           },
-
           messages: 1,
         },
       },
@@ -194,6 +193,14 @@ module.exports = {
         },
       },
       {
+        $lookup: {
+          from: "publicinvite",
+          localField: "consultation.guestInvite",
+          foreignField: "_id",
+          as: "guestInvite",
+        },
+      },
+      {
         $project: {
           guest: {
             phoneNumber: -1,
@@ -216,6 +223,9 @@ module.exports = {
           queue: {
             $arrayElemAt: ["$queue", 0],
           },
+          guestInvite: {
+            $arrayElemAt: ["$guestInvite", 0],
+          },
         },
       },
       {
@@ -229,6 +239,7 @@ module.exports = {
           "nurse.firstName": 1,
           "nurse.lastName": 1,
           "queue": 1,
+          guestInvite: 1,
           guest: {
             $arrayElemAt: ["$guest", 0],
           },
@@ -286,14 +297,12 @@ module.exports = {
         return res.status(400).send();
       }
 
-      // if the patient invite has contact details
       if (invite.emailAddress || invite.phoneNumber) {
         return res.status(200).send(null);
       }
       req.body.invitationToken = invite.inviteToken;
     }
     if (req.body.invitationToken) {
-      // find patient invite
 
       if (!invite) {
         const sanitizedToken = sanitize(req.body.invitationToken)
@@ -362,6 +371,9 @@ module.exports = {
           inviteToken: { in: subInvites.map((i) => i.id) },
           role: "guest",
         });
+        const guestInvite = subInvites.find((i) => i.type === "GUEST");
+        const translatorInvite = subInvites.find((i) => i.type === "TRANSLATOR");
+
         const translator = await User.findOne({
           inviteToken: { in: subInvites.map((i) => i.id) },
           role: "translator",
@@ -370,8 +382,14 @@ module.exports = {
         if (guest) {
           consultationJson.guest = guest.id;
         }
+        if (guestInvite) {
+          consultationJson.guestInvite = guestInvite.id;
+        }
         if (translator) {
           consultationJson.translator = translator.id;
+        }
+        if (translatorInvite) {
+          consultationJson.translatorInvite = translatorInvite.id;
         }
       }
     }
@@ -600,7 +618,7 @@ module.exports = {
       ) {
         await PublicInvite.updateOne({
           inviteToken: consultation.invitationToken,
-        }).set({ status: "SENT" });
+        }).set({ status: 'SENT' });
 
         const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
         const locale =
@@ -677,16 +695,22 @@ module.exports = {
         }
       }
 
+      const hideCallerName = sails.config.globals.hideCallerName;
       console.log("SEND CALL TO", calleeId);
       sails.sockets.broadcast(calleeId, "newCall", {
         data: {
           consultation: req.params.consultation,
           token: patientToken,
           id: req.params.consultation,
-          user: {
-            firstName: user.firstName,
-            lastName: user.lastName,
-          },
+          user: hideCallerName
+            ? {
+              firstName: "Anonymous",
+              lastName: "",
+            }
+            : {
+              firstName: user.firstName,
+              lastName: user.lastName,
+            },
           audioOnly: req.query.audioOnly === "true",
           msg: patientMsg,
         },

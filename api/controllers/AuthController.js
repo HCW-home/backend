@@ -356,6 +356,7 @@ module.exports = {
         return res.status(200).json({
           localLoginToken,
           user: user.id,
+          role: user.role,
         });
       } else {
         if (user.smsVerificationCode) {
@@ -915,6 +916,7 @@ module.exports = {
       formRequesterMeta: process.env.FORM_REQUESTER_META
         ? process.env.FORM_REQUESTER_META.split(",")
         : "",
+      hideCallerName: sails.config.globals.hideCallerName,
       doctorLanguages,
       patientLanguages
     });

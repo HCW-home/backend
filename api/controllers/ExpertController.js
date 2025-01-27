@@ -1,51 +1,51 @@
-const {importFileIfExists, createParamsFromJson } = require('../utils/helpers');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 module.exports = {
-  sendExpertLink: async function (req, res) {
+  sendExpertLink: async function(req, res) {
     try {
       const { expertLink, to, consultationId, messageService } = req.body;
       const { locale } = req.headers || {};
 
       let consultation = await Consultation.findOne({
         id: consultationId,
-      }).populate("doctor")
+      }).populate('doctor');
 
       if (!expertLink) {
-        return res.badRequest({ message: "expertLink is required" });
+        return res.badRequest({ message: 'expertLink is required' });
       }
       const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(to);
-      const isEmail = to.includes("@");
+      const isEmail = to.includes('@');
 
       if (isPhoneNumber && !isEmail) {
         if (messageService === '1') {
           // WhatsApp
-          const type = "please use this link";
-          const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[req?.body?.language] || TwilioWhatsappConfig?.['en'];
-          const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-
-          const args = {
-            language: req?.body?.language || "en",
-            type: type,
-            languageConfig: TwilioWhatsappConfig,
-            url: expertLink?.expertLink,
+          const type = 'please use this link';
+          const language = req?.body?.language || 'en';
+          const template = await WhatsappTemplate.findOne({ language, key: type, approvalStatus: 'approved' });
+          console.log(template, 'template');
+          if (template && template.sid) {
+            const twilioTemplatedId = template.sid;
+            const params = {
+              1: expertLink?.expertLink
+            };
+            if (twilioTemplatedId) {
+              await sails.helpers.sms.with({
+                phoneNumber: to,
+                message: sails._t(locale, type, {
+                  expertLink: expertLink?.expertLink,
+                }),
+                senderEmail: consultation.doctor?.email,
+                whatsApp: true,
+                params,
+                twilioTemplatedId
+              });
+            } else {
+              console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+            }
           }
-          const params = createParamsFromJson(args);
-
-          await sails.helpers.sms.with({
-            phoneNumber: to,
-            message: sails._t(locale, type, {
-              expertLink: expertLink?.expertLink,
-            }),
-            senderEmail: consultation.doctor?.email,
-            whatsApp: true,
-            params,
-            twilioTemplatedId
-          });
         } else if (messageService === '2') {
           //   SMS
           await sails.helpers.sms.with({
             phoneNumber: to,
-            message: sails._t(locale, "please use this link", {
+            message: sails._t(locale, 'please use this link', {
               expertLink: expertLink?.expertLink,
             }),
             senderEmail: consultation.doctor?.email,
@@ -54,17 +54,17 @@ module.exports = {
         }
 
 
-        return res.ok({ message: "SMS sent successfully" });
+        return res.ok({ message: 'SMS sent successfully' });
       } else if (isEmail && !isPhoneNumber) {
         await sails.helpers.email.with({
           to,
-          subject: sails._t(locale, "consultation link"),
-          text: sails._t(locale, "please use this link", {
+          subject: sails._t(locale, 'consultation link'),
+          text: sails._t(locale, 'please use this link', {
             expertLink: expertLink?.expertLink,
           }),
         });
 
-        return res.ok({ message: "Email sent successfully" });
+        return res.ok({ message: 'Email sent successfully' });
       } else {
         return res.badRequest({
           message:
@@ -72,8 +72,8 @@ module.exports = {
         });
       }
     } catch (error) {
-      sails.log.error("Error sending message", error);
-      return res.serverError({ message: "Error sending message" });
+      sails.log.error('Error sending message', error);
+      return res.serverError({ message: 'Error sending message' });
     }
   },
 };

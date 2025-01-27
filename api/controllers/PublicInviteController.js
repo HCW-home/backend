@@ -1,31 +1,40 @@
-const {importFileIfExists} = require('../utils/helpers');
 const validator = require('validator');
 const sanitize = require('mongo-sanitize');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
 
-/**
- * PublicInviteController
- *
- * @description :: Server-side actions for handling incoming requests.
- * @help        :: See https://sailsjs.com/docs/concepts/actions
- */
-function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
+async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
   let canSendWhatsApp = false;
 
-  smsProviders.forEach(provider => {
+  for (const provider of smsProviders) {
     if (!provider.isDisabled && provider.prefix) {
       const prefixList = provider.prefix.split(',');
-      if (prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix))) {
-        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[whatsappConfig?.language] || TwilioWhatsappConfig?.['en'];
-        if (provider.provider.includes('WHATSAPP') && TwilioWhatsappConfigLanguage?.[whatsappConfig?.type]) {
+      const excludedPrefixes = prefixList.filter(prefix => prefix.startsWith("!"));
+      const isExcluded = excludedPrefixes.some(excludedPrefix =>
+        phoneNumber.startsWith(excludedPrefix.substring(1))
+      );
+
+      if (isExcluded) {
+        console.log(`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+        continue;
+      }
+
+      const prefixMatches = prefixList.includes('*') || prefixList.some(prefix => prefix && phoneNumber.startsWith(prefix));
+      if (prefixMatches) {
+        const whatsappTemplate = await WhatsappTemplate.findOne({
+          language: whatsappConfig?.language,
+          approvalStatus: 'approved',
+          key: whatsappConfig?.type,
+          sid: { '!=': null },
+        });
+
+        if (provider.provider.includes('WHATSAPP') && whatsappTemplate) {
           canSendWhatsApp = true;
         } else {
           canSendSMS = true;
         }
       }
     }
-  });
+  }
 
   if (canSendSMS && canSendWhatsApp) {
     return {code: 1, message: "You have to choose Whatsapp or SMS for sending this invite."};
@@ -193,7 +202,7 @@ module.exports = {
     }
 
     const providers = await SmsProvider.find({});
-    const status = determineStatus(phoneNumber, providers, {type, language});
+    const status = await determineStatus(phoneNumber, providers, {type, language});
 
     return res.ok({
       phoneNumber: phoneNumber,
@@ -201,42 +210,5 @@ module.exports = {
       message: status.message
     });
   }
-
-
-// async find (req, res) {
-  //   console.log('getting public invites');
-  //   const publicInviteCollection = db.collection('publicInvite');
-
-
-  //   const parseBlueprintOptions = req.options.parseBlueprintOptions
-  //   || req._sails.config.blueprints.parseBlueprintOptions
-  //   || req._sails.hooks.blueprints.parseBlueprintOptions;
-  //   const queryOptions = parseBlueprintOptions(req);
-  //   console.log('query opetions ', queryOptions);
-  //   let queues = [];
-  //   if (req.user.allowedQueues && req.user.allowedQueues.length > 0) {
-  //     queues = req.user.allowedQueues.map(q => q.id);
-  //   } else if (req.user.viewAllQueues) {
-  //     queues = await Queue.find({});
-  //     queues = queues.map(q => q.id);
-  //   }
-
-
-  //   const publicInvites = await PublicInvite.find({
-  //     where: {
-  //       or: [
-  //         {
-  //           doctor: req.user.id
-  //         }, {
-  //           queue: queues
-  //         }
-  //       ]
-  //     }
-  //   });
-
-
-  //   return res.json(publicInvites);
-  // }
-
 
 };

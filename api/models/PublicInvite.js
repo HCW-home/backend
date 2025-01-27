@@ -7,26 +7,9 @@
 const ics = require('ics');
 const moment = require('moment-timezone');
 moment.locale('fr');
+const crypto = require('crypto');
+const { parseTime } = require('../utils/helpers');
 
-function parseTime(value, defaultValue) {
-  if (!value) return defaultValue;
-
-  const timeUnit = value.slice(-1);
-  const timeValue = parseInt(value.slice(0, -1), 10);
-
-  switch (timeUnit) {
-    case 's':
-      return timeValue * 1000;
-    case 'm':
-      return timeValue * 60 * 1000;
-    case 'h':
-      return timeValue * 60 * 60 * 1000;
-    case 'd':
-      return timeValue * 24 * 60 * 60 * 1000;
-    default:
-      return defaultValue;
-  }
-}
 
 function parseTimeOverride(envVar) {
   const match = envVar.match(/^(\d+)([smhd])$/);
@@ -66,7 +49,6 @@ function generateTimePhrase(count, unit, locale) {
 }
 
 
-
 const OVERRIDE_FIRST_INVITE_REMINDER = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
 const OVERRIDE_SECOND_INVITE_REMINDER = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
 const OVERRIDE_TIME_UNTIL_SCHEDULE = process.env.OVERRIDE_TIME_UNTIL_SCHEDULE;
@@ -81,10 +63,7 @@ const TIME_UNTIL_SCHEDULE = parseTime(OVERRIDE_TIME_UNTIL_SCHEDULE, DEFAULT_TIME
 
 
 const TRANSLATOR_REQUEST_TIMEOUT = 24 * 60 * 60 * 1000;
-const testingUrl = `${process.env.PUBLIC_URL}/test-call`;
-const crypto = require('crypto');
-const { importFileIfExists, createParamsFromJson } = require('../utils/helpers');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
+const testingUrl = `${process.env.PUBLIC_URL}/acknowledge-invite`;
 
 async function generateToken() {
   const buffer = await new Promise((resolve, reject) => {
@@ -119,6 +98,10 @@ module.exports = {
       type: 'string',
       required: false,
     },
+    whatsappMessageSid: {
+      type: 'string',
+      required: false,
+    },
     emailAddress: {
       type: 'string',
       isEmail: true,
@@ -131,7 +114,13 @@ module.exports = {
     },
     status: {
       type: 'string',
-      isIn: ['PENDING', 'SENT', 'ACCEPTED', 'COMPLETE', 'REFUSED', 'CANCELED'],
+      isIn: [
+        'PENDING', 'SENT', 'ACCEPTED', 'COMPLETE', 'REFUSED', 'CANCELED',
+        'ACKNOWLEDGED', 'SCHEDULED_FOR_INVITE',
+        //   whatsapp statuses
+        'QUEUED', 'SENDING', 'FAILED', 'DELIVERED',
+        'UNDELIVERED', 'RECEIVING', 'RECEIVED', 'SCHEDULED', 'READ', 'PARTIALLY_DELIVERED'
+      ],
       defaultsTo: 'SENT',
     },
     queue: {
@@ -198,6 +187,10 @@ module.exports = {
       type: 'string',
     },
     metadata: {
+      type: 'json',
+      required: false,
+    },
+    experts: {
       type: 'json',
       required: false,
     },
@@ -381,11 +374,12 @@ module.exports = {
     }
     const timeUntilScheduled = scheduledTime - currentTime;
 
+    let testUrl = testingUrl + `/${invite.inviteToken}`;
     const message =
       invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
         ? sails._t(locale, 'scheduled patient invite', {
           inviteTime,
-          testingUrl,
+          testingUrl: testUrl,
           branding: process.env.BRANDING,
           doctorName,
         })
@@ -432,31 +426,55 @@ module.exports = {
       } else {
         if (invite.messageService === '1') {
           const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? 'scheduled patient invite' : 'patient invite';
-          const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
-          const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-
-          const args = {
-            language: invite?.patientLanguage || 'en',
-            type,
-            languageConfig: TwilioWhatsappConfig,
-            url: invite.inviteToken,
-            inviteDateTime: inviteTime,
-          }
-
-          const params = createParamsFromJson(args);
-
-          try {
-            await sails.helpers.sms.with({
-              phoneNumber: invite.phoneNumber,
-              message,
-              senderEmail: invite?.doctor?.email,
-              whatsApp: true,
-              params,
-              twilioTemplatedId
+          if (invite.patientLanguage) {
+            const template = await WhatsappTemplate.findOne({
+              language: invite.patientLanguage,
+              key: type,
+              approvalStatus: 'approved'
             });
-          } catch (error) {
-            console.log('ERROR SENDING SMS>>>>>>>> ', error);
-            return Promise.reject(error);
+            console.log(template, 'template');
+            if (template && template.sid) {
+              const twilioTemplatedId = template.sid;
+              let params = {};
+              if (type === 'patient invite') {
+                params = {
+                  1: process.env.BRANDING,
+                  2: invite.inviteToken
+                };
+              } else if (type === 'scheduled patient invite') {
+                params = {
+                  1: process.env.BRANDING,
+                  2: inviteTime,
+                  3: invite.inviteToken
+                };
+              }
+
+              if (twilioTemplatedId) {
+                try {
+                  const whatsappMessageSid = await sails.helpers.sms.with({
+                    phoneNumber: invite.phoneNumber,
+                    message,
+                    senderEmail: invite?.doctor?.email,
+                    whatsApp: true,
+                    params,
+                    twilioTemplatedId,
+                    statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
+                  });
+                  if (whatsappMessageSid) {
+                    await PublicInvite.updateOne({
+                      id: invite.id,
+                    }).set({ whatsappMessageSid });
+                  }
+                } catch (error) {
+                  console.log('ERROR SENDING SMS>>>>>>>> ', error);
+                  return Promise.reject(error);
+                }
+              } else {
+                console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+              }
+            } else {
+              console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+            }
           }
         }
       }
@@ -471,6 +489,7 @@ module.exports = {
   async sendGuestInvite(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const testCallUrl = `${process.env.PUBLIC_URL}/test-call`;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -492,7 +511,7 @@ module.exports = {
       invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
         ? sails._t(locale, 'scheduled guest invite', {
           inviteTime,
-          testingUrl,
+          testingUrl: testCallUrl,
           branding: process.env.BRANDING,
           doctorName,
         })
@@ -525,33 +544,42 @@ module.exports = {
     if (invite.phoneNumber) {
       if (invite.guestMessageService === '1') {
         const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? 'scheduled guest invite' : 'guest invite';
-        const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
-        const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
+        if (invite.patientLanguage) {
+          const template = await WhatsappTemplate.findOne({ language: invite.patientLanguage, key: type, approvalStatus: 'approved' });
+          if (template && template.sid) {
+            const twilioTemplatedId = template.sid;
+            let params = {};
+            if (type === 'guest invite') {
+              params = {
+                1: process.env.BRANDING,
+                2: invite.inviteToken
+              };
+            } else if (type === 'scheduled guest invite') {
+              params = {
+                1: process.env.BRANDING,
+                2: inviteTime,
+                3: invite.inviteToken
+              };
+            }
 
-        const args = {
-          language: invite?.patientLanguage || 'en',
-          type: type,
-          languageConfig: TwilioWhatsappConfig,
-          url: invite.inviteToken,
-          inviteTime,
-          inviteDateTime: inviteTime
-        }
 
-        const params = createParamsFromJson(args);
+            try {
+              await sails.helpers.sms.with({
+                phoneNumber: invite.phoneNumber,
+                message,
+                senderEmail: invite.doctor?.email,
+                whatsApp: true,
+                params,
+                twilioTemplatedId
+              });
+            } catch (error) {
+              console.log('ERROR SENDING WhatsApp SMS>>>>>>>> ', error);
+              return Promise.reject(error);
+            }
 
-        try {
-          await sails.helpers.sms.with({
-            phoneNumber: invite.phoneNumber,
-            message,
-            senderEmail: invite.doctor?.email,
-            whatsApp: true,
-            params,
-            twilioTemplatedId
-          });
-        } catch (error) {
-          console.log('ERROR SENDING SMS>>>>>>>> ', error);
-          // await PublicInvite.destroyOne({ id: invite.id });
-          return Promise.reject(error);
+          } else {
+            console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+          }
         }
       } else {
         try {
@@ -646,29 +674,16 @@ module.exports = {
       timePhrase: secondTimePhrase,
     });
 
-    const args = {
-      language: invite?.patientLanguage || 'en',
-      type: firstReminderType,
-      languageConfig: TwilioWhatsappConfig,
-      url: invite.inviteToken,
-      inviteTime,
-      timePhrase: firstTimePhrase,
-      inviteDateTime: inviteTime
-    }
+    const firstReminderParams = {
+      1: process.env.BRANDING,
+      2: firstTimePhrase,
+      3: inviteTime
+    };
 
-    const firstReminderParams = createParamsFromJson(args)
-
-    const secondArgs = {
-      language: invite?.patientLanguage || 'en',
-      type: secondReminderType,
-      languageConfig: TwilioWhatsappConfig,
-      url: invite.inviteToken,
-      inviteTime,
-      timePhrase: secondTimePhrase,
-      inviteDateTime: inviteTime
-    }
-
-    const secondReminderParams = createParamsFromJson(secondArgs)
+    const secondReminderParams = {
+      1: secondTimePhrase,
+      2: invite.inviteToken
+    };
 
     return {
       firstReminderMessage,
@@ -703,10 +718,10 @@ module.exports = {
 
     if (timeUntilScheduled < SECOND_INVITE_REMINDER) {
       const message = sails._t(locale, 'patient invite', {
-            url,
-            branding: process.env.BRANDING,
-            doctorName,
-          });
+        url,
+        branding: process.env.BRANDING,
+        doctorName,
+      });
       try {
         await sails.helpers.email.with({
           to: invite.emailAddress,
@@ -717,6 +732,7 @@ module.exports = {
           }),
           text: message,
         });
+        await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
       } catch (error) {
         console.log('error Sending patient invite email', error);
         if (!invite.phoneNumber) {
@@ -753,14 +769,12 @@ module.exports = {
 
         console.log('Creating ICS event...');
         ics.createEvent(event, async (error, value) => {
-          // const filePath = 'assets/event.ics';
-          // Save the .ics file data to disk
-          // fs.writeFileSync(filePath, value);
 
           if (error) {
             console.error('Error creating ICS event:', error);
             return;
           }
+          let testUrl = testingUrl + `/${invite.inviteToken}`;
 
           await sails.helpers.email.with({
             to: invite.emailAddress,
@@ -769,7 +783,7 @@ module.exports = {
             }),
             text: sails._t(locale, 'scheduled patient invite', {
               inviteTime,
-              testingUrl,
+              testingUrl: testUrl,
               branding: process.env.BRANDING,
               doctorName,
             }),

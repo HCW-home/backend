@@ -137,6 +137,8 @@ module.exports.policies = {
       "isInviteOwner",
     ],
     findByToken: true,
+    checkInviteStatus: true,
+    acknowledgeInvite: true,
   },
 
   PublicInviteController: {
@@ -149,7 +151,15 @@ module.exports.policies = {
     getFhirAppointmentByField: ["isLoggedIn", "canInvite", "isInviteOwner"],
     getAllFhirAppointments: ["isLoggedIn", "canInvite", "isInviteOwner"],
   },
-
+  WhatsappTemplateController: {
+    "*": false,
+    refreshStatus: ["isLoggedIn", "isAdmin"],
+    fetchTemplates: ["isLoggedIn", "isAdmin"],
+    deleteTemplate: ["isLoggedIn", "isAdmin"],
+    submitTemplate: ["isLoggedIn", "isAdmin"],
+    updateTemplateBody: ["isLoggedIn", "isAdmin"],
+    bulkSubmitTemplates: ["isLoggedIn", "isAdmin"],
+  },
   QueueController: {
     "*": false,
     find: ["isLoggedIn", "isDoctorOrAdminOrNurseOrScheduler"],
@@ -168,6 +178,10 @@ module.exports.policies = {
 
   Translator: {
     "*": ["isLoggedIn", "isDoctorOrAdmin"],
+  },
+  TwilioController: {
+    "*": false,
+    statusCallback: true,
   },
   TranslatorController: {
     "*": false,

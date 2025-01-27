@@ -189,41 +189,50 @@ function sendSmsWithTwilio(phoneNumber, message) {
  * @param {string} phoneNumber
  * @param {string} contentSid
  * @param {object} contentVariables
+ * @param {string} statusCallback
  * @returns {void}
  */
 
-function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, contentVariables) {
+async function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, contentVariables, statusCallback) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const twilioPhoneNumber = process.env.TWILIO_WHATSAPP_PHONE_NUMBER;
+
+  if (!accountSid || !authToken || !twilioPhoneNumber) {
+    throw new Error('Twilio environment variables are not properly configured.');
+  }
+
   const client = require('twilio')(accountSid, authToken);
 
-  return new Promise((resolve, reject) => {
-    client.messages
-      .create({
-        contentSid: contentSid,
-        contentVariables: JSON.stringify(contentVariables),
-        from: `whatsapp:${twilioPhoneNumber}`,
-        to: `whatsapp:${phoneNumber}`,
-      })
-      .then((message) => {
-          console.log("paylod", {
-            contentSid: contentSid,
-            contentVariables: JSON.stringify(contentVariables),
-            from: `whatsapp:${twilioPhoneNumber}`,
-            to: `whatsapp:${phoneNumber}`,
-          })
-        console.log('Twilio whatsapp SMS sent:', message.sid);
-        console.log('Twilio Template Id', contentSid);
-        resolve(message.sid);
-      })
-      .catch((error) => {
-        console.error('Error sending Twilio SMS:', error);
-        reject(error);
-      });
-  });
-}
+  try {
+    const payload = {
+      from: `whatsapp:${twilioPhoneNumber}`,
+      to: `whatsapp:${phoneNumber}`,
+    };
 
+    if (contentSid) {
+      payload.contentSid = contentSid;
+    }
+
+    if (statusCallback) {
+      payload.statusCallback = statusCallback;
+    }
+
+    if (contentVariables) {
+      payload.contentVariables = JSON.stringify(contentVariables);
+    }
+
+    console.log('Sending Twilio WhatsApp message with payload:', payload);
+
+    const messageResponse = await client.messages.create(payload);
+
+    console.log('Twilio WhatsApp message created successfully:', messageResponse.sid);
+    return messageResponse.sid;
+  } catch (error) {
+    console.error('Error sending Twilio WhatsApp message:', error.message);
+    throw error;
+  }
+}
 /**
  * Sends an SMS through Odoo API
  *
@@ -471,6 +480,10 @@ module.exports = {
       type: 'string',
       required: false,
     },
+    statusCallback: {
+      type: 'string',
+      required: false,
+    },
   },
   exits: {
     success: {
@@ -480,7 +493,7 @@ module.exports = {
 
   async fn(inputs, exits) {
     try {
-      const {message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params} = inputs || {};
+      const {message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params, statusCallback} = inputs || {};
 
       if (process.env.NODE_ENV === "development") {
         await sendSmsWithInLog(phoneNumber, message);
@@ -488,8 +501,8 @@ module.exports = {
       }
 
       if (whatsApp) {
-         await sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params);
-        return exits.success();
+        const result = await sendSmsWithTwilioWhatsapp(phoneNumber, message, twilioTemplatedId, params, statusCallback);
+        return exits.success(result);
       } else {
         const providers = await SmsProvider.find({
           where: { isDisabled: false, isWhatsapp: false },
@@ -508,6 +521,15 @@ module.exports = {
             continue;
           }
 
+          const excludedPrefixes = prefixes?.filter(prefix => prefix.startsWith("!"));
+          const isExcluded = excludedPrefixes?.some(excludedPrefix =>
+            phoneNumber?.startsWith(excludedPrefix.substring(1))
+          );
+
+          if (isExcluded) {
+            console.log(`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+            continue;
+          }
 
           try {
             console.log(`Sending an SMS to ${phoneNumber} through ${provider.provider}`);
@@ -546,7 +568,6 @@ module.exports = {
             console.error(`Failed to send SMS through ${provider.provider}:`, error);
           }
         }
-
       }
       console.error(
         'No SMS provider succeeded or phone number not whitelisted'

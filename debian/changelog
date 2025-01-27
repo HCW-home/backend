@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.21) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.28) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Update to version 0.5.20.
@@ -6,7 +6,38 @@ hcw-athome-backend (0.5.21) UNRELEASED; urgency=medium
   [ Gor Grigoryan ]
   * update create admin script
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 17 Jan 2025 13:56:51 +0000
+  [ Olivier Bitsch ]
+  * Fix link to docs
+
+  [ Gor Grigoryan ]
+  * create admin with script
+  * new dev release
+  * change create admin file location
+  * new dev release 0.5.19
+
+  [ Olivier Bitsch ]
+  * Adding cli folder into packages
+  * Update changelog for 0.5.20 release
+  * Update to version 0.5.20.
+
+  [ Gor Grigoryan ]
+  * update create admin script
+  * new dev release 0.5.21
+  * refs #7984, Create new env vars for cron jobs
+  * refs #7885, Add exclude phone prefix extension for SMS/Whatsapp
+  * refs #7990, change view of invite table
+  * refs #7992, add new column called 'communication method' in invitations list
+  * refs #7982, have guests and expersts column even when they didn't join
+  * refs #7769, Make Whatsapp template configurable in admin
+  * feat: Add Armenian 🇦🇲 language support
+  * do not delete template form our db
+  * update rejectionReason on delete
+  * update templates after deleting them
+  * make sid nullable
+  * remove nullable
+  * update category of whatsapp templates
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 27 Jan 2025 13:27:46 +0000
 
 hcw-athome-backend (0.5.20) focal; urgency=medium
 

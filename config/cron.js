@@ -1,27 +1,56 @@
 const { CronJob } = require('cron');
-const {importFileIfExists} = require('../api/utils/helpers');
-const TwilioWhatsappConfig = importFileIfExists(`${process.env.CONFIG_FILES}/twilio-whatsapp-config.json`, {});
-const CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000;
+const { parseTime } = require('../api/utils/helpers');
+
+const DELETE_CLOSED_CONSULTATION_AFTER = process.env.DELETE_CLOSED_CONSULTATION_AFTER;
+const DELETE_UNUSED_INVITE_AFTER = process.env.DELETE_UNUSED_INVITE_AFTER;
+
+const DEFAULT_CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000; // 1 day
+const DEFAULT_INVITATION_TIMEOUT = 24 * 60 * 60 * 1000; // 1 day
+
+const CONSULTATION_TIMEOUT = parseTime(DELETE_CLOSED_CONSULTATION_AFTER, DEFAULT_CONSULTATION_TIMEOUT);
+const INVITATION_TIMEOUT = parseTime(DELETE_UNUSED_INVITE_AFTER, DEFAULT_INVITATION_TIMEOUT);
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
 const inviteJobs = {
   FIRST_INVITE_REMINDER_SMS: async (invite) => {
-    const isWhatsApp = (invite.type === "PATIENT" && invite.messageService === '1') ||
-      (invite.type !== "PATIENT" && invite.guestMessageService === '1')
+    const isWhatsApp = (invite.type === 'PATIENT' && invite.messageService === '1') ||
+      (invite.type !== 'PATIENT' && invite.guestMessageService === '1');
 
     if (isWhatsApp) {
-      const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
+      const reminderData = sails.models.publicinvite.getReminderMessage(invite);
       const type = reminderData.firstReminderType;
-      const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
-      const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-      await sails.helpers.sms.with({
-        phoneNumber: invite.phoneNumber,
-        message: reminderData.firstReminderMessage,
-        senderEmail: invite?.doctor?.email,
-        whatsApp: true,
-        twilioTemplatedId,
-        params: reminderData.firstReminderParams,
-      });
+      if (invite?.patientLanguage) {
+        const template = await WhatsappTemplate.findOne({
+          language: invite.patientLanguage,
+          key: type,
+          approvalStatus: 'approved'
+        });
+        console.log(template, 'template');
+        if (template && template.sid) {
+          const twilioTemplatedId = template.sid;
+          const params = reminderData.firstReminderParams;
+          if (twilioTemplatedId) {
+            const whatsappMessageSid = await sails.helpers.sms.with({
+              phoneNumber: invite.phoneNumber,
+              message: reminderData.firstReminderMessage,
+              senderEmail: invite?.doctor?.email,
+              whatsApp: true,
+              twilioTemplatedId,
+              params,
+              statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
+            });
+            if (whatsappMessageSid) {
+              await PublicInvite.updateOne({
+                id: invite.id,
+              }).set({ whatsappMessageSid });
+            }
+          } else {
+            console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+          }
+        } else {
+          console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+        }
+      }
     } else {
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
@@ -32,22 +61,44 @@ const inviteJobs = {
     }
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
-    const isWhatsApp = (invite.type === "PATIENT" && invite.messageService === '1') ||
-      (invite.type !== "PATIENT" && invite.guestMessageService === '1')
+    const isWhatsApp = (invite.type === 'PATIENT' && invite.messageService === '1') ||
+      (invite.type !== 'PATIENT' && invite.guestMessageService === '1');
 
     if (isWhatsApp) {
-      const reminderData =  sails.models.publicinvite.getReminderMessage(invite)
+      const reminderData = sails.models.publicinvite.getReminderMessage(invite);
       const type = reminderData.secondReminderType;
-      const TwilioWhatsappConfigLanguage = TwilioWhatsappConfig?.[invite?.patientLanguage] || TwilioWhatsappConfig?.['en'];
-      const twilioTemplatedId = TwilioWhatsappConfigLanguage?.[type]?.twilio_template_id;
-      await sails.helpers.sms.with({
-        phoneNumber: invite.phoneNumber,
-        message: reminderData.secondReminderMessage,
-        senderEmail: invite?.doctor?.email,
-        whatsApp: true,
-        params: reminderData.secondReminderParams,
-        twilioTemplatedId
-      });
+      if (invite?.patientLanguage) {
+        const template = await WhatsappTemplate.findOne({
+          language: invite.patientLanguage,
+          key: type,
+          approvalStatus: 'approved'
+        });
+        console.log(template, 'template');
+        if (template && template.sid) {
+          const twilioTemplatedId = template.sid;
+          const params = reminderData.secondReminderParams;
+          if (twilioTemplatedId) {
+            const whatsappMessageSid = await sails.helpers.sms.with({
+              phoneNumber: invite.phoneNumber,
+              message: reminderData.secondReminderMessage,
+              senderEmail: invite?.doctor?.email,
+              whatsApp: true,
+              params,
+              twilioTemplatedId,
+              statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
+            });
+            if (whatsappMessageSid) {
+              await PublicInvite.updateOne({
+                id: invite.id,
+              }).set({ whatsappMessageSid });
+            }
+          } else {
+            console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+          }
+        } else {
+          console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+        }
+      }
     } else {
       await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
@@ -55,6 +106,11 @@ const inviteJobs = {
         senderEmail: invite?.doctor?.email,
         whatsApp: false,
       });
+      if (invite.type === 'PATIENT') {
+        await PublicInvite.updateOne({
+          id: invite.id,
+        }).set({ status: 'SENT' });
+      }
     }
   },
   FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
@@ -86,6 +142,11 @@ const inviteJobs = {
       }),
       text: sails.models.publicinvite.getReminderMessage(invite).secondReminderMessage,
     });
+    if (invite.type === 'PATIENT') {
+      await PublicInvite.updateOne({
+        id: invite.id,
+      }).set({ status: 'SENT' });
+    }
   },
 };
 
@@ -159,24 +220,24 @@ module.exports = {
 
     const deleteOldInvites = CronJob.from({
       cronTime: '*/5 * * * *',
-      onTick: async function () {
-          try {
-            const now = Date.now();
-            const invitesToBeRemoved = await sails.models.publicinvite.find({
-              where: {
-                status: 'SENT',
-                type: 'PATIENT',
-                createdAt: { '<': new Date(now - CONSULTATION_TIMEOUT) },
-              }
-            });
-
-            for (const invitation of invitesToBeRemoved) {
-              await sails.models.publicinvite.destroyOne({ id: invitation.id });
+      onTick: async function() {
+        try {
+          const now = Date.now();
+          const invitesToBeRemoved = await sails.models.publicinvite.find({
+            where: {
+              status: 'SENT',
+              type: 'PATIENT',
+              createdAt: { '<': new Date(now - INVITATION_TIMEOUT) },
             }
+          });
 
-          } catch (error) {
-            console.log('Error in delete old invites job:', error);
+          for (const invitation of invitesToBeRemoved) {
+            await sails.models.publicinvite.destroyOne({ id: invitation.id });
           }
+
+        } catch (error) {
+          console.log('Error in delete old invites job:', error);
+        }
       },
       start: true,
     });

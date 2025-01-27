@@ -10,26 +10,11 @@
  */
 const fs = require('fs');
 const { promisify } = require('util');
+const { syncTemplates } = require('../api/services/SyncTwilioTemplates');
 
 const readdirP = promisify(fs.readdir);
 
 module.exports.bootstrap = async function() {
-
-  // By convention, this is a good place to set up fake data during development.
-  //
-  // For example:
-  // ```
-  // // Set up fake development data (or if we already have some, avast)
-  // if (await User.count() > 0) {
-  //   return;
-  // }
-  //
-  // await User.createEach([
-  //   { emailAddress: 'ry@example.com', fullName: 'Ryan Dahl', },
-  //   { emailAddress: 'rachael@example.com', fullName: 'Rachael Shaw', },
-  //   // etc.
-  // ]);
-  // ```
 
   // set ttl index
   const db = Consultation.getDatastore().manager;
@@ -93,6 +78,11 @@ module.exports.bootstrap = async function() {
       });
     }
   }
+
+  sails.log.info("Starting template synchronization...");
+  await syncTemplates();
+  sails.log.info("Template synchronization completed.");
+
 
   // check and delete expired files
   setInterval(async () => {
