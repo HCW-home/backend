@@ -145,6 +145,7 @@ module.exports = {
 
       const deletedTemplate = await WhatsappTemplate.updateOne({ id: id }).set({
         approvalStatus: 'draft',
+        rejectionReason: '',
         sid: ''
       });
 
