@@ -1,3 +1,4 @@
+const { syncTemplates } = require('../services/SyncTwilioTemplates');
 module.exports = {
 
   async submitTemplate(req, res) {
@@ -143,11 +144,12 @@ module.exports = {
         }
       }
 
-      const deletedTemplate = await WhatsappTemplate.updateOne({ id: id }).set({
-        approvalStatus: 'draft',
-        rejectionReason: '',
-        sid: ''
-      });
+      const deletedTemplate = await WhatsappTemplate.destroyOne({ id: id });
+
+      sails.log.info("Starting template synchronization...");
+      await syncTemplates();
+      sails.log.info("Template synchronization completed.");
+
 
       if (!deletedTemplate) {
         return res.notFound({ error: 'Failed to delete template from the database.' });
