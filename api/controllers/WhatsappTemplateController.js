@@ -143,7 +143,10 @@ module.exports = {
         }
       }
 
-      const deletedTemplate = await WhatsappTemplate.destroyOne({ id: id });
+      const deletedTemplate = await WhatsappTemplate.updateOne({ id: id }).set({
+        approvalStatus: 'draft',
+        sid: ''
+      });
 
       if (!deletedTemplate) {
         return res.notFound({ error: 'Failed to delete template from the database.' });
