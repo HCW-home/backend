@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.25) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.26) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Update to version 0.5.20.
@@ -33,8 +33,9 @@ hcw-athome-backend (0.5.25) UNRELEASED; urgency=medium
   * do not delete template form our db
   * update rejectionReason on delete
   * update templates after deleting them
+  * make sid nullable
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 27 Jan 2025 11:27:26 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 27 Jan 2025 12:56:48 +0000
 
 hcw-athome-backend (0.5.20) focal; urgency=medium
 
