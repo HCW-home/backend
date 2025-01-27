@@ -2,7 +2,7 @@ module.exports = {
   requiredTemplates: [
     {
       key: "patient invite",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -19,7 +19,7 @@ module.exports = {
     },
     {
       key: "guest invite",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -36,7 +36,7 @@ module.exports = {
     },
     {
       key: "scheduled patient invite",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -54,7 +54,7 @@ module.exports = {
     },
     {
       key: "scheduled guest invite",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -72,7 +72,7 @@ module.exports = {
     },
     {
       key: "first invite reminder",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/text',
       variables: {
         1: process.env.BRANDING,
@@ -82,12 +82,12 @@ module.exports = {
     },
     {
       key: "notification for offline action text for doctor",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/text',
     },
     {
       key: "first guest invite reminder",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/text',
       variables: {
         1: process.env.BRANDING,
@@ -97,7 +97,7 @@ module.exports = {
     },
     {
       key: "second invite reminder",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -114,7 +114,7 @@ module.exports = {
     },
     {
       key: "second guest invite reminder",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -131,7 +131,7 @@ module.exports = {
     },
     {
       key: "patient is ready",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
@@ -147,7 +147,7 @@ module.exports = {
     },
     {
       key: "please use this link",
-      category: "MARKETING",
+      category: "UTILITY",
       contentType: 'twilio/call-to-action',
       actions: [
         {
