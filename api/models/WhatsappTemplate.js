@@ -2,8 +2,6 @@ module.exports = {
   attributes: {
     sid: {
       type: 'string',
-      unique: true,
-      nullable: true,
     },
     friendlyName: {
       type: 'string',
@@ -12,6 +10,9 @@ module.exports = {
     language: {
       type: 'string',
       required: true,
+    },
+    key: {
+      type: 'string',
     },
     category: {
       type: 'string',
