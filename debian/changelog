@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.22) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.23) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Update to version 0.5.20.
@@ -30,8 +30,9 @@ hcw-athome-backend (0.5.22) UNRELEASED; urgency=medium
   * refs #7982, have guests and expersts column even when they didn't join
   * refs #7769, Make Whatsapp template configurable in admin
   * feat: Add Armenian 🇦🇲 language support
+  * do not delete template form our db
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 24 Jan 2025 12:28:22 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 27 Jan 2025 10:37:14 +0000
 
 hcw-athome-backend (0.5.20) focal; urgency=medium
 
