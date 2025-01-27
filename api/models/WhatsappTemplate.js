@@ -3,6 +3,7 @@ module.exports = {
     sid: {
       type: 'string',
       unique: true,
+      nullable: true,
     },
     friendlyName: {
       type: 'string',
