@@ -14,7 +14,7 @@
   "not approved": "User is not approved",
   "patient invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
   "guest invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
-  "scheduled patient invite": "Hello, you have been invited to a telemedicine %(branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link.\n\n%(testingUrl)s",
+  "scheduled patient invite": "Hello, you have been invited to a tele-consultation %(branding)s at %(inviteTime)s. Thanks to acknowledge this date by using the following link.\n\n%(testingUrl)s",
   "scheduled guest invite": "Hello, you have been invited to a telemedicine %(branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link. %(testingUrl)s",
   "first invite reminder": "D-1 reminder Your %(branding)s telemedicine consultation will take place %(timePhrase)s at %(inviteTime)s",
   "second invite reminder": "Your consultation will start %(timePhrase)s: %(url)s",
