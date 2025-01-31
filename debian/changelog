@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.29) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.30) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Update to version 0.5.20.
@@ -37,8 +37,10 @@ hcw-athome-backend (0.5.29) UNRELEASED; urgency=medium
   * remove nullable
   * update category of whatsapp templates
   * translation update
+  * update uk translations
+  * update scheduled patient invite translation
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 31 Jan 2025 16:01:36 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 31 Jan 2025 16:11:00 +0000
 
 hcw-athome-backend (0.5.20) focal; urgency=medium
 
