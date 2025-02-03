@@ -1,9 +1,3 @@
-/**
- * ConsultationController
- *
- * @description :: Server-side actions for handling incoming requests.
- * @help        :: See https://sailsjs.com/docs/concepts/actions
- */
 const db = PublicInvite.getDatastore().manager;
 const { ObjectId } = require('mongodb');
 const Joi = require('joi');
@@ -11,26 +5,6 @@ const Joi = require('joi');
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
 const sanitize = require('mongo-sanitize');
-
-// /**
-//  *
-//  *
-//  * @param {string} inviteUrl the url for the translator invite page
-//  * @returns {string} - The invitation Email text
-//  */
-// function getTranslationInviteText (inviteUrl, scheduledFor, languageOne, languageTwo) {
-//   const scheduledForText = (scheduledFor ? ` at ${moment(scheduledFor).format('D MMMM à HH:mm')}. ` : ' ');
-//   return `Bonjour, You have been invited to translate between ${languageOne} and ${languageTwo}${
-//     scheduledForText
-//   } Please visit this url to accept the invite ${inviteUrl}`;
-// }
-
-/**
- *
- * returns array of errors
- *
- * @param {object} invite
- */
 
 const headersSchema = Joi.object({
   locale: Joi.string().optional(),
@@ -97,24 +71,6 @@ function validateInviteRequest(invite) {
   return errors;
 }
 
-//!function that transform DISPLAY_META in a object from a string
-//  function toObjectDIsplayMeta(string, para){
-//    let ObjectDisplay = {};
-//   if(string === "" || string === undefined){
-//     return ObjectDisplay;
-//   }else{
-//     let arrayString = string.split(',');
-//     for (let i = 0; i < arrayString.length; i++) {
-//       if(para === undefined){
-//         ObjectDisplay = {};
-//       }else{
-//         ObjectDisplay[arrayString[i]] = para[arrayString[i]];
-//       }
-//     }
-//     return ObjectDisplay;
-//   }
-// }
-
 async function createTranslationRequest(translationInvite, organization) {
   // if organization has main email sent to that email
   if (organization.mainEmail) {
@@ -155,19 +111,21 @@ async function createTranslationRequest(translationInvite, organization) {
   return PublicInvite.setTranslatorRequestTimer(translationInvite);
 }
 
-// createTranslationRequest({patientLanguage:'fr', doctorLanguage:'en'},{id:"5f1aca5ff9c3b531dd462f5c"})
 
 module.exports = {
   async invite(req, res) {
     let invite = null;
-    console.log('create invite now');
+    sails.config.customLogger.log('info', 'Create invite started', { uid: req.user.id });
+
     const { error, value } = inviteDataSchema.validate(req.body, { abortEarly: false });
     if (error) {
+      sails.config.customLogger.log('warn', 'Invite data validation failed', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: error.details,
       });
     }
+
     const currentUserPublic = {
       id: req.user.id,
       firstName: req.user.firstName,
@@ -178,6 +136,7 @@ module.exports = {
 
     const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
     if (headersErrors) {
+      sails.config.customLogger.log('warn', 'Header validation failed', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: headersErrors.details,
@@ -186,10 +145,10 @@ module.exports = {
 
     const locale = headers.locale || i18n.defaultLocale;
 
-    // validate
     if (req.body.isPatientInvite && !req.body.sendLinkManually) {
       const errors = validateInviteRequest(req.body);
       if (errors.length) {
+        sails.config.customLogger.log('warn', 'Patient invite validation errors', { uid: req.user.id });
         return res.status(400).json(errors);
       }
 
@@ -197,6 +156,7 @@ module.exports = {
         req.user.role !== 'scheduler' &&
         (req.body.IMADTeam || req.body.birthDate)
       ) {
+        sails.config.customLogger.log('warn', 'Disallowed fields in invite for non-scheduler', { uid: req.user.id });
         return res.status(400).json({
           success: false,
           error: 'IMADTeam and birthDate are not allowed',
@@ -209,6 +169,7 @@ module.exports = {
         !req.body.guestEmailAddress &&
         !req.body.sendLinkManually
       ) {
+        sails.config.customLogger.log('warn', 'Missing required invite recipient info', { uid: req.user.id });
         return res.status(400).json({
           success: false,
           error: 'You must invite at least a patient translator or a guest!',
@@ -217,6 +178,7 @@ module.exports = {
     }
 
     if (req.body.scheduledFor && !moment(req.body.scheduledFor).isValid()) {
+      sails.config.customLogger.log('warn', 'Invalid scheduledFor date', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: 'ScheduledFor is not a valid date',
@@ -224,6 +186,7 @@ module.exports = {
     }
 
     if (req.body.birthDate && !moment(req.body.birthDate).isValid()) {
+      sails.config.customLogger.log('warn', 'Invalid birthDate', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: 'birthDate is not a valid date',
@@ -234,12 +197,14 @@ module.exports = {
       const scheduledTimeUTC = moment.tz(req.body.scheduledFor, 'UTC').valueOf();
       const currentTimeUTC = moment().utc().valueOf();
       if (scheduledTimeUTC < currentTimeUTC) {
+        sails.config.customLogger.log('warn', 'Consultation scheduled in the past', { uid: req.user.id });
         return res.status(400).json({
           success: false,
           error: sails._t(locale, 'consultation past time'),
         });
       }
     } else if (req.body.scheduledFor && new Date(req.body.scheduledFor) < new Date()) {
+      sails.config.customLogger.log('warn', 'Consultation scheduled in the past (fallback)', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: sails._t(locale, 'consultation past time'),
@@ -248,6 +213,7 @@ module.exports = {
 
     if (req.user.role === 'scheduler') {
       if (!req.body.doctorEmail && !req.body.queue) {
+        sails.config.customLogger.log('warn', 'Missing doctorEmail or queue for scheduler', { uid: req.user.id });
         return res.status(400).json({
           success: false,
           error: 'doctorEmail or queue is required.',
@@ -258,6 +224,7 @@ module.exports = {
     if (value.patientTZ) {
       const isTZValid = moment.tz.names().includes(value.patientTZ);
       if (!isTZValid) {
+        sails.config.customLogger.log('warn', 'Unknown timezone identifier', { uid: req.user.id, patientTZ: value.patientTZ });
         return res.status(400).json({
           success: false,
           error: `Unknown timezone identifier ${value.patientTZ}`,
@@ -267,7 +234,6 @@ module.exports = {
 
     let doctor;
     if (req.body.doctorEmail) {
-      // get doctor
       const results = await User.find({
         or: [
           { role: sails.config.globals.ROLE_DOCTOR, email: req.body.doctorEmail },
@@ -287,12 +253,12 @@ module.exports = {
       }
 
       if (!doctor) {
+        sails.config.customLogger.log('warn', 'Doctor not found', { uid: req.user.id, doctorEmail: 'hidden' });
         return res.status(400).json({
           success: false,
           error: `Doctor with email ${value.doctorEmail || ''} not found`,
         });
       }
-      // a
     } else if (req.user.role === 'doctor' || req.user.role === 'admin') {
       doctor = currentUserPublic;
     }
@@ -305,6 +271,7 @@ module.exports = {
     }
 
     if (value.queue && !queue) {
+      sails.config.customLogger.log('warn', 'Queue not found', { uid: req.user.id, queue: value.queue });
       return res.status(400).json({
         error: true,
         message: `queue ${value.queue} doesn't exist`,
@@ -322,6 +289,7 @@ module.exports = {
     }
 
     if (value.translationOrganization && !translationOrganization) {
+      sails.config.customLogger.log('warn', 'Translation organization not found', { uid: req.user.id, translationOrganization: value.translationOrganization });
       return res.status(400).json({
         error: true,
         message: `translationOrganization ${value.translationOrganization} doesn't exist`,
@@ -330,9 +298,9 @@ module.exports = {
 
     if (
       translationOrganization &&
-      (translationOrganization.languages || []).indexOf(value.language) ===
-      -1
+      (translationOrganization.languages || []).indexOf(value.language) === -1
     ) {
+      sails.config.customLogger.log('warn', 'Patient language not found in translation organization', { uid: req.user.id, language: value.language });
       return res.status(400).json({
         error: true,
         message: `patientLanguage ${value.language} doesn't exist`,
@@ -342,9 +310,6 @@ module.exports = {
     let guestInvite;
 
     try {
-      // add other invite info
-      // send invite to translator and guest
-
       const inviteData = {
         phoneNumber: value.phoneNumber,
         emailAddress: value.emailAddress,
@@ -352,17 +317,12 @@ module.exports = {
         firstName: value.firstName,
         lastName: value.lastName,
         invitedBy: req.user.id,
-        scheduledFor: value.scheduledFor
-          ? new Date(value.scheduledFor)
-          : undefined,
+        scheduledFor: value.scheduledFor ? new Date(value.scheduledFor) : undefined,
         patientLanguage: value.language,
         type: 'PATIENT',
-        //IMADTeam: req.body.IMADTeam,
         birthDate: value.birthDate,
         patientTZ: value.patientTZ,
-        // metadata: toObjectDIsplayMeta(process.env.DISPLAY_META,req.body.metadata),
         metadata: value.metadata,
-        //! passing metadata from request
       };
       if (doctor) {
         inviteData.doctor = doctor.id;
@@ -371,46 +331,37 @@ module.exports = {
       if (queue) {
         inviteData.queue = queue.id;
       }
-
       if (translationOrganization) {
         inviteData.translationOrganization = translationOrganization.id;
       }
-
       if (value.guestEmailAddress) {
         inviteData.guestEmailAddress = value.guestEmailAddress;
       }
-
       if (value.guestPhoneNumber) {
         inviteData.guestPhoneNumber = value.guestPhoneNumber;
       }
-
       if (value.messageService) {
         inviteData.messageService = value.messageService;
       }
-
       if (value.emailAddress) {
         inviteData.messageService = '3';
       }
-
       if (value.sendLinkManually) {
         inviteData.messageService = '4';
       }
-
       if (value.guestMessageService) {
         inviteData.guestMessageService = value.guestMessageService;
       }
-
       if (value.experts && value.experts.length > 0) {
         inviteData.experts = value.experts;
       }
 
       invite = await PublicInvite.create(inviteData).fetch();
+      sails.config.customLogger.log('info', 'Invite created', { inviteId: invite.id, uid: req.user.id });
+
       const experts = req.body.experts;
-
       const expertLink = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
-
-      const doctorLanguage =
-        req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+      const doctorLanguage = req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
       if (Array.isArray(experts)) {
         for (const contact of experts) {
@@ -420,77 +371,68 @@ module.exports = {
             const isEmail = expertContact.includes('@');
 
             if (isPhoneNumber && !isEmail) {
-              //  WhatsApp
               if (messageService === '1') {
                 const type = 'please use this link';
                 if (inviteData.patientLanguage) {
-                  const template = await WhatsappTemplate.findOne({ language: inviteData.patientLanguage, key: type, approvalStatus: 'approved' });
-                  console.log(template, 'template');
+                  const template = await WhatsappTemplate.findOne({
+                    language: inviteData.patientLanguage,
+                    key: type,
+                    approvalStatus: 'approved'
+                  });
+                  sails.config.customLogger.log('verbose', 'WhatsApp template fetched', { uid: req.user.id });
                   if (template && template.sid) {
                     const twilioTemplatedId = template.sid;
-                    const params = {
-                      1: invite.expertToken
-                    };
+                    const params = { 1: invite.expertToken };
                     if (twilioTemplatedId) {
                       await sails.helpers.sms.with({
                         phoneNumber: expertContact,
-                        message: sails._t(doctorLanguage, type, {
-                          expertLink: expertLink,
-                        }),
+                        message: sails._t(doctorLanguage, type, { expertLink }),
                         senderEmail: inviteData.doctorData?.email,
                         whatsApp: true,
                         params,
                         twilioTemplatedId
                       });
+                      sails.config.customLogger.log('info', 'WhatsApp SMS sent', { method: 'WhatsApp', uid: req.user.id });
                     } else {
-                      console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+                      sails.config.customLogger.log('error', 'Template id is missing for WhatsApp SMS', { uid: req.user.id });
                     }
                   } else {
-                    console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+                    sails.config.customLogger.log('error', 'WhatsApp template not approved or not found', { uid: req.user.id });
                   }
                 }
               } else if (messageService === '2') {
                 await sails.helpers.sms.with({
                   phoneNumber: expertContact,
-                  message: sails._t(doctorLanguage, 'please use this link', {
-                    expertLink: expertLink,
-                  }),
+                  message: sails._t(doctorLanguage, 'please use this link', { expertLink }),
                   senderEmail: inviteData.doctorData?.email,
                   whatsApp: false,
                 });
+                sails.config.customLogger.log('info', 'SMS sent', { method: 'SMS', uid: req.user.id });
               } else {
-                sails.log.error(
-                  `Invalid messageService info: ${messageService}`
-                );
+                sails.config.customLogger.log('error', 'Invalid messageService info', { uid: req.user.id, messageService });
               }
-
             } else if (isEmail && !isPhoneNumber) {
               await sails.helpers.email.with({
                 to: expertContact,
                 subject: sails._t(doctorLanguage, 'consultation link'),
-                text: sails._t(doctorLanguage, 'please use this link', {
-                  expertLink: expertLink,
-                }),
+                text: sails._t(doctorLanguage, 'please use this link', { expertLink }),
               });
+              sails.config.customLogger.log('info', 'Email sent to expert', { uid: req.user.id });
             } else {
-              sails.log.error(`Invalid contact info: ${expertContact}`);
+              sails.config.customLogger.log('error', 'Invalid contact info provided for expert', { uid: req.user.id });
             }
           } else {
-            sails.log.error(
-              `Invalid contact info (not a string): ${expertContact}`
-            );
+            sails.config.customLogger.log('error', 'Expert contact info is not a string', { uid: req.user.id });
           }
         }
       }
 
       if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
-        const guestInviteDate = {
+        const guestInviteData = {
           patientInvite: invite.id,
           doctor: doctor ? doctor.id : req.user.id,
           invitedBy: req.user.id,
-          scheduledFor: req.body.scheduledFor
-            ? new Date(req.body.scheduledFor)
-            : undefined,
+          scheduledFor: req.body.scheduledFor ? new Date(req.body.scheduledFor) : undefined,
           type: 'GUEST',
           guestEmailAddress: inviteData.guestEmailAddress,
           guestPhoneNumber: inviteData.guestPhoneNumber,
@@ -501,51 +443,39 @@ module.exports = {
           patientTZ: inviteData.patientTZ,
         };
 
-        guestInvite = await PublicInvite.create(guestInviteDate).fetch();
-
+        guestInvite = await PublicInvite.create(guestInviteData).fetch();
         await PublicInvite.updateOne({ id: invite.id }).set({
           guestInvite: guestInvite.id,
         });
+        sails.config.customLogger.log('info', 'Guest invite created', { guestInviteId: guestInvite.id, uid: req.user.id });
       }
 
       if (translationOrganization) {
-        // create and send translator invite
         const translatorRequestInviteData = {
           patientInvite: invite.id,
           translationOrganization: translationOrganization.id,
           doctor: doctor ? doctor.id : req.user.id,
           invitedBy: req.user.id,
-          scheduledFor: req.body.scheduledFor
-            ? new Date(req.body.scheduledFor)
-            : undefined,
+          scheduledFor: req.body.scheduledFor ? new Date(req.body.scheduledFor) : undefined,
           patientLanguage: req.body.language,
-          doctorLanguage:
-            req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE,
+          doctorLanguage: req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE,
           type: 'TRANSLATOR_REQUEST',
         };
 
-        const translatorRequestInvite = await PublicInvite.create(
-          translatorRequestInviteData
-        ).fetch();
-
+        const translatorRequestInvite = await PublicInvite.create(translatorRequestInviteData).fetch();
         await PublicInvite.updateOne({ id: invite.id }).set({
           translatorRequestInvite: translatorRequestInvite.id,
         });
-
         translatorRequestInvite.doctor = doctor || req.user;
-        createTranslationRequest(
-          translatorRequestInvite,
-          translationOrganization
-        );
-
-        // that's it we don't send the invite until the translation request is accepted
+        createTranslationRequest(translatorRequestInvite, translationOrganization);
+        sails.config.customLogger.log('info', 'Translator invite created', { translatorInviteId: translatorRequestInvite.id, uid: req.user.id });
         return res.status(200).json({
           success: true,
           invite,
         });
       }
     } catch (e) {
-      console.log('error', e);
+      sails.config.customLogger.log('error', 'Error during invite processing', { error: e.message, uid: req.user.id });
       return res.status(500).json({
         error: true,
       });
@@ -555,22 +485,22 @@ module.exports = {
     if (!req.body.hasOwnProperty('sendInvite')) {
       req.body.sendInvite = req.user.role !== 'scheduler';
     }
-
     shouldSend = req.body.sendInvite;
-    const doctorLanguage =
-      req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+    const doctorLanguage = req.body.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
     try {
       if (shouldSend) {
         invite.doctor = doctor;
         await PublicInvite.sendPatientInvite(invite);
+        sails.config.customLogger.log('info', 'Patient invite sent', { inviteId: invite.id, uid: req.user.id });
       }
       if (guestInvite) {
         guestInvite.doctor = doctor;
         await PublicInvite.sendGuestInvite(guestInvite);
+        sails.config.customLogger.log('info', 'Guest invite sent', { guestInviteId: guestInvite.id, uid: req.user.id });
       }
     } catch (error) {
-      console.log('ERROR SENDING Invite>>>>>>>> ', error);
+      sails.config.customLogger.log('error', 'Error sending invite', { error: error.message, inviteId: invite.id, uid: req.user.id });
       await PublicInvite.destroyOne({ id: invite.id });
       return res.status(500).json({
         error: true,
@@ -586,6 +516,7 @@ module.exports = {
         if (invite.emailAddress) {
           await PublicInvite.createAndSendICS(invite);
         }
+        sails.config.customLogger.log('info', 'Scheduled invite processed', { inviteId: invite.id, uid: req.user.id });
       }
       if (guestInvite) {
         guestInvite.doctor = doctor;
@@ -595,13 +526,13 @@ module.exports = {
 
     invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     invite.doctorURL = process.env.DOCTOR_URL;
+    sails.config.customLogger.log('info', 'Invite process completed', { inviteId: invite.id, uid: req.user.id });
     return res.json({
       success: true,
       invite,
     });
   },
 
-  // update
   async update(req, res) {
     let invite = await PublicInvite.findOne({
       id: req.params.id,
@@ -612,16 +543,16 @@ module.exports = {
       .populate('translatorRequestInvite')
       .populate('doctor');
 
-    // if no invite return 404
     if (!invite) {
+      sails.config.customLogger.log('warn', 'Invite not found', { inviteId: req.params.id, uid: req.user.id });
       return res.notFound();
     }
 
-    // if invite has been accepted return 400
     if (invite.status === 'ACCEPTED') {
+      sails.config.customLogger.log('warn', 'Attempt to update accepted invite (patient)', { inviteId: invite.id, uid: req.user.id });
       return res.status(400).json({
         error: true,
-        message: 'can\'t edit Invite has been accepted by patient',
+        message: "can't edit Invite has been accepted by patient",
       });
     }
 
@@ -629,9 +560,10 @@ module.exports = {
       invite.translatorRequestInvite &&
       invite.translatorRequestInvite.status === 'ACCEPTED'
     ) {
+      sails.config.customLogger.log('warn', 'Attempt to update accepted translator invite', { inviteId: invite.id, uid: req.user.id });
       return res.status(400).json({
         error: true,
-        message: 'can\'t edit Invite has been accepted by translator',
+        message: "can't edit Invite has been accepted by translator",
       });
     }
 
@@ -665,31 +597,32 @@ module.exports = {
       metadata
     } = req.body;
 
-    // validate provided fields
     if (scheduledFor && !moment(scheduledFor).isValid()) {
+      sails.config.customLogger.log('warn', 'Invalid scheduledFor date', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: 'ScheduledFor is not a valid date',
       });
     }
-
     if (birthDate && !moment(birthDate).isValid()) {
+      sails.config.customLogger.log('warn', 'Invalid birthDate', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: 'birthDate is not a valid date',
       });
     }
-
     if (scheduledFor && patientTZ) {
       const scheduledTimeUTC = moment.tz(scheduledFor, 'UTC').valueOf();
       const currentTimeUTC = moment().utc().valueOf();
       if (scheduledTimeUTC < currentTimeUTC) {
+        sails.config.customLogger.log('warn', 'Consultation time is in the past (with timezone)', { uid: req.user.id });
         return res.status(400).json({
           success: false,
           error: 'Consultation Time cannot be in the past',
         });
       }
     } else if (scheduledFor && new Date(scheduledFor) < new Date()) {
+      sails.config.customLogger.log('warn', 'Consultation time is in the past (fallback check)', { uid: req.user.id });
       return res.status(400).json({
         success: false,
         error: 'Consultation Time cannot be in the past',
@@ -698,14 +631,13 @@ module.exports = {
 
     let doctor;
     if (doctorEmail) {
-      // get doctor
-      const res = await User.find({
+      const doctorResults = await User.find({
         or: [
           { role: sails.config.globals.ROLE_DOCTOR, email: req.body.doctorEmail },
           { role: sails.config.globals.ROLE_ADMIN, email: req.body.doctorEmail }
         ]
       });
-      doctor = res.length > 0 ? res[0] : null;
+      doctor = doctorResults.length > 0 ? doctorResults[0] : null;
       if (doctor) {
         doctor = _.pick(doctor, [
           'id',
@@ -716,14 +648,13 @@ module.exports = {
           'organization',
         ]);
       }
-
       if (!doctor) {
+        sails.config.customLogger.log('warn', 'Doctor not found', { doctorEmail: 'hidden', uid: req.user.id });
         return res.status(400).json({
           success: false,
           error: `Doctor with email ${doctorEmail} not found`,
         });
       }
-      // a
     } else if (req.user.role === 'doctor') {
       doctor = currentUserPublic;
     }
@@ -734,8 +665,8 @@ module.exports = {
         or: [{ name: queue }, { id: queue }],
       });
     }
-
     if (queue && !queueObj) {
+      sails.config.customLogger.log('warn', 'Queue not found', { queue: queue, uid: req.user.id });
       return res.status(400).json({
         error: true,
         message: `queue ${queue} doesn't exist`,
@@ -750,8 +681,8 @@ module.exports = {
           { id: translationOrganization },
         ],
       });
-
       if (!translationOrganizationObj) {
+        sails.config.customLogger.log('warn', 'Translation organization not found', { translationOrganization: translationOrganization, uid: req.user.id });
         return res.status(400).json({
           error: true,
           message: `translationOrganization ${translationOrganization} doesn't exist`,
@@ -760,6 +691,7 @@ module.exports = {
       if (
         (translationOrganizationObj.languages || []).indexOf(language) === -1
       ) {
+        sails.config.customLogger.log('warn', 'Patient language not available in translation organization', { language: language, uid: req.user.id });
         return res.status(400).json({
           error: true,
           message: `patientLanguage ${language} doesn't exist`,
@@ -770,21 +702,20 @@ module.exports = {
     let guestInvite;
     const hasScheduledForChanged =
       scheduledFor && invite.scheduledFor !== new Date(scheduledFor).getTime();
+
     try {
       let inviteData = {
-        phoneNumber: phoneNumber,
-        emailAddress: emailAddress,
-        gender: gender,
-        firstName: firstName,
-        lastName: lastName,
-
+        phoneNumber,
+        emailAddress,
+        gender,
+        firstName,
+        lastName,
         patientLanguage: language,
-        IMADTeam: IMADTeam,
-        birthDate: birthDate,
-        patientTZ: patientTZ,
-        metadata: metadata
+        IMADTeam,
+        birthDate,
+        patientTZ,
+        metadata
       };
-      // remove undefined values
       inviteData = JSON.parse(JSON.stringify(inviteData));
 
       if (cancelScheduledFor) {
@@ -799,16 +730,13 @@ module.exports = {
       if (queueObj) {
         inviteData.queue = queueObj.id;
       }
-
       if (guestEmailAddress && guestEmailAddress !== invite.guestEmailAddress) {
         inviteData.guestEmailAddress = guestEmailAddress;
       }
-
       if (guestPhoneNumber && guestPhoneNumber !== invite.guestPhoneNumber) {
         inviteData.guestPhoneNumber = guestPhoneNumber;
       }
 
-      // update
       invite = await PublicInvite.updateOne({ id: invite.id }).set(inviteData);
       invite = await PublicInvite.findOne({ id: invite.id })
         .populate('guestInvite')
@@ -816,48 +744,41 @@ module.exports = {
         .populate('translatorRequestInvite')
         .populate('doctor');
 
+      sails.config.customLogger.log('info', 'Invite updated', { inviteId: invite.id, uid: req.user.id });
+
       if (cancelGuestInvite) {
         await PublicInvite.cancelGuestInvite(invite);
-      } else {
-        if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
-          const guestInviteDate = {
-            patientInvite: invite.id,
-            doctor: doctor ? doctor.id : req.user.id,
-            invitedBy: req.user.id,
-            scheduledFor: invite.scheduledFor,
-            type: 'GUEST',
-            guestEmailAddress: inviteData.guestEmailAddress,
-            guestPhoneNumber: inviteData.guestPhoneNumber,
-            emailAddress: inviteData.guestEmailAddress,
-            phoneNumber: inviteData.guestPhoneNumber,
-            patientLanguage: language,
-          };
+        sails.config.customLogger.log('info', 'Guest invite cancelled', { inviteId: invite.id, uid: req.user.id });
+      } else if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
+        const guestInviteData = {
+          patientInvite: invite.id,
+          doctor: doctor ? doctor.id : req.user.id,
+          invitedBy: req.user.id,
+          scheduledFor: invite.scheduledFor,
+          type: 'GUEST',
+          guestEmailAddress: inviteData.guestEmailAddress,
+          guestPhoneNumber: inviteData.guestPhoneNumber,
+          emailAddress: inviteData.guestEmailAddress,
+          phoneNumber: inviteData.guestPhoneNumber,
+          patientLanguage: language,
+        };
 
-          // if guest invite already exits update it
-          if (invite.guestInvite) {
-            await PublicInvite.update({ id: invite.guestInvite.id }).set(
-              guestInviteDate
-            );
-          }
-          // else create new
-          else {
-            guestInvite = await PublicInvite.create(guestInviteDate).fetch();
-            await PublicInvite.updateOne({ id: invite.id }).set({
-              guestInvite: guestInvite.id,
-            });
-          }
+        if (invite.guestInvite) {
+          await PublicInvite.update({ id: invite.guestInvite.id }).set(guestInviteData);
+          sails.config.customLogger.log('info', 'Guest invite updated', { guestInviteId: invite.guestInvite.id, uid: req.user.id });
+        } else {
+          guestInvite = await PublicInvite.create(guestInviteData).fetch();
+          await PublicInvite.updateOne({ id: invite.id }).set({ guestInvite: guestInvite.id });
+          sails.config.customLogger.log('info', 'Guest invite created', { guestInviteId: guestInvite.id, uid: req.user.id });
         }
       }
 
       if (cancelTranslationRequestInvite) {
         await PublicInvite.cancelTranslationRequestInvite(invite);
         invite.translatorRequestInvite = null;
-        // continue to sending invite
-      }
-      // if translation requirements have changed cancel translation request invite and send new one
-      else {
+        sails.config.customLogger.log('info', 'Translation request invite cancelled', { inviteId: invite.id, uid: req.user.id });
+      } else {
         if (!invite.translatorRequestInvite && translationOrganizationObj) {
-          // create new
           const translatorRequestInviteData = {
             patientInvite: invite.id,
             translationOrganization: translationOrganizationObj.id,
@@ -879,12 +800,8 @@ module.exports = {
           });
 
           translatorRequestInvite.doctor = doctor || req.user;
-          createTranslationRequest(
-            translatorRequestInvite,
-            translationOrganizationObj
-          );
-
-          // that's it we don't send the invite until the translation request is accepted
+          createTranslationRequest(translatorRequestInvite, translationOrganizationObj);
+          sails.config.customLogger.log('info', 'Translator request invite created', { translatorInviteId: translatorRequestInvite.id, uid: req.user.id });
           return res.status(200).json({
             success: true,
             invite,
@@ -904,15 +821,12 @@ module.exports = {
           translationOrganizationObj.id.toString() !==
           invite.translatorRequestInvite.translationOrganization;
 
-        // if existing update it
         if (
           (translationOrganizationObj && isPatientLanguageDifferent) ||
           isDoctorLanguageDifferent ||
           isTranslationOrganizationDifferent
         ) {
           await PublicInvite.cancelTranslationRequestInvite(invite);
-
-          // create and send translator invite
           const translatorRequestInviteData = {
             patientInvite: invite.id,
             translationOrganization: translationOrganizationObj.id,
@@ -934,12 +848,8 @@ module.exports = {
           });
 
           translatorRequestInvite.doctor = doctor || req.user;
-          createTranslationRequest(
-            translatorRequestInvite,
-            translationOrganizationObj
-          );
-
-          // that's it we don't send the invite until the translation request is accepted
+          createTranslationRequest(translatorRequestInvite, translationOrganizationObj);
+          sails.config.customLogger.log('info', 'Translator request invite updated', { translatorInviteId: translatorRequestInvite.id, uid: req.user.id });
           return res.status(200).json({
             success: true,
             invite,
@@ -947,7 +857,7 @@ module.exports = {
         }
       }
     } catch (e) {
-      console.log('error', e);
+      sails.config.customLogger.log('error', 'Error during invite update processing', { error: e.message, uid: req.user.id });
       return res.status(500).json({
         error: true,
       });
@@ -957,21 +867,21 @@ module.exports = {
     if (!req.body.hasOwnProperty('sendInvite')) {
       req.body.sendInvite = req.user.role !== 'scheduler';
     }
-
     shouldSend = req.body.sendInvite;
 
     try {
       if (shouldSend) {
         invite.doctor = doctor;
         await PublicInvite.sendPatientInvite(invite);
+        sails.config.customLogger.log('info', 'Patient invite sent', { inviteId: invite.id, uid: req.user.id });
       }
       if (guestInvite) {
         guestInvite.doctor = doctor;
         await PublicInvite.sendGuestInvite(guestInvite);
+        sails.config.customLogger.log('info', 'Guest invite sent', { guestInviteId: guestInvite.id, uid: req.user.id });
       }
     } catch (error) {
-      console.log('ERROR sending Invite ', error);
-      // await PublicInvite.destroyOne({ id: invite.id });
+      sails.config.customLogger.log('error', 'Error sending invite', { error: error.message, inviteId: invite.id, uid: req.user.id });
       return res.status(500).json({
         error: true,
         message: 'Error sending Invite',
@@ -982,15 +892,18 @@ module.exports = {
       if (shouldSend) {
         invite.doctor = doctor;
         await PublicInvite.setPatientOrGuestInviteReminders(invite);
+        sails.config.customLogger.log('info', 'Patient invite reminders set', { inviteId: invite.id, uid: req.user.id });
       }
       if (guestInvite) {
         guestInvite.doctor = doctor;
         await PublicInvite.setPatientOrGuestInviteReminders(guestInvite);
+        sails.config.customLogger.log('info', 'Guest invite reminders set', { guestInviteId: guestInvite.id, uid: req.user.id });
       }
     }
 
     invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     invite.doctorURL = process.env.DOCTOR_URL;
+    sails.config.customLogger.log('info', 'Invite update process completed', { inviteId: invite.id, uid: req.user.id });
     return res.json({
       success: true,
       invite,
@@ -1004,6 +917,11 @@ module.exports = {
    */
   async resend(req, res) {
     try {
+      sails.config.customLogger.log('info', 'Resend invite process started', {
+        inviteId: sanitize(req.params.invite),
+        uid: req.user ? req.user.id : 'unknown'
+      });
+
       const patientInvite = await PublicInvite.findOne({
         id: sanitize(req.params.invite),
       })
@@ -1013,6 +931,9 @@ module.exports = {
         .populate('doctor');
 
       if (!patientInvite) {
+        sails.config.customLogger.log('warn', 'Patient invite not found', {
+          inviteId: sanitize(req.params.invite)
+        });
         return res.notFound();
       }
 
@@ -1020,6 +941,9 @@ module.exports = {
         patientInvite.translatorRequestInvite &&
         patientInvite.translatorRequestInvite.status !== 'ACCEPTED'
       ) {
+        sails.config.customLogger.log('warn', 'Translation invite has not been accepted', {
+          inviteId: patientInvite.id
+        });
         return res.status(400).json({
           success: false,
           error: 'Translation invite have NOT been accepted',
@@ -1029,6 +953,9 @@ module.exports = {
       await PublicInvite.sendPatientInvite(patientInvite, true);
       await PublicInvite.updateOne({ id: req.params.invite }).set({
         status: 'SENT',
+      });
+      sails.config.customLogger.log('info', 'Patient invite resent', {
+        inviteId: patientInvite.id
       });
 
       if (patientInvite.translatorInvite) {
@@ -1045,6 +972,10 @@ module.exports = {
         }).set({
           status: 'SENT',
         });
+        sails.config.customLogger.log('info', 'Translator invite resent', {
+          translatorInviteId: patientInvite.translatorInvite.id,
+          inviteId: patientInvite.id
+        });
       }
 
       if (patientInvite.guestInvite) {
@@ -1053,29 +984,43 @@ module.exports = {
         await PublicInvite.updateOne({ id: patientInvite.guestInvite.id }).set({
           status: 'SENT',
         });
+        sails.config.customLogger.log('info', 'Guest invite resent', {
+          guestInviteId: patientInvite.guestInvite.id,
+          inviteId: patientInvite.id
+        });
       }
 
-      // if the invite is scheduled for later set the reminders
       if (
         patientInvite.scheduledFor &&
         patientInvite.scheduledFor > Date.now()
       ) {
         await PublicInvite.setPatientOrGuestInviteReminders(patientInvite);
+        sails.config.customLogger.log('info', 'Patient invite reminders set', {
+          inviteId: patientInvite.id
+        });
         if (patientInvite.guestInvite) {
-          await PublicInvite.setPatientOrGuestInviteReminders(guestInvite);
+          await PublicInvite.setPatientOrGuestInviteReminders(patientInvite.guestInvite);
+          sails.config.customLogger.log('info', 'Guest invite reminders set', {
+            guestInviteId: patientInvite.guestInvite.id
+          });
         }
       }
 
       patientInvite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${patientInvite.inviteToken}`;
-
+      sails.config.customLogger.log('info', 'Resend invite process completed', {
+        inviteId: patientInvite.id
+      });
 
       return res.json({
         success: true,
         patientInvite,
       });
     } catch (error) {
-      console.log('error ', error);
-      res.json({
+      sails.config.customLogger.log('error', 'Error during resend invite process', {
+        error: error?.message,
+        inviteId: req.params.invite
+      });
+      return res.json({
         success: false,
         error: error.message,
       });
@@ -1085,13 +1030,23 @@ module.exports = {
   async revoke(req, res) {
     try {
       const invite = await PublicInvite.findOne({ id: req.params.invite });
+      if (!invite) {
+        sails.config.customLogger.log('warn', 'Revoke failed: Invite not found', {
+          inviteId: req.params.invite,
+        });
+        return res.notFound();
+      }
 
       await PublicInvite.destroyPatientInvite(invite);
-
+      sails.config.customLogger.log('info', 'Invite successfully revoked', {
+        inviteId: invite.id,
+      });
       return res.status(200).send();
     } catch (error) {
-      sails.log('error deleting Invite ', error);
-
+      sails.config.customLogger.log('error', 'Error revoking invite', {
+        error: error?.message,
+        inviteId: req.params.invite,
+      });
       return res.status(500).send();
     }
   },
@@ -1100,66 +1055,118 @@ module.exports = {
    * Finds the public invite linked to a consultation
    */
   async findByConsultation(req, res) {
+    try {
+      const consultationId = sanitize(req.params.consultation);
+      const consultation = await Consultation.findOne({ id: consultationId });
+      if (!consultation) {
+        sails.config.customLogger.log('warn', 'Consultation not found', { consultationId });
+        return res.notFound();
+      }
 
-    const consultation = await Consultation.findOne({
-      id: sanitize(req.params.consultation),
-    });
-    if (!consultation) {
-      return res.notFound();
-    }
+      if (!consultation.invitationToken) {
+        sails.config.customLogger.log('warn', 'Consultation missing invitation token', { consultationId });
+        return res.notFound();
+      }
 
-    if (!consultation.invitationToken) {
-      return res.notFound();
-    }
-    const publicinvite = await PublicInvite.findOne({
-      inviteToken: consultation.invitationToken,
-    });
-    if (!publicinvite) {
-      return res.notFound();
-    }
+      const publicinvite = await PublicInvite.findOne({
+        inviteToken: consultation.invitationToken,
+      });
+      if (!publicinvite) {
+        sails.config.customLogger.log('warn', 'Public invite not found for invitation token', { consultationId });
+        return res.notFound();
+      }
 
-    res.json(publicinvite);
+      sails.config.customLogger.log('info', 'Public invite retrieved successfully', {
+        consultationId,
+        inviteId: publicinvite.id,
+      });
+      return res.json(publicinvite);
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error retrieving invite by consultation', {
+        error: error.message,
+      });
+      return res.status(500).send();
+    }
   },
 
   /**
    * Finds the public invite By token
    */
   async findByToken(req, res) {
-    const publicinvite = await PublicInvite.findOne({
-      or: [
-        { inviteToken: req.params.invitationToken },
-        { expertToken: req.params.invitationToken },
-      ],
-    })
-      .populate('translationOrganization')
-      .populate('doctor');
-    if (!publicinvite) {
-      return res.notFound();
-    }
-    const isExpert = publicinvite.expertToken === req.params.invitationToken;
-    publicinvite.doctor = _.pick(publicinvite.doctor, [
-      'firstName',
-      'lastName',
-    ]);
+    try {
+      const token = req.params.invitationToken;
+      sails.config.customLogger.log('info', 'findByToken called', { token });
 
-    const expertBody = {};
-    if (isExpert) {
-      expertBody.status = null;
-      expertBody.isExpert = true;
-      expertBody.expertToken = publicinvite.expertToken;
+      const publicinvite = await PublicInvite.findOne({
+        or: [
+          { inviteToken: token },
+          { expertToken: token },
+        ],
+      })
+        .populate('translationOrganization')
+        .populate('doctor');
+
+      if (!publicinvite) {
+        sails.config.customLogger.log('warn', 'Public invite not found', { token });
+        return res.notFound();
+      }
+
+      const isExpert = publicinvite.expertToken === token;
+      sails.config.customLogger.log('info', 'Public invite retrieved', {
+        inviteId: publicinvite.id,
+        isExpert: isExpert
+      });
+
+      if (publicinvite.doctor) {
+        publicinvite.doctor = _.pick(publicinvite.doctor, [
+          'firstName',
+          'lastName',
+        ]);
+      }
+
+      const expertBody = {};
+      if (isExpert) {
+        expertBody.status = null;
+        expertBody.isExpert = true;
+        expertBody.expertToken = publicinvite.expertToken;
+      }
+
+      sails.config.customLogger.log('info', 'findByToken completed successfully', {
+        inviteId: publicinvite.id
+      });
+      return res.json({ ...publicinvite, expertToken: '', ...expertBody });
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error in findByToken', {
+        error: error?.message || error
+      });
+      return res.status(500).send();
     }
-    res.json({ ...publicinvite, expertToken: '', ...expertBody });
   },
 
   async checkInviteStatus(req, res) {
     try {
+      if (!req.params.invitationToken) {
+        sails.config.customLogger.log('warn', 'Missing invitationToken parameter invitationToken');
+        return res.status(400).json({
+          success: false,
+          message: 'Missing invitation token'
+        });
+      }
+
+      const invitationToken = req.params.invitationToken
+
+      sails.config.customLogger.log('info', 'Checking invite status', {
+        invitationToken
+      });
+
       const publicInvite = await PublicInvite.findOne({
-        or: [
-          { inviteToken: req.params.invitationToken },
-        ],
+        or: [{ inviteToken: req.params.invitationToken }],
       });
 
       if (!publicInvite) {
+        sails.config.customLogger.log('warn', 'Invite not found', {
+          invitationToken
+        });
         return res.json({
           success: false,
           message: 'Invite not found',
@@ -1178,21 +1185,21 @@ module.exports = {
         'SCHEDULED_FOR_INVITE',
       ];
 
-      let requiresAcknowledgment = false;
+      let requiresAcknowledgment = acknowledgmentStatuses.includes(publicInvite.status);
 
-      for (const status of acknowledgmentStatuses) {
-        if (publicInvite.status === status) {
-          requiresAcknowledgment = true;
-          break;
-        }
-      }
-
+      sails.config.customLogger.log('info', 'Invite status checked', {
+        inviteId: publicInvite.id,
+        requiresAcknowledgment: requiresAcknowledgment,
+      });
       return res.json({
         success: true,
         requiresAcknowledgment,
       });
-
     } catch (error) {
+      sails.config.customLogger.log('error', 'Error checking invite status', {
+        error: error.message,
+        invitationToken
+      });
       return res.status(500).json({
         success: false,
         message: 'An unexpected error occurred',
@@ -1200,20 +1207,28 @@ module.exports = {
       });
     }
   },
+
   async acknowledgeInvite(req, res) {
     try {
       const { inviteToken } = req.body;
 
       if (!inviteToken) {
+        sails.config.customLogger.log('warn', 'Missing inviteToken in acknowledgeInvite request', {
+          inviteToken
+        });
         return res.status(400).json({
           success: false,
           message: 'Missing inviteToken',
         });
       }
 
-      const invite = await PublicInvite.findOne({ inviteToken });
+      sails.config.customLogger.log('info', 'Acknowledging invite', { inviteToken  });
 
+      const invite = await PublicInvite.findOne({ inviteToken });
       if (!invite) {
+        sails.config.customLogger.log('warn', 'Invite not found in acknowledgeInvite', {
+          inviteToken
+        });
         return res.status(404).json({
           success: false,
           message: 'Invite not found',
@@ -1221,13 +1236,18 @@ module.exports = {
       }
 
       await PublicInvite.updateOne({ inviteToken }).set({ status: 'ACKNOWLEDGED' });
+      sails.config.customLogger.log('info', 'Invite status updated to ACKNOWLEDGED', {
+        inviteId: invite.id,
+      });
 
       return res.json({
         success: true,
         message: 'Invite status updated to ACKNOWLEDGED',
       });
-
     } catch (error) {
+      sails.config.customLogger.log('error', 'Error acknowledging invite', {
+        error: error.message,
+      });
       return res.status(500).json({
         success: false,
         message: 'An unexpected error occurred',
@@ -1237,80 +1257,123 @@ module.exports = {
   },
 
   async getConsultation(req, res) {
-    const inviteId = req.params.invite || req.params.id;
-    if (!inviteId) return res.status(500).send();
-    const [consultation] = await Consultation.find({ invite: inviteId });
-    const [anonymousConsultation] = await AnonymousConsultation.find({
-      invite: inviteId,
-    });
+    try {
+      const inviteId = req.params.invite || req.params.id;
+      if (!inviteId) {
+        sails.config.customLogger.log('warn', 'Missing inviteId parameter in getConsultation', { inviteId: 'undefined' });
+        return res.status(500).send();
+      }
 
-    if (!consultation && !anonymousConsultation) {
-      return res.notFound();
-    }
-    if (consultation && consultation.closedAt) {
-      consultation.duration = consultation.createAt - consultation.closedAt;
-    }
+      sails.config.customLogger.log('info', 'Fetching consultation data', { inviteId });
 
-    if (consultation) {
-      const anonymousConsultationDetails =
-        await Consultation.getAnonymousDetails(consultation);
-      consultation.doctorURL =
-        process.env.DOCTOR_URL + '/app/consultation/' + consultation.id;
-      return res.status(200).json(anonymousConsultationDetails);
-    }
-    if (anonymousConsultation) {
-      anonymousConsultation.doctorURL =
-        process.env.DOCTOR_URL +
-        '/app/consultation/' +
-        anonymousConsultation.id;
-      return res.status(200).json(anonymousConsultation);
+      const [consultation] = await Consultation.find({ invite: inviteId });
+      const [anonymousConsultation] = await AnonymousConsultation.find({ invite: inviteId });
+
+      if (!consultation && !anonymousConsultation) {
+        sails.config.customLogger.log('warn', 'No consultation found for inviteId', { inviteId });
+        return res.notFound();
+      }
+
+      if (consultation && consultation.closedAt) {
+        consultation.duration = consultation.createAt - consultation.closedAt;
+      }
+
+      if (consultation) {
+        const anonymousConsultationDetails = await Consultation.getAnonymousDetails(consultation);
+        consultation.doctorURL = process.env.DOCTOR_URL + '/app/consultation/' + consultation.id;
+        sails.config.customLogger.log('info', 'Returning consultation details', { consultationId: consultation.id });
+        return res.status(200).json(anonymousConsultationDetails);
+      }
+
+      if (anonymousConsultation) {
+        anonymousConsultation.doctorURL = process.env.DOCTOR_URL + '/app/consultation/' + anonymousConsultation.id;
+        sails.config.customLogger.log('info', 'Returning anonymous consultation details', { consultationId: anonymousConsultation.id });
+        return res.status(200).json(anonymousConsultation);
+      }
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error in getConsultation', { error: error.message });
+      return res.status(500).send();
     }
   },
+
   async getInvite(req, res, next) {
-    const inviteId = req.params.invite || req.params.id;
-    if (!inviteId) return res.status(500).send();
-    const invite = await PublicInvite.findOne({ id: inviteId });
+    try {
+      const inviteId = req.params.invite || req.params.id;
+      if (!inviteId) {
+        sails.config.customLogger.log('warn', 'Missing inviteId in getInvite', { inviteId: 'undefined' });
+        return res.status(500).send();
+      }
 
-    if (!invite) {
-      return res.notFound();
+      sails.config.customLogger.log('info', 'Fetching invite', { inviteId });
+      const invite = await PublicInvite.findOne({ id: inviteId });
+      if (!invite) {
+        sails.config.customLogger.log('warn', 'Invite not found', { inviteId });
+        return res.notFound();
+      }
+
+      const [consultation] = await Consultation.find({ invite: inviteId });
+      if (consultation) {
+        invite.doctorURL = process.env.DOCTOR_URL + '/app/consultation/' + consultation.id;
+        sails.config.customLogger.log('info', 'Consultation found for invite', { consultationId: consultation.id, inviteId });
+      }
+
+      invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
+      sails.config.customLogger.log('info', 'Returning invite details', { inviteId });
+
+      return res.json(invite);
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error in getInvite', { error: error.message });
+      return res.status(500).send();
     }
-    const [consultation] = await Consultation.find({ invite: inviteId });
-
-    if (consultation) {
-      invite.doctorURL =
-        process.env.DOCTOR_URL + '/app/consultation/' + consultation.id;
-    }
-
-    invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-
-    return res.json(invite);
   },
 
   async closeConsultation(req, res, next) {
-    const [consultation] = await Consultation.find({
-      invite: req.params.invite,
-    });
-
-    if (!consultation || consultation.status !== 'active') {
-      const [anonymousConsultation] = await AnonymousConsultation.find({
-        invite: req.params.invite,
-      });
-      if (anonymousConsultation) {
-        anonymousConsultation.duration =
-          anonymousConsultation.closedAt - anonymousConsultation.acceptedAt;
-        return res.status(200).json(anonymousConsultation);
-      } else {
-        return res
-          .status(404)
-          .json({ success: false, error: 'Consultation not found' });
+    try {
+      const inviteId = req.params.invite;
+      if (!inviteId) {
+        sails.config.customLogger.log('warn', 'Missing invite parameter in closeConsultation', { inviteId: 'undefined' });
+        return res.status(400).json({ success: false, error: 'Missing invite parameter' });
       }
+
+      sails.config.customLogger.log('info', 'Attempting to close consultation', { inviteId });
+      const [consultation] = await Consultation.find({ invite: inviteId });
+
+      if (!consultation || consultation.status !== 'active') {
+        sails.config.customLogger.log('warn', 'Consultation not active or not found, checking anonymous consultation', { inviteId });
+        const [anonymousConsultation] = await AnonymousConsultation.find({ invite: inviteId });
+        if (anonymousConsultation) {
+          anonymousConsultation.duration = anonymousConsultation.closedAt - anonymousConsultation.acceptedAt;
+          sails.config.customLogger.log('info', 'Anonymous consultation closed', {
+            inviteId,
+            consultationId: anonymousConsultation.id
+          });
+          return res.status(200).json(anonymousConsultation);
+        } else {
+          sails.config.customLogger.log('warn', 'No consultation found', { inviteId });
+          return res.status(404).json({ success: false, error: 'Consultation not found' });
+        }
+      }
+
+      consultation.duration = Date.now() - consultation.acceptedAt;
+      sails.config.customLogger.log('info', 'Closing active consultation', {
+        inviteId,
+        consultationId: consultation.id,
+        duration: consultation.duration
+      });
+
+      await Consultation.closeConsultation(consultation);
+      sails.config.customLogger.log('info', 'Consultation closed successfully', {
+        inviteId,
+        consultationId: consultation.id
+      });
+
+      return res.status(200).json(consultation);
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error closing consultation', {
+        error: error.message,
+        inviteId: req.params.invite || 'undefined'
+      });
+      return res.status(500).json({ success: false, error: error.message });
     }
-
-    consultation.duration = Date.now() - consultation.acceptedAt;
-
-    await Consultation.closeConsultation(consultation);
-
-    res.status(200);
-    return res.json(consultation);
-  },
+  }
 };

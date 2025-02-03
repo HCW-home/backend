@@ -7,10 +7,17 @@ module.exports = {
 
     fs.readdir(localesDir, (err, files) => {
       if (err) {
+        sails.config.customLogger.log('error', 'Error reading locales directory', {
+          error: err.message,
+          localesDir
+        });
         return res.serverError(err);
       }
 
       const languages = files.map(file => file.split('.').shift());
+      sails.config.customLogger.log('info', 'Supported languages retrieved', {
+        languages
+      });
       return res.json(languages);
     });
   }
