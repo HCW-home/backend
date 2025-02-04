@@ -1,20 +1,11 @@
-
 const axios = require('axios');
 
-
 module.exports = {
-
-
   friendlyName: 'Redmine',
-
-
   description: 'Post issue to Redmine.',
-
-
   inputs: {
     title: {
       type: 'string',
-
       description: 'Issue title',
       required: true
     },

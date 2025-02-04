@@ -1,4 +1,3 @@
-
 const axios = require('axios');
 const FETCH_TIMEOUT = 3000;
 const fallbackMediasoup = {
@@ -7,74 +6,50 @@ const fallbackMediasoup = {
   username: process.env.MEDIASOUP_USER
 };
 module.exports = {
-
-
   friendlyName: 'Get mediasoup servers',
-
-
   description: '',
-
-
   inputs: {
-
   },
-
-
   exits: {
-
     success: {
       outputFriendlyName: 'Mediasoup servers',
     },
-
   },
 
 
   fn: async function (inputs, exits) {
-
     const allServers = await MediasoupServer.find();
     const servers = allServers.filter(server =>
       server.active === true || !server.hasOwnProperty('active')
     );
 
-    console.log(servers, 'servers');
+    sails.config.customLogger.log('info', 'servers', servers);
 
     try {
       const serversStatues = await Promise.all(servers.map(async server => {
-
         try {
-
-
           await timeoutPromise(FETCH_TIMEOUT, getRoomsCount(server));
-
           return server;
-
         } catch (error) {
-          console.log(error);
-          console.log('Server ', server.url, ' is Not reachable');
+          sails.config.customLogger.log('error', 'Server ' + server.url + ' is Not reachable', error);
           return Promise.resolve({ reachable: false });
         }
-
       }));
-
-
-
 
       const availableServers = serversStatues.filter(server => {
         return (server.activeSessions < server.maxNumberOfSessions) && server.reachable;
       });
 
-      console.log('AVAILABLE SERVERS:: ', JSON.stringify(availableServers));
-
+      sails.config.customLogger.log('info', 'AVAILABLE SERVERS:: ' + JSON.stringify(availableServers));
 
       if (!availableServers.length) {
-        console.log('NO AVAILABLE SERVER USING FALLBACK', fallbackMediasoup.url);
+        sails.config.customLogger.log('info', 'NO AVAILABLE SERVER USING FALLBACK ' + fallbackMediasoup.url);
         return exits.success([fallbackMediasoup]);
       }
 
       exits.success(availableServers);
-    }catch(error){
-      console.log('Error with getting Mediasoup server ', error);
-
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error with getting Mediasoup server', error);
     }
   }
 
@@ -116,5 +91,4 @@ async function getRoomsCount(server){
 
   server.activeSessions = response.data.count
   server.reachable = true;
-  return
 }

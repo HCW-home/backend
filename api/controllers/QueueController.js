@@ -1,15 +1,8 @@
-/**
- * QueueController
- *
- * @description :: Server-side actions for handling incoming requests.
- * @help        :: See https://sailsjs.com/docs/concepts/actions
- */
-
 module.exports = {
   async find(req, res) {
     const userId = req.user ? req.user.id : 'unknown';
     const userRole = req.user ? req.user.role : 'unknown';
-    sails.config.customLogger.log('info', 'Queue find action initiated', { userId, userRole });
+    sails.config.customLogger.log('info', `Queue find action initiated for user with id ${userId} and role ${userRole}`);
 
     const viewAll = req.user.role === sails.config.globals.ROLE_ADMIN ? !!req.query.viewAllQueues : false;
 
@@ -32,7 +25,7 @@ module.exports = {
       return res.json(req.user.allowedQueues);
     }
 
-    sails.config.customLogger.log('warn', 'No queues available for user', { userId });
+    sails.config.customLogger.log('warn', `No queues available for user with id ${userId}`);
     return res.json([]);
   }
 };
