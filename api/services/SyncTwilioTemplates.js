@@ -22,21 +22,19 @@ module.exports = {
 
     try {
       const supportedLanguages = sails.config.i18n.locales || [];
-
       const existingTemplates = await WhatsappTemplate.find();
 
       for (const template of requiredTemplates) {
         for (const language of supportedLanguages) {
-          const friendlyName = `${template.key
-            .replace(/\s+/g, '_')
-            .toLowerCase()}_${language}`;
+          const friendlyName = `${template.key.replace(/\s+/g, '_').toLowerCase()}_${language}`;
 
           const existingTemplate = existingTemplates.find(
             (t) => t.key === template.key && t.language === language
           );
 
           if (!existingTemplate) {
-            sails.log.info(
+            sails.config.customLogger.log(
+              'info',
               `Template "${template.key}" is missing for language "${language}". Creating...`
             );
 
@@ -46,13 +44,11 @@ module.exports = {
               type: action.type || 'URL',
             }));
 
-
             const body = convertPlaceholders(sails._t(language, template.key));
 
             await WhatsappTemplate.create({
               key: template.key,
               friendlyName: friendlyName,
-              // body: sails._t(language, 'whatsappTemplates.' + template.key),
               body,
               language,
               category: template.category,
@@ -62,20 +58,24 @@ module.exports = {
               approvalStatus: 'draft',
             });
 
-            sails.log.info(
-              `Template "${template.key}" created for language "${language}".`
+            sails.config.customLogger.log(
+              'info',
+              `Template "${template.key}" created for language "${language}".`,
+              { key: template.key, language }
             );
           } else {
-            sails.log.info(
-              `Template "${template.key}" already exists for language "${language}".`
+            sails.config.customLogger.log(
+              'info',
+              `Template "${template.key}" already exists for language "${language}".`,
+              { key: template.key, language }
             );
           }
         }
       }
 
-      sails.log.info('Template synchronization completed.');
+      sails.config.customLogger.log('info', 'Template synchronization completed.');
     } catch (error) {
-      sails.log.error('Error during template synchronization:', error);
+      sails.config.customLogger.log('error', 'Error during template synchronization:', { error: error?.message  || error});
     }
-  },
+  }
 };
