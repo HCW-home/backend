@@ -4,7 +4,6 @@ const OpenIDConnectStrategy = require('passport-openidconnect');
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
-const { Strategy } = require("passport-trusted-header");
 
 const passportCustom = require("passport-custom");
 
@@ -544,59 +543,6 @@ if (process.env.LOGIN_METHOD === 'openid') {
   );
   passport.use('openidconnect_doctor', openidConnectDoctorStrategy);
 }
-
-const options = {
-  headers: ["x-ssl-client-s-dn"],
-};
-
-passport.use(
-  new Strategy(options, async (requestHeaders, cb) => {
-    let user = null;
-    const userDn = requestHeaders["x-ssl-client-s-dn"];
-    const CNMatch = userDn.match(/CN=([^\/]+)/);
-    const emailMatch = userDn.match(/emailAddress=([^\/\s]+)/);
-    const login = CNMatch && CNMatch[1] ? CNMatch[1].split(/\s+/)[0] : null;
-    const firstName = login;
-    const email = `${ firstName }@imad.ch`;
-    const lastName = "UNKNOWN";
-
-    sails.log.debug("headers ", userDn, firstName, lastName, email);
-
-    if (!firstName) {
-      return cb(new Error("CN field is not present"), null, {
-        message: "CN field is not present",
-      });
-    }
-    if (email) {
-      user = await User.findOne({ email });
-      if (!user) {
-        try {
-          user = await User.create({
-            email,
-            firstName,
-            lastName,
-            role: sails.config.globals.ROLE_NURSE,
-          }).fetch();
-        } catch (error) {
-          return cb(error, null, { message: "Login Unsuccessful" });
-        }
-      }
-
-      if (user.hasOwnProperty('status') && user.status !== "approved") {
-        return cb(new Error('User is not approved'));
-      }
-
-      const { token, refreshToken } = TokenService.generateToken(user) || {};
-
-      user.token = token;
-      user.refreshToken = refreshToken;
-
-      return cb(null, user, { message: "Login Successful" });
-    } else {
-      return cb(null, null, { message: "email not found" });
-    }
-  })
-);
 
 const SamlStrategy = require("@node-saml/passport-saml").Strategy;
 let samlStrategy;

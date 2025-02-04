@@ -38,6 +38,7 @@
   "no file": "Unable to send the file, no file where provided.",
   "invalid file type": "Unable to send the file, only PDF, JPEG, and PNG file types are allowed.",
   "infected file": "Unable to send the file, the file probably contains malware. You are encouraged to deleted it from your hard drive.",
+  "virus scan": "Error during file virus scan",
   "fr": "French",
   "it": "Italian",
   "es": "Spanish",

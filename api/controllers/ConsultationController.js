@@ -5,15 +5,15 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 const { ObjectId } = require('mongodb');
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 const json2csv = require('@json2csv/plainjs');
-const jwt = require("jsonwebtoken");
-const uuid = require("uuid");
-const fileType = require("file-type");
+const jwt = require('jsonwebtoken');
+const uuid = require('uuid');
+const fileType = require('file-type');
 
-const _ = require("@sailshq/lodash");
-const validator = require("validator");
+const _ = require('@sailshq/lodash');
+const validator = require('validator');
 const sanitize = require('mongo-sanitize');
 
 const db = Consultation.getDatastore().manager;
@@ -25,7 +25,7 @@ module.exports = {
         owner: new ObjectId(req.user.id),
       },
     ];
-    if (req.user && req.user.role === "doctor") {
+    if (req.user && req.user.role === 'doctor') {
       match = [
         {
           acceptedBy: new ObjectId(req.user.id),
@@ -37,19 +37,19 @@ module.exports = {
       ];
     }
 
-    if (req.user && req.user.role === "translator") {
+    if (req.user && req.user.role === 'translator') {
       match = [{ translator: new ObjectId(req.user.id) }];
     }
 
-    if (req.user && req.user.role === "guest") {
+    if (req.user && req.user.role === 'guest') {
       match = [{ guest: new ObjectId(req.user.id) }];
     }
 
-    if (req.user && req.user.role === "expert") {
+    if (req.user && req.user.role === 'expert') {
       match = [{ experts: req.user.id }];
     }
 
-    if (req.user && req.user.role === "admin") {
+    if (req.user && req.user.role === 'admin') {
       match = [
         {
           acceptedBy: new ObjectId(req.user.id),
@@ -65,7 +65,7 @@ module.exports = {
         (queue) => new ObjectId(queue.id)
       );
       match.push({
-        status: "pending",
+        status: 'pending',
         queue: { $in: queues },
       });
     }
@@ -76,7 +76,7 @@ module.exports = {
       );
 
       match.push({
-        status: "pending",
+        status: 'pending',
         queue: { $in: queues },
       });
     }
@@ -94,22 +94,22 @@ module.exports = {
       },
       {
         $project: {
-          consultation: "$$ROOT",
+          consultation: '$$ROOT',
         },
       },
       {
         $lookup: {
-          from: "message",
-          localField: "_id",
-          foreignField: "consultation",
-          as: "messages",
+          from: 'message',
+          localField: '_id',
+          foreignField: 'consultation',
+          as: 'messages',
         },
       },
       {
         $project: {
           consultation: 1,
           lastMsg: {
-            $arrayElemAt: ["$messages", -1],
+            $arrayElemAt: ['$messages', -1],
           },
           messages: 1,
         },
@@ -120,20 +120,20 @@ module.exports = {
           lastMsg: 1,
           messages: {
             $filter: {
-              input: "$messages",
-              as: "msg",
+              input: '$messages',
+              as: 'msg',
               cond: {
                 $and: [
                   {
-                    $eq: ["$$msg.read", false],
+                    $eq: ['$$msg.read', false],
                   },
                   {
                     $or: [
                       {
-                        $eq: ["$$msg.to", new ObjectId(req.user.id)],
+                        $eq: ['$$msg.to', new ObjectId(req.user.id)],
                       },
                       {
-                        $eq: ["$$msg.to", null],
+                        $eq: ['$$msg.to', null],
                       },
                     ],
                   },
@@ -148,56 +148,56 @@ module.exports = {
           consultation: 1,
           lastMsg: 1,
           unreadCount: {
-            $size: "$messages",
+            $size: '$messages',
           },
         },
       },
       {
         $lookup: {
-          from: "user",
-          localField: "consultation.owner",
-          foreignField: "_id",
-          as: "nurse",
+          from: 'user',
+          localField: 'consultation.owner',
+          foreignField: '_id',
+          as: 'nurse',
         },
       },
       {
         $lookup: {
-          from: "queue",
-          localField: "consultation.queue",
-          foreignField: "_id",
-          as: "queue",
+          from: 'queue',
+          localField: 'consultation.queue',
+          foreignField: '_id',
+          as: 'queue',
         },
       },
       {
         $lookup: {
-          from: "user",
-          localField: "consultation.acceptedBy",
-          foreignField: "_id",
-          as: "doctor",
+          from: 'user',
+          localField: 'consultation.acceptedBy',
+          foreignField: '_id',
+          as: 'doctor',
         },
       },
       {
         $lookup: {
-          from: "user",
-          localField: "consultation.translator",
-          foreignField: "_id",
-          as: "translator",
+          from: 'user',
+          localField: 'consultation.translator',
+          foreignField: '_id',
+          as: 'translator',
         },
       },
       {
         $lookup: {
-          from: "user",
-          localField: "consultation.guest",
-          foreignField: "_id",
-          as: "guest",
+          from: 'user',
+          localField: 'consultation.guest',
+          foreignField: '_id',
+          as: 'guest',
         },
       },
       {
         $lookup: {
-          from: "publicinvite",
-          localField: "consultation.guestInvite",
-          foreignField: "_id",
-          as: "guestInvite",
+          from: 'publicinvite',
+          localField: 'consultation.guestInvite',
+          foreignField: '_id',
+          as: 'guestInvite',
         },
       },
       {
@@ -215,16 +215,16 @@ module.exports = {
           lastMsg: 1,
           unreadCount: 1,
           doctor: {
-            $arrayElemAt: ["$doctor", 0],
+            $arrayElemAt: ['$doctor', 0],
           },
           nurse: {
-            $arrayElemAt: ["$nurse", 0],
+            $arrayElemAt: ['$nurse', 0],
           },
           queue: {
-            $arrayElemAt: ["$queue", 0],
+            $arrayElemAt: ['$queue', 0],
           },
           guestInvite: {
-            $arrayElemAt: ["$guestInvite", 0],
+            $arrayElemAt: ['$guestInvite', 0],
           },
         },
       },
@@ -233,18 +233,18 @@ module.exports = {
           consultation: 1,
           lastMsg: 1,
           unreadCount: 1,
-          "doctor.firstName": 1,
-          "doctor.lastName": 1,
-          "doctor.phoneNumber": 1,
-          "nurse.firstName": 1,
-          "nurse.lastName": 1,
-          "queue": 1,
+          'doctor.firstName': 1,
+          'doctor.lastName': 1,
+          'doctor.phoneNumber': 1,
+          'nurse.firstName': 1,
+          'nurse.lastName': 1,
+          'queue': 1,
           guestInvite: 1,
           guest: {
-            $arrayElemAt: ["$guest", 0],
+            $arrayElemAt: ['$guest', 0],
           },
           translator: {
-            $arrayElemAt: ["$translator", 0],
+            $arrayElemAt: ['$translator', 0],
           },
         },
       },
@@ -256,7 +256,7 @@ module.exports = {
       },
     ];
 
-    const consultationCollection = db.collection("consultation");
+    const consultationCollection = db.collection('consultation');
     const results = await consultationCollection.aggregate(agg);
     const data = await results.toArray();
 
@@ -279,7 +279,7 @@ module.exports = {
     let invite;
     // if user is guest or translator
 
-    if (user.role === "guest" || user.role === "translator") {
+    if (user.role === 'guest' || user.role === 'translator') {
       if (!req.body.invitationToken) {
         return res.status(200).send(null);
       }
@@ -305,7 +305,7 @@ module.exports = {
     if (req.body.invitationToken) {
 
       if (!invite) {
-        const sanitizedToken = sanitize(req.body.invitationToken)
+        const sanitizedToken = sanitize(req.body.invitationToken);
         invite = await PublicInvite.findOne({
           or: [
             { inviteToken: sanitizedToken },
@@ -335,27 +335,27 @@ module.exports = {
       if (invite) {
         if (invite.scheduledFor) {
           if (invite.scheduledFor - Date.now() > 10 * 60 * 1000) {
-            console.log("cant create consultation yet");
+            console.log('cant create consultation yet');
             return res
               .status(401)
-              .json({ success: false, message: "Too early for consultation" });
+              .json({ success: false, message: 'Too early for consultation' });
           }
         }
 
         consultationJson.firstName = invite.firstName
           ? invite.firstName
-          : "No firstname";
+          : 'No firstname';
         consultationJson.lastName = invite.lastName
           ? invite.lastName
-          : "No lastname";
-        consultationJson.gender = invite.gender ? invite.gender : "unknown";
+          : 'No lastname';
+        consultationJson.gender = invite.gender ? invite.gender : 'unknown';
         consultationJson.queue = invite.queue;
         consultationJson.doctor = invite.doctor;
         consultationJson.invite = invite.id;
         consultationJson.invitedBy = invite.invitedBy;
 
         consultationJson.metadata = invite.metadata; //! we pass the metadata from the invite to the consultation
-        consultationJson.IMADTeam = invite.IMADTeam || "none";
+        consultationJson.IMADTeam = invite.IMADTeam || 'none';
         consultationJson.birthDate = invite.birthDate;
         consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
       }
@@ -369,14 +369,14 @@ module.exports = {
         // get users created by these invites (guest / translator)
         const guest = await User.findOne({
           inviteToken: { in: subInvites.map((i) => i.id) },
-          role: "guest",
+          role: 'guest',
         });
-        const guestInvite = subInvites.find((i) => i.type === "GUEST");
-        const translatorInvite = subInvites.find((i) => i.type === "TRANSLATOR");
+        const guestInvite = subInvites.find((i) => i.type === 'GUEST');
+        const translatorInvite = subInvites.find((i) => i.type === 'TRANSLATOR');
 
         const translator = await User.findOne({
           inviteToken: { in: subInvites.map((i) => i.id) },
-          role: "translator",
+          role: 'translator',
         });
 
         if (guest) {
@@ -438,7 +438,7 @@ module.exports = {
         res.json(consultation);
       })
       .catch((err) => {
-        console.log("ERROR WHILE CREATING CONSULTATION", err);
+        console.log('ERROR WHILE CREATING CONSULTATION', err);
         const error = err && err.cause ? err.cause : err;
         res.status(400).json(error);
       });
@@ -447,9 +447,9 @@ module.exports = {
   async acceptConsultation(req, res) {
     const consultation = await Consultation.updateOne({
       id: req.params.consultation,
-      status: "pending",
+      status: 'pending',
     }).set({
-      status: "active",
+      status: 'active',
       acceptedBy: req.user.id,
       acceptedAt: new Date(),
     });
@@ -460,14 +460,14 @@ module.exports = {
 
     (await Consultation.getConsultationParticipants(consultation)).forEach(
       (participant) => {
-        sails.sockets.broadcast(participant, "consultationAccepted", {
+        sails.sockets.broadcast(participant, 'consultationAccepted', {
           data: {
             consultation,
             _id: consultation.id,
             doctor: {
               firstName: req.user.firstName,
               lastName: req.user.lastName,
-              phoneNumber: req.user.phoneNumber ? req.user.phoneNumber : "",
+              phoneNumber: req.user.phoneNumber ? req.user.phoneNumber : '',
             },
           },
         });
@@ -475,7 +475,7 @@ module.exports = {
     );
 
     return res.status(200).json({
-      message: "success",
+      message: 'success',
     });
   },
 
@@ -484,7 +484,7 @@ module.exports = {
       const consultation = await Consultation.findOne({
         id: req.params.consultation,
       });
-      if (!consultation || consultation.status !== "active") {
+      if (!consultation || consultation.status !== 'active') {
         const anonymousConsultation = await AnonymousConsultation.find({
           consultationId: req.params.consultation,
         });
@@ -498,23 +498,23 @@ module.exports = {
       // end any ongoing calls
       const selector = {
         consultation: req.params.consultation,
-        type: { in: ["videoCall", "audioCall"] },
-        status: { in: ["ringing", "ongoing"] },
+        type: { in: ['videoCall', 'audioCall'] },
+        status: { in: ['ringing', 'ongoing'] },
       };
 
       const [call] = await Message.find({
         where: selector,
-        sort: [{ createdAt: "DESC" }],
+        sort: [{ createdAt: 'DESC' }],
       }).limit(1);
 
       if (call) {
-        await Message.endCall(call, consultation, "CONSULTATION_CLOSED");
+        await Message.endCall(call, consultation, 'CONSULTATION_CLOSED');
       }
       await Consultation.closeConsultation(consultation);
 
       return res.status(200).json(consultation);
     } catch (error) {
-      sails.log("error ", error);
+      sails.log('error ', error);
     }
   },
 
@@ -523,7 +523,7 @@ module.exports = {
       const mediasoupServers = await sails.helpers.getMediasoupServers();
       const serverIndex = Math.floor(Math.random() * mediasoupServers.length);
       const mediasoupServer = mediasoupServers[serverIndex];
-      const roomIdPeerId = "test_" + uuid.v4();
+      const roomIdPeerId = 'test_' + uuid.v4();
       const token = await sails.helpers.getMediasoupToken.with({
         roomId: roomIdPeerId,
         peerId: roomIdPeerId,
@@ -533,7 +533,7 @@ module.exports = {
     } catch (err) {
       return res
         .status(400)
-        .json({ error: "An error occurred", details: err.message });
+        .json({ error: 'An error occurred', details: err.message });
     }
   },
 
@@ -545,7 +545,7 @@ module.exports = {
 
       const mediasoupServer = mediasoupServers[serverIndex];
 
-      const id = validator.escape(req.params.consultation)
+      const id = validator.escape(req.params.consultation);
       const consultation = await Consultation.findOne({
         _id: id,
       });
@@ -572,7 +572,7 @@ module.exports = {
         id: req.user.id,
       });
 
-      console.log("Callee id", calleeId);
+      console.log('Callee id', calleeId);
 
       if (!consultation.firstCallAt) {
         await Consultation.updateOne({
@@ -583,7 +583,7 @@ module.exports = {
       }
       // create a new message
       const msg = await Message.create({
-        type: req.query.audioOnly === "true" ? "audioCall" : "videoCall",
+        type: req.query.audioOnly === 'true' ? 'audioCall' : 'videoCall',
         consultation: req.params.consultation,
         from: req.user.id,
         to: calleeId,
@@ -593,12 +593,12 @@ module.exports = {
           consultation.guest ||
           consultation.experts?.length
         ),
-        status: "ringing",
+        status: 'ringing',
         mediasoupURL: mediasoupServer.url,
       }).fetch();
 
-      await Message.addToCollection(msg.id, "participants", req.user.id);
-      await Message.addToCollection(msg.id, "currentParticipants", req.user.id);
+      await Message.addToCollection(msg.id, 'participants', req.user.id);
+      await Message.addToCollection(msg.id, 'currentParticipants', req.user.id);
 
       const patientMsg = Object.assign({}, msg);
       patientMsg.token = patientToken;
@@ -633,12 +633,12 @@ module.exports = {
             to: toUser.email,
             subject: sails._t(
               locale,
-              "notification for offline action subject",
+              'notification for offline action subject',
               { branding: process.env.BRANDING }
             ),
             text: sails._t(
               locale,
-              "notification for offline action text for nurse"
+              'notification for offline action text for nurse'
             ),
           });
 
@@ -650,10 +650,10 @@ module.exports = {
             to: publicInvite.emailAddress,
             subject: sails._t(
               locale,
-              "notification for offline action subject",
+              'notification for offline action subject',
               { branding: process.env.BRANDING }
             ),
-            text: sails._t(locale, "notification for offline action text", {
+            text: sails._t(locale, 'notification for offline action text', {
               url,
             }),
           });
@@ -672,7 +672,7 @@ module.exports = {
             phoneNumber: toUser.phoneNumber,
             message: sails._t(
               locale,
-              "notification for offline action text for nurse"
+              'notification for offline action text for nurse'
             ),
             senderEmail: publicInvite?.doctor?.email,
           });
@@ -683,7 +683,7 @@ module.exports = {
         } else if (publicInvite.phoneNumber) {
           await sails.helpers.sms.with({
             phoneNumber: publicInvite.phoneNumber,
-            message: sails._t(locale, "notification for offline action text", {
+            message: sails._t(locale, 'notification for offline action text', {
               url,
             }),
             senderEmail: publicInvite?.doctor?.email,
@@ -696,22 +696,22 @@ module.exports = {
       }
 
       const hideCallerName = sails.config.globals.hideCallerName;
-      console.log("SEND CALL TO", calleeId);
-      sails.sockets.broadcast(calleeId, "newCall", {
+      console.log('SEND CALL TO', calleeId);
+      sails.sockets.broadcast(calleeId, 'newCall', {
         data: {
           consultation: req.params.consultation,
           token: patientToken,
           id: req.params.consultation,
           user: hideCallerName
             ? {
-              firstName: "Anonymous",
-              lastName: "",
+              firstName: 'Anonymous',
+              lastName: '',
             }
             : {
               firstName: user.firstName,
               lastName: user.lastName,
             },
-          audioOnly: req.query.audioOnly === "true",
+          audioOnly: req.query.audioOnly === 'true',
           msg: patientMsg,
         },
       });
@@ -725,12 +725,12 @@ module.exports = {
         const translatorMsg = Object.assign({}, msg);
         translatorMsg.token = translatorToken;
 
-        sails.sockets.broadcast(consultation.translator, "newCall", {
+        sails.sockets.broadcast(consultation.translator, 'newCall', {
           data: {
             consultation: req.params.consultation,
             token: translatorToken,
             id: req.params.consultation,
-            audioOnly: req.query.audioOnly === "true",
+            audioOnly: req.query.audioOnly === 'true',
             msg: translatorMsg,
           },
         });
@@ -746,12 +746,12 @@ module.exports = {
           const expertMsg = Object.assign({}, msg);
           expertMsg.token = expertToken;
 
-          sails.sockets.broadcast(expert, "newCall", {
+          sails.sockets.broadcast(expert, 'newCall', {
             data: {
               consultation: req.params.consultation,
               token: expertToken,
               id: req.params.consultation,
-              audioOnly: req.query.audioOnly === "true",
+              audioOnly: req.query.audioOnly === 'true',
               msg: expertMsg,
             },
           });
@@ -767,12 +767,12 @@ module.exports = {
         const guestMsg = Object.assign({}, msg);
         guestMsg.token = guestToken;
 
-        sails.sockets.broadcast(consultation.guest, "newCall", {
+        sails.sockets.broadcast(consultation.guest, 'newCall', {
           data: {
             consultation: req.params.consultation,
             token: guestToken,
             id: req.params.consultation,
-            audioOnly: req.query.audioOnly === "true",
+            audioOnly: req.query.audioOnly === 'true',
             msg: guestMsg,
           },
         });
@@ -788,7 +788,7 @@ module.exports = {
       console.error(error);
       return res
         .status(400)
-        .json({ error: "An error occurred", details: error.message });
+        .json({ error: 'An error occurred', details: error.message });
     }
   },
 
@@ -800,11 +800,11 @@ module.exports = {
 
       const message = await Message.findOne({
         id: req.params.message,
-      }).populate("currentParticipants");
+      }).populate('currentParticipants');
 
       // if conference remove them from participants
       if (message.isConferenceCall || consultation.experts?.length) {
-        if (!message.currentParticipants.length || message.status === "ended") {
+        if (!message.currentParticipants.length || message.status === 'ended') {
           return res.json({
             status: 200,
           });
@@ -812,7 +812,7 @@ module.exports = {
 
         await Message.removeFromCollection(
           message.id,
-          "currentParticipants",
+          'currentParticipants',
           req.user.id
         );
         // if this is the last participant end the call and destroy the session
@@ -820,12 +820,12 @@ module.exports = {
           (p) => p.id === req.user.id
         );
 
-        if (req.user.role === "doctor" && isParticipant) {
-          await Message.endCall(message, consultation, "DOCTOR_LEFT");
+        if (req.user.role === 'doctor' && isParticipant) {
+          await Message.endCall(message, consultation, 'DOCTOR_LEFT');
         }
         // and set closed at
         else if (message.currentParticipants.length <= 2 && isParticipant) {
-          await Message.endCall(message, consultation, "MEMBERS_LEFT");
+          await Message.endCall(message, consultation, 'MEMBERS_LEFT');
         }
 
         return res.json({
@@ -840,16 +840,16 @@ module.exports = {
         closedAt: new Date(),
       });
 
-      await Message.endCall(message, consultation, "MEMBERS_LEFT");
+      await Message.endCall(message, consultation, 'MEMBERS_LEFT');
 
-      sails.sockets.broadcast(consultation.acceptedBy, "rejectCall", {
+      sails.sockets.broadcast(consultation.acceptedBy, 'rejectCall', {
         data: {
           consultation,
           message,
         },
       });
 
-      sails.sockets.broadcast(consultation.owner, "rejectCall", {
+      sails.sockets.broadcast(consultation.owner, 'rejectCall', {
         data: {
           consultation,
           message,
@@ -871,14 +871,14 @@ module.exports = {
       });
 
       const message = await Message.findOne({ id: req.params.message })
-        .populate("currentParticipants")
-        .populate("participants");
+        .populate('currentParticipants')
+        .populate('participants');
 
       // add them once to the participants list
       if (!message.participants.find((p) => p.id === req.user.id)) {
         await Message.addToCollection(
           req.params.message,
-          "participants",
+          'participants',
           req.user.id
         );
       }
@@ -886,7 +886,7 @@ module.exports = {
       if (message.isConferenceCall) {
         await Message.addToCollection(
           req.params.message,
-          "currentParticipants",
+          'currentParticipants',
           req.user.id
         );
 
@@ -897,7 +897,7 @@ module.exports = {
             consultation: req.params.consultation,
           }).set({
             acceptedAt: new Date(),
-            status: "ongoing",
+            status: 'ongoing',
           });
         }
         return res.json({
@@ -909,17 +909,17 @@ module.exports = {
         consultation: req.params.consultation,
       }).set({
         acceptedAt: new Date(),
-        status: "ongoing",
+        status: 'ongoing',
       });
 
-      sails.sockets.broadcast(consultation.acceptedBy, "acceptCall", {
+      sails.sockets.broadcast(consultation.acceptedBy, 'acceptCall', {
         data: {
           consultation,
           message,
         },
       });
 
-      sails.sockets.broadcast(consultation.owner, "acceptCall", {
+      sails.sockets.broadcast(consultation.owner, 'acceptCall', {
         data: {
           consultation,
           message,
@@ -939,60 +939,72 @@ module.exports = {
     const locale = validator.escape(req.headers?.locale || 'en').trim();
     const sanitizedLocale = locale || 'en';
 
-    req.file("attachment").upload(
+    req.file('attachment').upload(
       {
         dirname: sails.config.globals.attachmentsDir,
-        saveAs: function (__newFileStream, cb) {
-          const fileExtension = __newFileStream.filename.split(".").pop();
+        saveAs: function(__newFileStream, cb) {
+          const fileExtension = __newFileStream.filename.split('.').pop();
           const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
           cb(null, filePath);
         },
       },
       async function whenDone(err, uploadedFiles) {
         if (err) {
-          if (err.code === "E_EXCEEDS_UPLOAD_LIMIT") {
-            return res.status(413).send(sails._t(sanitizedLocale, "max file size"));
+          if (err.code === 'E_EXCEEDS_UPLOAD_LIMIT') {
+            sails.config.customLogger.log('error', 'Upload error: exceeds upload limit');
+            return res.status(413).send(sails._t(sanitizedLocale, 'max file size'));
           }
-          sails.log.error("Upload error:", err);
-          return res.status(500).send(sails._t(sanitizedLocale, "server error"));
+          sails.config.customLogger.log('error', 'Upload error', { error: err.message });
+          return res.status(500).send(sails._t(sanitizedLocale, 'server error'));
         }
         if (!uploadedFiles.length) {
-          return res.status(400).send(sails._t(sanitizedLocale, "no file"));
+          sails.config.customLogger.log('info', 'No file uploaded');
+          return res.status(400).send(sails._t(sanitizedLocale, 'no file'));
         }
 
         const uploadedFile = uploadedFiles[0];
-        const buffer = fs.readFileSync(uploadedFile.fd);
+        let buffer;
+        try {
+          buffer = fs.readFileSync(uploadedFile.fd);
+        } catch (readError) {
+          sails.config.customLogger.log('error', 'Error reading uploaded file', { error: readError.message });
+          return res.status(500).send(sails._t(sanitizedLocale, 'server error'));
+        }
         const type = await fileType.fromBuffer(buffer);
         const extraMimeTypes = sails.config.globals.EXTRA_MIME_TYPES;
         const defaultMimeTypes = sails.config.globals.DEFAULT_MIME_TYPES;
-        const allowedMimeTypes =
-          extraMimeTypes && extraMimeTypes.length > 0
-            ? extraMimeTypes
-            : defaultMimeTypes;
+        const allowedMimeTypes = extraMimeTypes && extraMimeTypes.length > 0
+          ? extraMimeTypes
+          : defaultMimeTypes;
 
         if (!allowedMimeTypes.includes(type?.mime)) {
+          sails.config.customLogger.log('error', 'Invalid file type', { mime: type?.mime });
           fs.unlinkSync(uploadedFile.fd);
-          return res.status(400).send(sails._t(locale, "invalid file type"));
+          return res.status(400).send(sails._t(locale, 'invalid file type'));
         }
 
-        const filePath = `${
-          req.params.consultation
-        }_${fileId}.${uploadedFile.filename.split(".").pop()}`;
+        const filePath = `${req.params.consultation}_${fileId}.${uploadedFile.filename.split('.').pop()}`;
 
         try {
-          if (process.env.NODE_ENV !== "development") {
-            const { isInfected } =
-              await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
-            if (isInfected) {
-              fs.unlinkSync(uploadedFile.fd);
-              return res
-                .status(400)
-                .send(new Error(sails._t(locale, "infected file")));
+          if (process.env.NODE_ENV !== 'development') {
+            try {
+              const { isInfected } = await sails.config.globals.clamscan.isInfected(uploadedFile.fd);
+              if (isInfected) {
+                sails.config.customLogger.log('error', 'File is infected', { file: uploadedFile.filename });
+                fs.unlinkSync(uploadedFile.fd);
+                return res.status(400).send(new Error(sails._t(locale, 'infected file')));
+              }
+            } catch (clamscanError) {
+              sails.config.customLogger.log('error', 'Error during file virus scan', { error: clamscanError?.message || clamscanError });
+              if (uploadedFile.id) {
+                fs.unlinkSync(uploadedFile.fd);
+              }
+              return res.status(500).send(sails._t(locale, 'virus scan'));
             }
           }
 
           const message = await Message.create({
-            type: "attachment",
+            type: 'attachment',
             mimeType: uploadedFile.type,
             fileName: uploadedFile.filename,
             filePath,
@@ -1001,15 +1013,15 @@ module.exports = {
             from: req.user.id,
           }).fetch();
 
+          sails.config.customLogger.log('info', 'File uploaded and message created successfully', { messageId: message.id });
           return res.ok({ message });
         } catch (error) {
-          sails.log("Error processing file upload: ", error);
+          sails.config.customLogger.log('error', 'Error processing file upload', { error: error.message });
           try {
             fs.unlinkSync(uploadedFile.fd);
           } catch (deleteError) {
-            sails.log("Error deleting file: ", deleteError);
+            sails.config.customLogger.log('error', 'Error deleting file', { error: deleteError.message });
           }
-
           return res.serverError();
         }
       }
@@ -1022,9 +1034,9 @@ module.exports = {
       id: attachment,
     });
 
-    if (!msg.mimeType.startsWith("audio")) {
+    if (!msg.mimeType.startsWith('audio')) {
       res.setHeader(
-        "Content-disposition",
+        'Content-disposition',
         `attachment; filename=${msg.fileName}`
       );
     }
@@ -1034,7 +1046,7 @@ module.exports = {
     if (!fs.existsSync(filePath)) {
       return res.notFound();
     }
-    res.setHeader("Content-Type", msg.mimeType);
+    res.setHeader('Content-Type', msg.mimeType);
     const readStream = fs.createReadStream(filePath);
     readStream.on('error', () => res.serverError());
 
@@ -1046,13 +1058,13 @@ module.exports = {
       await Consultation.updateOne({
         id: req.body.consultationId,
       }).set({
-        patientRating: req.body.rating || "",
+        patientRating: req.body.rating || '',
         patientComment: req.body.comment,
       });
       await AnonymousConsultation.updateOne({
         consultationId: req.body.consultationId,
       }).set({
-        patientRating: req.body.rating || "",
+        patientRating: req.body.rating || '',
         patientComment: req.body.comment,
       });
       res.json({ status: 200 });
@@ -1066,13 +1078,13 @@ module.exports = {
       await Consultation.updateOne({
         id: req.body.consultationId,
       }).set({
-        doctorRating: req.body.rating || "",
+        doctorRating: req.body.rating || '',
         doctorComment: req.body.comment,
       });
       await AnonymousConsultation.updateOne({
         consultationId: req.body.consultationId,
       }).set({
-        doctorRating: req.body.rating || "",
+        doctorRating: req.body.rating || '',
         doctorComment: req.body.comment,
       });
       res.json({ status: 200 });
@@ -1084,9 +1096,9 @@ module.exports = {
   async consultationsCSV(req, res) {
     try {
       const consultations = await AnonymousConsultation.find()
-        .populate("acceptedBy")
-        .populate("queue")
-        .populate("owner");
+        .populate('acceptedBy')
+        .populate('queue')
+        .populate('owner');
       const mappedConsultations = consultations.map(
         Consultation.getConsultationReport
       );
@@ -1108,13 +1120,13 @@ module.exports = {
   async getCurrentCall(req, res) {
     const selector = {
       consultation: req.params.consultation,
-      type: { in: ["videoCall", "audioCall"] },
-      status: { in: ["ringing", "ongoing"] },
+      type: { in: ['videoCall', 'audioCall'] },
+      status: { in: ['ringing', 'ongoing'] },
     };
 
     const [call] = await Message.find({
       where: selector,
-      sort: [{ createdAt: "DESC" }],
+      sort: [{ createdAt: 'DESC' }],
     }).limit(1);
 
     let mediasoupServer;
@@ -1150,7 +1162,7 @@ module.exports = {
 
     if (!tokenString) {
       return res.status(400).json({
-        message: "invalidUrl",
+        message: 'invalidUrl',
       });
     }
 
@@ -1159,7 +1171,7 @@ module.exports = {
 
       if (!token) {
         return res.status(400).json({
-          message: "tokenExpired",
+          message: 'tokenExpired',
         });
       }
 
@@ -1168,7 +1180,7 @@ module.exports = {
       const consultation = await Consultation.findOne({ id: consultationId });
       if (!consultation) {
         return res.status(400).json({
-          message: "invalidUrl",
+          message: 'invalidUrl',
         });
       }
       const queue = await Queue.findOne({ id: consultation.queue });
@@ -1178,7 +1190,7 @@ module.exports = {
     } catch (error) {
       return res
         .status(500)
-        .json({ success: false, message: "Something went wrong" });
+        .json({ success: false, message: 'Something went wrong' });
     }
   },
 
@@ -1187,13 +1199,13 @@ module.exports = {
 
     if (!delay || delay > 60 || delay < 0) {
       return res.status(400).json({
-        message: "invalidDelay",
+        message: 'invalidDelay',
       });
     }
 
     if (!req.body.token) {
       return res.status(400).json({
-        message: "invalidUrl",
+        message: 'invalidUrl',
       });
     }
     try {
@@ -1201,7 +1213,7 @@ module.exports = {
 
       if (!token) {
         return res.status(400).json({
-          message: "tokenExpired",
+          message: 'tokenExpired',
         });
       }
 
@@ -1209,30 +1221,30 @@ module.exports = {
 
       let consultation = await Consultation.findOne({
         id: consultationId,
-      }).populate("invite");
+      }).populate('invite');
       if (!consultation) {
         return res.status(400).json({
-          message: "invalidUrl",
+          message: 'invalidUrl',
         });
       }
-      if (consultation.status !== "pending") {
+      if (consultation.status !== 'pending') {
         return res.status(400).json({
-          message: "alreadyStarted",
+          message: 'alreadyStarted',
         });
       }
 
       const doctor = await User.findOne({ id: token.user });
       if (!doctor) {
         return res.status(400).json({
-          message: "invalidUrl",
+          message: 'invalidUrl',
         });
       }
 
       await Consultation.updateOne({
         id: consultationId,
-        status: "pending",
+        status: 'pending',
       }).set({
-        status: "active",
+        status: 'active',
         acceptedBy: token.user,
         acceptedAt: new Date(),
         consultationEstimatedAt: new Date(new Date().getTime() + delay * 60000),
@@ -1240,18 +1252,18 @@ module.exports = {
 
       consultation = await Consultation.findOne({
         id: consultationId,
-      }).populate("invite");
+      }).populate('invite');
 
       (await Consultation.getConsultationParticipants(consultation)).forEach(
         (participant) => {
-          sails.sockets.broadcast(participant, "consultationAccepted", {
+          sails.sockets.broadcast(participant, 'consultationAccepted', {
             data: {
               consultation,
               _id: consultation.id,
               doctor: {
                 firstName: doctor.firstName,
                 lastName: doctor.lastName,
-                phoneNumber: doctor.phoneNumber ? doctor.phoneNumber : "",
+                phoneNumber: doctor.phoneNumber ? doctor.phoneNumber : '',
               },
             },
           });
@@ -1264,26 +1276,27 @@ module.exports = {
           : process.env.DEFAULT_PATIENT_LOCALE;
       const doctorDelayMsg = sails._t(
         patientLanguage,
-        "doctor delay in minutes",
+        'doctor delay in minutes',
         { delay, patientLanguage, branding: process.env.BRANDING }
       );
 
       const message = await Message.create({
         text: doctorDelayMsg,
         consultation: consultationId,
-        type: "text",
+        type: 'text',
         to: consultation.owner,
         from: token.user,
       }).fetch();
-      await Message.afterCreate(message, (err, message) => {});
+      await Message.afterCreate(message, (err, message) => {
+      });
 
       return res.status(200).json({
-        message: "success",
+        message: 'success',
       });
     } catch (error) {
       return res
         .status(500)
-        .json({ success: false, message: "Something went wrong" });
+        .json({ success: false, message: 'Something went wrong' });
     }
   },
 };

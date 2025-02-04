@@ -47,35 +47,6 @@ const canLoginLocal = async (req) => {
 
 module.exports = {
 
-  loginCert(req, res) {
-    passport.authenticate('trusted-header', async (err, user, info = {}) => {
-      if (err || !user) {
-        sails.config.customLogger.log('error', `LoginCert failed: ${info.message || 'No message provided'}`);
-        return res.send({ message: info.message, user });
-      }
-
-      try {
-        await User.updateOne({ id: user.id }).set({ lastLoginType: 'sslcert' });
-        sails.config.customLogger.log('info', `User ${user.id} updated lastLoginType to "sslcert".`);
-      } catch (error) {
-        sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error.message}`);
-      }
-
-      req.logIn(user, function(err) {
-        if (err) {
-          sails.config.customLogger.log('error', `Error logging in user ${user.id}: ${err.message}`);
-          return res.status(500).send();
-        }
-        sails.config.customLogger.log('info', `User logged in via SSL Cert: ID=${user.id}`);
-        return res.json({ message: info.message, user });
-      });
-    })(req, res, (err) => {
-      if (err) {
-        sails.config.customLogger.log('error', `Error with LOGIN CERT: ${err.message || 'Unknown error'}`);
-      }
-    });
-  },
-
   async loginInvite(req, res) {
     try {
       const invite = await PublicInvite.findOne({

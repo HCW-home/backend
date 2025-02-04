@@ -6,16 +6,16 @@ module.exports = function myBasicHook(sails) {
       try {
         const clamdscanConfig = {};
         if (process.env.CLAM_SOCKET) {
-          sails.config.customLogger.log('info', 'Using CLAM_SOCKET for clamdscan configuration');
+          sails.config.customLogger.log('info', 'Using CLAM_SOCKET for clamscan configuration');
           clamdscanConfig.socket = process.env.CLAM_SOCKET;
         }
         if (process.env.CLAM_HOST && !process.env.CLAM_SOCKET) {
-          sails.config.customLogger.log('info', 'Using CLAM_HOST for clamdscan configuration');
+          sails.config.customLogger.log('info', 'Using CLAM_HOST for clamscan configuration');
           clamdscanConfig.host = process.env.CLAM_HOST;
           clamdscanConfig.port = process.env.CLAM_PORT || '3310';
         }
         if (!process.env.CLAM_HOST && !process.env.CLAM_SOCKET) {
-          sails.config.customLogger.log('warn', 'No CLAM_HOST or CLAM_SOCKET provided, using default socket path for clamdscan');
+          sails.config.customLogger.log('warn', 'No CLAM_HOST or CLAM_SOCKET provided, using default socket path for clamscan');
           clamdscanConfig.socket = 'var/run/clamd.scan/clamd.sock';
         }
         const clamscan = await new NodeClam().init({
@@ -24,13 +24,9 @@ module.exports = function myBasicHook(sails) {
           preference: "clamdscan",
         });
         sails.config.globals.clamscan = clamscan;
-        sails.config.customLogger.log('info', 'Clamscan initialized successfully');
+        sails.config.customLogger.log('info', 'clamscan initialized successfully');
       } catch (error) {
         sails.config.customLogger.log('error', "Error initializing clamscan: ", error);
-        if (process.env.NODE_ENV === "production") {
-          sails.config.customLogger.log('error', 'Exiting process due to clamscan initialization failure in production');
-          process.exit(1);
-        }
       }
       try {
         sails.config.customLogger.log('info', 'Starting cron initialization');
