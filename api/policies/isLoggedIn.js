@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = function (req, res, proceed) {
+module.exports = function(req, res, proceed) {
 
 
-  if (!req.headers['x-access-token'] && !req.query.token) { return res.status(401).json({ error: 'Unauthorized' }); }
+  if (!req.headers['x-access-token'] && !req.query.token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   jwt.verify(req.headers['x-access-token'] || req.query.token, sails.config.globals.APP_SECRET, async (err, decoded) => {
     if (err) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -25,8 +27,7 @@ module.exports = function (req, res, proceed) {
 
     const user = await User.findOne({
       id: decoded.id
-    })
-    .populate('allowedQueues');
+    }).populate('allowedQueues');
 
 
     if (!user) {
