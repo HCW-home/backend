@@ -12,10 +12,12 @@ module.exports = {
       const template = await WhatsappTemplate.findOne({ id: id });
 
       if (!template) {
+        sails.config.customLogger.log('warn', `Template with id ${id} not found`);
         return res.notFound({ error: 'Template not found' });
       }
 
       if (template.approvalStatus !== 'draft') {
+        sails.config.customLogger.log('warn', `Attempt to submit a non-draft template with id ${id}`);
         return res.badRequest({ error: 'Only DRAFT templates can be submitted for approval' });
       }
 
@@ -29,48 +31,49 @@ module.exports = {
         actions: template.actions,
       });
 
-
       await sails.helpers.twilio.submitWhatsappApproval.with({
-        sid: twilioResponse.sid, name: template.friendlyName, category: template.category,
-
+        sid: twilioResponse.sid,
+        name: template.friendlyName,
+        category: template.category,
       });
 
       await WhatsappTemplate.updateOne({ id: id }).set({
-        sid: twilioResponse.sid, approvalStatus: 'pending',
+        sid: twilioResponse.sid,
+        approvalStatus: 'pending',
       });
 
+      sails.config.customLogger.log('info', `Template with id ${id} submitted for approval successfully`);
+
       return res.ok({
-        message: 'Template submitted for approval successfully', twilioResponse,
+        message: 'Template submitted for approval successfully',
+        twilioResponse,
       });
     } catch (error) {
+      sails.config.customLogger.log('error', `Failed to submit template with id ${id}`, {details: error});
       return res.serverError({ error: 'Failed to submit template', details: error });
     }
   },
 
   async bulkSubmitTemplates(req, res) {
     const { ids } = req.body;
-
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return res.badRequest({ error: 'Template IDs are required and must be an array' });
     }
-
     const results = [];
     const errors = [];
-
     for (const id of ids) {
       try {
         const template = await WhatsappTemplate.findOne({ id: id });
-
         if (!template) {
+          sails.config.customLogger.log('warn', `Template with id ${id} not found`);
           errors.push({ id, error: 'Template not found' });
           continue;
         }
-
         if (template.approvalStatus !== 'draft') {
+          sails.config.customLogger.log('warn', `Attempt to submit a non-draft template with id ${id}`);
           errors.push({ id, error: 'Only DRAFT templates can be submitted for approval' });
           continue;
         }
-
         const twilioResponse = await sails.helpers.twilio.createWhatsappTemplate.with({
           friendly_name: template.friendlyName,
           language: template.language,
@@ -80,31 +83,35 @@ module.exports = {
           variables: template.variables,
           actions: template.actions,
         });
-
         await sails.helpers.twilio.submitWhatsappApproval.with({
-          sid: twilioResponse.sid, name: template.friendlyName, category: template.category,
+          sid: twilioResponse.sid,
+          name: template.friendlyName,
+          category: template.category,
         });
-
         await WhatsappTemplate.updateOne({ id: id }).set({
-          sid: twilioResponse.sid, approvalStatus: 'pending',
+          sid: twilioResponse.sid,
+          approvalStatus: 'pending',
         });
-
+        sails.config.customLogger.log('info', `Template with id ${id} submitted for approval successfully`);
         results.push({
-          id, message: 'Template submitted for approval successfully', twilioResponse,
+          id,
+          message: 'Template submitted for approval successfully',
+          twilioResponse,
         });
       } catch (error) {
+        sails.config.customLogger.log('error', `Failed to submit template with id ${id}`, { error: error?.message || error });
         errors.push({ id, error: 'Failed to submit template', details: error });
       }
     }
-
     return res.ok({
-      message: 'Bulk submission process completed', results, errors,
+      message: 'Bulk submission process completed',
+      results,
+      errors,
     });
   },
 
   async fetchTemplates(req, res) {
     const { language, approvalStatus } = req.query;
-
     try {
       const filters = {};
       if (language) {
@@ -113,78 +120,72 @@ module.exports = {
       if (approvalStatus) {
         filters.approvalStatus = approvalStatus;
       }
-
-      const templates = await WhatsappTemplate.find(filters);
-
+      const templates = await WhatsappTemplate.find(filters).sort('key ASC');
+      sails.config.customLogger.log('info', 'Templates fetched successfully', { filters });
       return res.json(templates);
     } catch (error) {
+      sails.config.customLogger.log('error', 'Failed to fetch templates', { error: error?.message || error});
       return res.serverError({ error: 'Failed to fetch templates', details: error });
     }
   },
 
   async deleteTemplate(req, res) {
     const { id } = req.body;
-
     if (!id) {
       return res.badRequest({ error: 'Template ID is required' });
     }
-
     try {
       const template = await WhatsappTemplate.findOne({ id: id });
-
       if (!template) {
+        sails.config.customLogger.log('warn', `Template with id ${id} not found in the database`);
         return res.notFound({ error: 'Template not found in the database' });
       }
-
       if (template.twilioTemplateId) {
         try {
           await sails.helpers.twilio.deleteWhatsappTemplate({ twilioTemplateId: template.twilioTemplateId });
+          sails.config.customLogger.log('info', `Template with id ${id} deleted from Twilio successfully`, { twilioTemplateId: template.twilioTemplateId });
         } catch (twilioError) {
-          sails.log.warn('Failed to delete template in Twilio:', twilioError.message || twilioError);
+          sails.config.customLogger.log('warn', `Failed to delete template in Twilio for id ${id}`, { error: twilioError?.message || twilioError });
         }
       }
-
       const deletedTemplate = await WhatsappTemplate.destroyOne({ id: id });
-
-      sails.log.info("Starting template synchronization...");
+      sails.config.customLogger.log('info', `Starting template synchronization for template id ${id}`);
       await syncTemplates();
-      sails.log.info("Template synchronization completed.");
-
-
+      sails.config.customLogger.log('info', `Template synchronization completed for template id ${id}`);
       if (!deletedTemplate) {
+        sails.config.customLogger.log('warn', `Failed to delete template from the database for id ${id}`);
         return res.notFound({ error: 'Failed to delete template from the database.' });
       }
-
+      sails.config.customLogger.log('info', `Template with id ${id} deleted successfully`);
       return res.ok({ message: 'Template deleted successfully', deletedTemplate });
     } catch (error) {
+      sails.config.customLogger.log('error', `Failed to delete template with id ${id}`, { error: error?.message || error });
       return res.serverError({ error: 'Failed to delete template', details: error });
     }
   },
 
   async refreshStatus(req, res) {
     const { id } = req.body;
-
     if (!id) {
       return res.badRequest({ error: 'Template ID is required' });
     }
-
     try {
       const template = await WhatsappTemplate.findOne({ id: id });
-
       if (!template || !template.sid) {
+        sails.config.customLogger.log('warn', `Template with id ${id} not found or not yet submitted to Twilio`);
         return res.notFound({ error: 'Template not found or not yet submitted to Twilio' });
       }
-
       const approvalDetails = await sails.helpers.twilio.fetchApprovalStatus.with({
         sid: template.sid,
       });
-
       await WhatsappTemplate.updateOne({ id: id }).set({
-        approvalStatus: approvalDetails.status, rejectionReason: approvalDetails.rejectionReason
+        approvalStatus: approvalDetails.status,
+        rejectionReason: approvalDetails.rejectionReason,
       });
-
+      sails.config.customLogger.log('info', `Template with id ${id} status refreshed successfully`, { status: approvalDetails.status });
       return res.json({ approvalDetails });
     } catch (error) {
+      sails.config.customLogger.log('error', `Failed to refresh template status for id ${id}`, { error: error?.message || error });
       return res.serverError({ error: 'Failed to refresh template status', details: error });
     }
   },
@@ -192,36 +193,33 @@ module.exports = {
   async updateTemplateBody(req, res) {
     const { id } = req.params;
     const { body } = req.body;
-
     if (!id || !body) {
       return res.badRequest({ error: 'Template ID and body are required' });
     }
-
     try {
       const template = await WhatsappTemplate.findOne({ id: id });
-
       if (!template) {
+        sails.config.customLogger.log('warn', `Template with id ${id} not found`);
         return res.notFound({ error: 'Template not found' });
       }
-
       if (template.approvalStatus !== 'draft') {
+        sails.config.customLogger.log('warn', `Attempt to update a non-draft template with id ${id}`, { currentStatus: template.approvalStatus });
         return res.badRequest({ error: 'Only DRAFT templates can be updated' });
       }
-
       const updatedTemplate = await WhatsappTemplate.updateOne({ id: id }).set({ body });
-
       if (!updatedTemplate) {
+        sails.config.customLogger.log('error', `Failed to update the template body for id ${id}`);
         return res.serverError({ error: 'Failed to update the template body' });
       }
-
+      sails.config.customLogger.log('info', `Template with id ${id} body updated successfully`);
       return res.ok({
         message: 'Template body updated successfully',
         updatedTemplate,
       });
     } catch (error) {
+      sails.config.customLogger.log('error', `Failed to update the template body for id ${id}`, { error: error?.message || error });
       return res.serverError({ error: 'Failed to update the template body', details: error });
     }
   }
-
 
 };
