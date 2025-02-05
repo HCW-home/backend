@@ -2,7 +2,7 @@ const path = require('path');
 
 
 const i18n = new (require('i18n-2'))({
-  locales: ['am', 'ar', 'de', 'en', 'es', 'fa', 'fr', 'it', 'ru', 'ta', 'ti', 'uk'],
+  locales: ['hy', 'ar', 'de', 'en', 'es', 'fa', 'fr', 'it', 'ru', 'ta', 'ti', 'uk'],
   directory: path.join(__dirname, '../../config/locales'),
   extension: '.json',
   defaultLocale: 'en',

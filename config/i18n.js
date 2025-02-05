@@ -20,7 +20,9 @@ module.exports.i18n = {
    *                                                                          *
    ***************************************************************************/
 
-  locales: ['am', 'ar', 'de', 'en', 'es', 'fa', 'fr', 'it', 'ru', 'ta', 'ti', 'uk'],
+  locales: process.env.I18N_PATIENT_APP_LANGUAGES && process.env.I18N_PATIENT_APP_LANGUAGES.trim() !== ''
+    ? process.env.I18N_PATIENT_APP_LANGUAGES.split(',')
+    : ['hy', 'ar', 'de', 'en', 'es', 'fa', 'fr', 'it', 'ru', 'ta', 'ti', 'uk'],
 
   /****************************************************************************
    *                                                                           *
