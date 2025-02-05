@@ -65,7 +65,7 @@ module.exports = {
 
       passport.authenticate('invite', async (err, user) => {
         if (err || !user) {
-          sails.config.customLogger.log('warn', `Failed invitation authentication. ${err ? 'Error: ' + err : ''}`);
+          sails.config.customLogger.log('warn', `Failed invitation authentication. ${err?.message || err}`);
           return res.status(401).send({ err });
         }
 
