@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.30) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.31) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Update to version 0.5.20.
@@ -39,8 +39,22 @@ hcw-athome-backend (0.5.30) UNRELEASED; urgency=medium
   * translation update
   * update uk translations
   * update scheduled patient invite translation
+  * refs  #7770, Logs format update
+  * add logs for helpers
+  * add logs for user and publicinvite model
+  * remove unused code from model
+  * add logs for services
+  * remove unused files, update file upload with logs
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 31 Jan 2025 16:11:00 +0000
+  [ Olivier Bitsch ]
+  * Translated using Weblate (French)
+
+  [ Gor Grigoryan ]
+  * refs #8059, Order whatsapp templates in admin by alphabetic order
+  * add more logs in consultation model
+  * refs #7770, Logs format update
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 05 Feb 2025 06:51:35 +0000
 
 hcw-athome-backend (0.5.20) focal; urgency=medium
 
