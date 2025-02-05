@@ -96,9 +96,7 @@ const generate = (options = {}) => {
         req._sails.hooks.blueprints.parseBlueprintOptions;
 
       if (!parseBlueprintOptions) {
-        req._sails.log.warn(
-          `[${package.name}] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+`
-        );
+        sails.config.customLogger.log('info', `[${package.name}] middleware ignored, parseBlueprintOptions function not supported, are you sure you\'re using sails 1.0+`)
         return oldSendOrNext.apply(res, arguments);
       }
 

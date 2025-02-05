@@ -127,7 +127,7 @@ module.exports = {
           await TranslationOrganization.sendTranslationAcceptedReport(translatorRequestInvite.translationOrganization, newUser, translatorRequestInvite, patientInvite.doctor)
         }
       } catch (err) {
-        console.error('Error accepting translation request', err);
+        sails.config.customLogger.log('error','Error accepting translation request', err);
         await PublicInvite.updateOne({ type: 'TRANSLATOR_REQUEST', inviteToken: req.params.translationRequestToken }).set({ status: 'SENT' });
 
         return res.status(500).send();
@@ -140,8 +140,7 @@ module.exports = {
       });
 
     } catch (err) {
-      console.error('Error accepting translation request', err);
-
+      sails.config.customLogger.log('error','Error accepting translation request', err);
       return res.status(500).send();
     }
 
