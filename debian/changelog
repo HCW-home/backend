@@ -1,3 +1,10 @@
+hcw-athome-backend (0.5.32) UNRELEASED; urgency=medium
+
+  * log fix
+  * change development log level
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 05 Feb 2025 14:39:10 +0000
+
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
   [ Olivier Bitsch ]
