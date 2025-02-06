@@ -103,7 +103,7 @@ module.exports = {
         {
           title: "visit",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{2}}`,
-          url: `${process.env.PUBLIC_URL}/inv/?invite={{3}}`,
+          url: `${process.env.PUBLIC_URL}/inv/?invite={{2}}`,
           type: "URL"
         }
       ],
