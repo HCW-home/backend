@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.34) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.35) UNRELEASED; urgency=medium
 
   * log fix
   * change development log level
@@ -6,8 +6,9 @@ hcw-athome-backend (0.5.34) UNRELEASED; urgency=medium
   * update locales
   * add supported locales dynamically
   * fix second guest invite reminder
+  * fix second invite reminder template
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 06 Feb 2025 14:23:24 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 06 Feb 2025 14:47:30 +0000
 
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
