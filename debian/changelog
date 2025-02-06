@@ -3,8 +3,10 @@ hcw-athome-backend (0.5.33) UNRELEASED; urgency=medium
   * log fix
   * change development log level
   * change log level in production
+  * update locales
+  * add supported locales dynamically
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 05 Feb 2025 15:10:09 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 06 Feb 2025 07:07:39 +0000
 
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
