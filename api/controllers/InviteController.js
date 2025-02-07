@@ -1175,13 +1175,16 @@ module.exports = {
 
       const acknowledgmentStatuses = [
         'SENT',
+        'READ',
         'QUEUED',
-        'PENDING',
-        'SENDING',
         'FAILED',
+        'PENDING',
+        'RECEIVED',
+        'SENDING',
         'SCHEDULED',
         'DELIVERED',
         'UNDELIVERED',
+        'PARTIALLY_DELIVERED',
         'SCHEDULED_FOR_INVITE',
       ];
 
