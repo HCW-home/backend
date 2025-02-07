@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.36) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.37) UNRELEASED; urgency=medium
 
   * log fix
   * change development log level
@@ -9,8 +9,9 @@ hcw-athome-backend (0.5.36) UNRELEASED; urgency=medium
   * fix second invite reminder template
   * new docker release
   * change please use this link template
+  * update acknowledgment needed statuses
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 06 Feb 2025 16:19:42 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 07 Feb 2025 07:49:00 +0000
 
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
