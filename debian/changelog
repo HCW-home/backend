@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.37) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.38) UNRELEASED; urgency=medium
 
   * log fix
   * change development log level
@@ -10,8 +10,9 @@ hcw-athome-backend (0.5.37) UNRELEASED; urgency=medium
   * new docker release
   * change please use this link template
   * update acknowledgment needed statuses
+  * translation updates for whatsapp templates body
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 07 Feb 2025 07:49:00 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 07 Feb 2025 09:45:41 +0000
 
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
