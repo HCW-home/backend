@@ -16,10 +16,10 @@
   "guest invite": "Click here to access your tele-consultation %(branding)s: %(url)s",
   "scheduled patient invite": "Hello, you have been invited to a tele-consultation %(branding)s at %(inviteTime)s. Thanks to acknowledge this date by using the following link.\n\n%(testingUrl)s",
   "scheduled guest invite": "Hello, you have been invited to a telemedicine %(branding)s tele-consultation at %(inviteTime)s. We recommend that you test the compatibility of your device in advance using the following link. %(testingUrl)s",
-  "first invite reminder": "D-1 reminder Your %(branding)s telemedicine consultation will take place %(timePhrase)s at %(inviteTime)s",
-  "second invite reminder": "Your consultation will start %(timePhrase)s: %(url)s",
-  "first guest invite reminder": "D-1 reminder Your %(branding)s telemedicine consultation will take place %(timePhrase)s at %(inviteTime)s",
-  "second guest invite reminder": "Your consultation will start %(timePhrase)s: %(url)s",
+  "first invite reminder": "D-1 reminder your %(branding)s telemedicine consultation will take place in %(timePhrase)s on %(inviteTime)s",
+  "second invite reminder": "Your consultation will start in %(timePhrase)s: %(url)s",
+  "first guest invite reminder": "D-1 reminder your %(branding)s telemedicine consultation will take place in %(timePhrase)s on %(inviteTime)s",
+  "second guest invite reminder": "Your consultation will start in %(timePhrase)s: %(url)s",
   "your consultation link": "Your tele-consultation link %(branding)s",
   "notification for offline action text for doctor": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform.",
   "patient is ready": "A patient is in waiting queue. You can provide an estimation waiting time by using the following link %(url)s",
@@ -82,6 +82,6 @@
   "day": "day",
   "days": "days",
   "in %(count)s %(unit)s": "in %(count)s %(unit)s",
-  "visit": "Visit",
-  "acknowledge invite": "Acknowledge Invite"
+  "join": "Join",
+  "acknowledge invite": "Acknowledge invite"
 }

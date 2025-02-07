@@ -6,7 +6,7 @@ module.exports = {
       contentType: 'twilio/call-to-action',
       actions: [
         {
-          title: "visit",
+          title: "join",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{2}}`,
           url: `${process.env.PUBLIC_URL}/inv/?invite={{2}}`,
           type: "URL"
@@ -23,7 +23,7 @@ module.exports = {
       contentType: 'twilio/call-to-action',
       actions: [
         {
-          title: "visit",
+          title: "join",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{2}}`,
           url: `${process.env.PUBLIC_URL}/inv/?invite={{2}}`,
           type: "URL"
@@ -58,7 +58,7 @@ module.exports = {
       contentType: 'twilio/call-to-action',
       actions: [
         {
-          title: "visit",
+          title: "join",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{3}}`,
           url: `${process.env.PUBLIC_URL}/inv/?invite={{3}}`,
           type: "URL"
@@ -101,7 +101,7 @@ module.exports = {
       contentType: 'twilio/call-to-action',
       actions: [
         {
-          title: "visit",
+          title: "join",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{2}}`,
           url: `${process.env.PUBLIC_URL}/inv/?invite={{2}}`,
           type: "URL"
@@ -118,7 +118,7 @@ module.exports = {
       contentType: 'twilio/call-to-action',
       actions: [
         {
-          title: "visit",
+          title: "join",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{2}}`,
           url: `${process.env.PUBLIC_URL}/inv/?invite={{2}}`,
           type: "URL"
@@ -151,7 +151,7 @@ module.exports = {
       contentType: 'twilio/call-to-action',
       actions: [
         {
-          title: "visit",
+          title: "join",
           // url: `https://hcw-athome.dev.oniabsis.com/inv/?invite={{1}}`,
           url: `${process.env.PUBLIC_URL}/inv/?invite={{1}}`,
           type: "URL"

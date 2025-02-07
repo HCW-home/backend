@@ -15,9 +15,9 @@
     "guest invite": "Cliquez ici pour accéder à votre téléconsultation %(branding)s : %(url)s",
     "scheduled patient invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous remercions de bien vouloir valider la date en utilisant le lien suivant.\n\n %(testingUrl)s",
     "scheduled guest invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous conseillons d'ores et déjà de tester la compatibilité de votre appareil via le lien suivant.  %(testingUrl)s",
-    "first invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain le %(timePhrase)s à %(inviteTime)s. Un lien vous parviendra une minute avant votre rendez-vous.",
+    "first invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain le %(timePhrase)s à %(inviteTime)s.",
     "second invite reminder": "Votre téléconsultation démarre dans %(timePhrase)s : %(url)s",
-    "first guest invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain à %(inviteTime)s",
+    "first guest invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain le %(timePhrase)s à %(inviteTime)s.",
     "second guest invite reminder": "Votre téléconsultation démarre dans %(timePhrase)s : %(url)s",
     "your consultation link": "Votre lien de téléconsultation %(branding)s",
     "translation request email subject": "Requête d'interprète entre %(doctorLanguage)s et %(patientLanguage)s",
@@ -83,5 +83,5 @@
     "uk": "Ukrainien",
     "acknowledge invite": "Accepter l'invitation",
     "virus scan": "Erreur lors de l'analyse antivirus du fichier",
-    "visit": "Visite"
+    "join": "Rejoindre"
 }
