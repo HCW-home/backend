@@ -237,16 +237,20 @@ module.exports = {
             const decoded = jwt.verify(user.smsVerificationCode, sails.config.globals.APP_SECRET);
             verificationCode = decoded.code;
           } catch (error) {
-            sails.config.customLogger.log('error', `Error verifying smsVerificationCode for user ${user.id}: ${error.message}`);
+            sails.config.customLogger.log('error', `Error verifying smsVerificationCode for user ${user.id}: ${error?.message || error}`);
           }
         }
         verificationCode = verificationCode || generateVerificationCode();
         const smsToken = jwt.sign({ code: verificationCode }, sails.config.globals.APP_SECRET, { expiresIn: SMS_CODE_LIFESPAN });
         await User.updateOne({ id: user.id }).set({ smsVerificationCode: smsToken, smsAttempts: 0 });
+        const doctorLanguage = user?.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
         try {
           await sails.helpers.sms.with({
             phoneNumber: user.authPhoneNumber,
-            message: `Votre code de vérification est ${verificationCode}. Ce code est utilisable ${SMS_CODE_LIFESPAN / 60} minutes`,
+            message: sails._t(doctorLanguage, 'verification code message', {
+              code: verificationCode,
+              minutes: SMS_CODE_LIFESPAN / 60,
+            }),
             senderEmail: user?.email
           });
           sails.config.customLogger.log('info', `SMS sent to user ${user.id} with verification code.`);

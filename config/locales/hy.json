@@ -82,5 +82,6 @@
   "days": "օրեր",
   "in %(count)s %(unit)s": "%(count)s %(unit)s հետո",
   "join": "Այցելել",
-  "acknowledge invite": "Հաստատել հրավերը"
+  "acknowledge invite": "Հաստատել հրավերը",
+  "verification code message": "Ձեր հաստատման կոդն է %(code)s։ Այս կոդը վավեր է %(minutes)s րոպե"
 }

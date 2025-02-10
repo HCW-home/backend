@@ -83,5 +83,6 @@
   "days": "days",
   "in %(count)s %(unit)s": "in %(count)s %(unit)s",
   "join": "Join",
-  "acknowledge invite": "Acknowledge invite"
+  "acknowledge invite": "Acknowledge invite",
+  "verification code message": "Your verification code is %(code)s. This code is valid for %(minutes)s minutes"
 }
