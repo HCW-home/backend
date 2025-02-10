@@ -544,12 +544,12 @@ module.exports = {
       .populate('doctor');
 
     if (!invite) {
-      sails.config.customLogger.log('warn', 'Invite not found', { inviteId: req.params.id, uid: req.user.id });
+      sails.config.customLogger.log('warn', `Invite  with id ${req.params.id} not found requested from user ${req.user.id}`);
       return res.notFound();
     }
 
     if (invite.status === 'ACCEPTED') {
-      sails.config.customLogger.log('warn', 'Attempt to update accepted invite (patient)', { inviteId: invite.id, uid: req.user.id });
+      sails.config.customLogger.log('warn', `Attempt to update accepted invite (patient) from user ${req.user.id} invite ${invite.id}`);
       return res.status(400).json({
         error: true,
         message: "can't edit Invite has been accepted by patient",
@@ -560,7 +560,7 @@ module.exports = {
       invite.translatorRequestInvite &&
       invite.translatorRequestInvite.status === 'ACCEPTED'
     ) {
-      sails.config.customLogger.log('warn', 'Attempt to update accepted translator invite', { inviteId: invite.id, uid: req.user.id });
+      sails.config.customLogger.log('warn', `Attempt to update accepted translator invite from user ${req.user.id} invite ${invite.id}`);
       return res.status(400).json({
         error: true,
         message: "can't edit Invite has been accepted by translator",
@@ -594,6 +594,8 @@ module.exports = {
       cancelGuestInvite,
       cancelTranslationRequestInvite,
       cancelScheduledFor,
+      messageService,
+      sendLinkManually,
       metadata
     } = req.body;
 
@@ -729,6 +731,15 @@ module.exports = {
       }
       if (queueObj) {
         inviteData.queue = queueObj.id;
+      }
+      if (messageService) {
+        inviteData.messageService = messageService;
+      }
+      if (emailAddress) {
+        inviteData.messageService = '3';
+      }
+      if (sendLinkManually) {
+        inviteData.messageService = '4';
       }
       if (guestEmailAddress && guestEmailAddress !== invite.guestEmailAddress) {
         inviteData.guestEmailAddress = guestEmailAddress;
