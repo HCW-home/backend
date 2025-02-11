@@ -291,8 +291,8 @@ module.exports = {
     if (value.translationOrganization && !translationOrganization) {
       sails.config.customLogger.log('warn', 'Translation organization not found', { uid: req.user.id, translationOrganization: value.translationOrganization });
       return res.status(400).json({
-        error: true,
-        message: `translationOrganization ${value.translationOrganization} doesn't exist`,
+        success: false,
+        error: `translationOrganization ${value.translationOrganization} doesn't exist`,
       });
     }
 
@@ -302,8 +302,8 @@ module.exports = {
     ) {
       sails.config.customLogger.log('warn', 'Patient language not found in translation organization', { uid: req.user.id, language: value.language });
       return res.status(400).json({
-        error: true,
-        message: `patientLanguage ${value.language} doesn't exist`,
+        success: false,
+        error: `patientLanguage ${value.language} doesn't exist`,
       });
     }
 
@@ -526,7 +526,7 @@ module.exports = {
 
     invite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     invite.doctorURL = process.env.DOCTOR_URL;
-    sails.config.customLogger.log('info', 'Invite process completed', { inviteId: invite.id, uid: req.user.id });
+    sails.config.customLogger.log('info', `Invite process completed inviteId ${invite.id} user ${req.user.id}`);
     return res.json({
       success: true,
       invite,
@@ -551,8 +551,8 @@ module.exports = {
     if (invite.status === 'ACCEPTED') {
       sails.config.customLogger.log('warn', `Attempt to update accepted invite (patient) from user ${req.user.id} invite ${invite.id}`);
       return res.status(400).json({
-        error: true,
-        message: "can't edit Invite has been accepted by patient",
+        success: false,
+        error: "Can't edit Invite has been accepted by patient",
       });
     }
 
@@ -562,8 +562,8 @@ module.exports = {
     ) {
       sails.config.customLogger.log('warn', `Attempt to update accepted translator invite from user ${req.user.id} invite ${invite.id}`);
       return res.status(400).json({
-        error: true,
-        message: "can't edit Invite has been accepted by translator",
+        success: false,
+        error: "can't edit Invite has been accepted by translator",
       });
     }
 
@@ -670,8 +670,8 @@ module.exports = {
     if (queue && !queueObj) {
       sails.config.customLogger.log('warn', 'Queue not found', { queue: queue, uid: req.user.id });
       return res.status(400).json({
-        error: true,
-        message: `queue ${queue} doesn't exist`,
+        success: false,
+        error: `Queue ${queue} doesn't exist`,
       });
     }
 
@@ -686,8 +686,8 @@ module.exports = {
       if (!translationOrganizationObj) {
         sails.config.customLogger.log('warn', 'Translation organization not found', { translationOrganization: translationOrganization, uid: req.user.id });
         return res.status(400).json({
-          error: true,
-          message: `translationOrganization ${translationOrganization} doesn't exist`,
+          success: false,
+          error: `translationOrganization ${translationOrganization} doesn't exist`,
         });
       }
       if (
@@ -695,8 +695,8 @@ module.exports = {
       ) {
         sails.config.customLogger.log('warn', 'Patient language not available in translation organization', { language: language, uid: req.user.id });
         return res.status(400).json({
-          error: true,
-          message: `patientLanguage ${language} doesn't exist`,
+          success: false,
+          error: `patientLanguage ${language} doesn't exist`,
         });
       }
     }
@@ -1160,7 +1160,7 @@ module.exports = {
         sails.config.customLogger.log('warn', 'Missing invitationToken parameter invitationToken');
         return res.status(400).json({
           success: false,
-          message: 'Missing invitation token'
+          error: 'Missing invitation token'
         });
       }
 
@@ -1232,7 +1232,7 @@ module.exports = {
         });
         return res.status(400).json({
           success: false,
-          message: 'Missing inviteToken',
+          error: 'Missing inviteToken',
         });
       }
 

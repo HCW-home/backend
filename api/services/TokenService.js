@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = {
   generateToken(user) {
-    sails.config.customLogger.log('info', 'Generating JWT tokens for user', { userId: user.id });
+    sails.config.customLogger.log('info', `Generating JWT tokens for user ${user.id}`);
     const token = jwt.sign(
       { id: user.id },
       sails.config.globals.APP_SECRET,
@@ -13,7 +13,7 @@ module.exports = {
       sails.config.globals.REFRESH_TOKEN_SECRET,
       { expiresIn: sails.config.globals.REFRESH_TOKEN_LIFE }
     );
-    sails.config.customLogger.log('info', 'JWT tokens generated successfully for user', { userId: user.id });
+    sails.config.customLogger.log('info', `JWT tokens generated successfully for user ${user.id}`);
     return { token, refreshToken };
   },
 

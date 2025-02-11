@@ -173,7 +173,6 @@ module.exports = {
   },
 
   async beforeUpdate(valuesToSet, proceed) {
-    sails.config.customLogger.log('info', 'User beforeUpdate hook triggered', { userId: valuesToSet.id });
     try {
       if (valuesToSet.email) {
         if (valuesToSet.password) {
