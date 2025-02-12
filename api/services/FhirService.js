@@ -29,7 +29,7 @@ module.exports = {
       errorOnUnexpected: true,
     });
 
-    if (validationResult?.length > 0) {
+    if (validationResult?.messages?.length > 0) {
       const error = new Error('Invalid FHIR data');
       error.details = validationResult;
       throw error;
