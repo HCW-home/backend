@@ -13,14 +13,14 @@ const statusMap = {
 
 module.exports = {
 
-  findParticipantsByCode: function (data, code) {
-    return data?.filter(participant => participant.type?.some(typeObj => typeObj.coding?.some(coding => coding.code === code)));
+  findParticipantsByResourceType: function (data, resourceType) {
+    return data?.filter(participant => participant?.actor?.reference?.resourceType === resourceType);
   },
 
 
-  findParticipantsExcludingCodes: function (data, codes) {
+  findParticipantsExcludingResourceTypes: function (data, resourceTypes) {
     return data.filter(participant => {
-      return participant?.type !== undefined && !participant?.type?.some(typeObj => typeObj.coding?.some(coding => codes.includes(coding.code)))
+      return !resourceTypes.includes(participant?.actor?.reference?.resourceType);
     });
   },
 
@@ -29,7 +29,7 @@ module.exports = {
       errorOnUnexpected: true,
     });
 
-    if (validationResult?.messages?.length > 0) {
+    if (!validationResult.valid) {
       const error = new Error('Invalid FHIR data');
       error.details = validationResult;
       throw error;
@@ -88,14 +88,15 @@ module.exports = {
       throw new Error('Field "participant" is mandatory and must be a non-empty list');
     }
 
-    const foundedDoctors = this.findParticipantsByCode(appointmentData.participant, "PPRF");
-    const foundedPatients = this.findParticipantsByCode(appointmentData.participant, "BEN");
+    const foundedDoctors = this.findParticipantsByResourceType(appointmentData.participant, "Practitioner");
+    const foundedPatients = this.findParticipantsByResourceType(appointmentData.participant, "Patient");
     const foundedDoctor = foundedDoctors[0];
     const foundedPatient = foundedPatients[0];
-    const foundedPatientActor = foundedPatient?.actor;
-    const foundedParticipantsExcludingCodes = this.findParticipantsExcludingCodes(appointmentData.participant, ['BEN', 'PPRF'])
+    const foundedDoctorActor = foundedDoctor?.actor?.reference;
+    const foundedPatientActor = foundedPatient?.actor?.reference;
+    const foundedParticipantsExcludingCodes = this.findParticipantsExcludingResourceTypes(appointmentData.participant, ['Patient', 'Practitioner'])
 
-    /** PPRF **/
+    /** Practitioner **/
     if (!foundedDoctors.length) {
       throw new Error('Primary performer not founded');
     }
@@ -103,33 +104,32 @@ module.exports = {
       throw new Error('Only 1 Primary performer is allowed');
     }
 
-    /** BEN **/
+    /** Patient **/
     if (!foundedPatients.length) {
-      throw new Error('Beneficiary not founded');
+      throw new Error('Patient not founded');
     }
     if (!foundedPatients.length > 1) {
-      throw new Error('Only 1 beneficiary is allowed');
+      throw new Error('Only 1 patient is allowed');
     }
 
     // ✅
     if (foundedParticipantsExcludingCodes.length > 0) {
-      throw new Error('We are supporting only Primary performer and Beneficiary participant types');
+      throw new Error('We are supporting only Primary performer and Patient participant types');
     }
 
 
-    /** PPRF  ✅**/
-    if (!foundedDoctor?.actor?.telecom || !Array.isArray(foundedDoctor?.actor?.telecom)) {
+    /** Practitioner  ✅**/
+    if (!foundedDoctorActor?.telecom || !Array.isArray(foundedDoctorActor?.telecom)) {
       throw new Error('Practitioner must have telecom with at least email');
     }
 
     // ✅
-    const hasEmail = foundedDoctor?.actor?.telecom.some((contact) => contact.system === 'email');
+    const hasEmail = foundedDoctorActor?.telecom.some((contact) => contact.system === 'email');
     if (!hasEmail) {
       throw new Error('Practitioner telecom must include at least email');
     }
 
-    console.log('foundedPatientActor', foundedPatientActor)
-    /** BEN ✅**/
+    /** Patient ✅**/
     if (!foundedPatientActor?.name || !Array.isArray(foundedPatientActor?.name) || foundedPatientActor?.name?.length === 0) {
       throw new Error('Patient must have a name (HumanName)');
     }
@@ -171,11 +171,14 @@ module.exports = {
       throw new Error('Patient telecom must include at least email or SMS');
     }
 
-    /** PPRF **/
-    const foundedDoctorEmailObject = foundedDoctor?.actor?.telecom?.find((contact) => contact.system === 'email');
+    /** Practitioner **/
+    const foundedDoctorEmailObject = foundedDoctorActor?.telecom?.find((contact) => contact.system === 'email');
     const emailDoctor = foundedDoctorEmailObject?.value
 
-    const foundedDoctorWithSameEmail = await User.findOne({role: 'doctor', email: emailDoctor});
+    const foundedDoctorWithSameEmail = await User.find({
+      email: emailDoctor,
+      role: {in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN]}
+    });
 
     if (!foundedDoctorWithSameEmail) {
       throw new Error('Doctor not found');

@@ -65,7 +65,7 @@ module.exports = {
 
       const newInvite = await PublicInvite.create(inviteData).fetch();
 
-      /** BEN **/
+      /** Patient **/
       const userData = await FhirService.serializeAppointmentPatientToUser({
         firstName: firstName,
         lastName: lastName,
