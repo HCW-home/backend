@@ -294,7 +294,7 @@ module.exports = {
   *                                                                         *
   ***************************************************************************/
   log: {
-    level: 'debug'
+    level: process.env.LOGLEVEL || 'info'
   },
 
 

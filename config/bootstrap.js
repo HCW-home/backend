@@ -1,13 +1,4 @@
-/**
- * Seed Function
- * (sails.config.bootstrap)
- *
- * A function that runs just before your Sails app gets lifted.
- * > Need more flexibility?  You can also create a hook.
- *
- * For more information on seeding your app with fake data, check out:
- * https://sailsjs.com/config/bootstrap
- */
+
 const fs = require('fs');
 const { promisify } = require('util');
 const { syncTemplates } = require('../api/services/SyncTwilioTemplates');
@@ -79,9 +70,9 @@ module.exports.bootstrap = async function() {
     }
   }
 
-  sails.log.info("Starting template synchronization...");
+  sails.config.customLogger.log('info',"Starting template synchronization...");
   await syncTemplates();
-  sails.log.info("Template synchronization completed.");
+  sails.config.customLogger.log('info', "Template synchronization completed.");
 
 
   // check and delete expired files
@@ -99,7 +90,7 @@ module.exports.bootstrap = async function() {
           fs.unlink(`${sails.config.globals.attachmentsDir}/${filePath}`, err => {
 
             if (err) {
-              sails.log.warn('error deleting file ', err);
+              sails.config.customLogger.log('error','Error deleting file ', err);
             }
 
           });

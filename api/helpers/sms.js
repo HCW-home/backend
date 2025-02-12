@@ -1,10 +1,5 @@
-/**
- * Sends an SMS through the OVH SMS API.
- *
- * @param {string} phoneNumber
- * @param {string} message
- * @returns {void}
- */
+const https = require('https');
+
 function sendSmsWithOvh(phoneNumber, message) {
   phoneNumber = phoneNumber.replace(/^00/, '+');
   const ovhConfig = {
@@ -13,19 +8,19 @@ function sendSmsWithOvh(phoneNumber, message) {
     appSecret: process.env.SMS_OVH_APP_SECRET,
     consumerKey: process.env.SMS_OVH_APP_CONSUMER_KEY,
   };
-  console.log(ovhConfig);
+
+  sails.config.customLogger.log('verbose', 'OVH config loaded', { endpoint: ovhConfig.endpoint });
+
   const ovh = require('ovh')(ovhConfig);
 
-  console.log('Sending SMS...');
+  sails.config.customLogger.log('info', 'Sending SMS via OVH', { provider: 'OVH' });
 
   return new Promise((resolve, reject) => {
     ovh.request('GET', '/sms', (err, serviceName) => {
       if (err) {
-        console.log(err, serviceName);
+        sails.config.customLogger.log('error', 'OVH SMS API error retrieving service name', { error: err.message });
         return reject(err);
       }
-
-      // Send a simple SMS with a short number using your serviceName
       ovh.request(
         'POST',
         `/sms/${serviceName}/jobs/`,
@@ -36,10 +31,12 @@ function sendSmsWithOvh(phoneNumber, message) {
           receivers: [phoneNumber],
         },
         (errsend, result) => {
-          console.error(errsend, result);
+          sails.config.customLogger.log('verbose', 'OVH SMS API response', { result });
           if (errsend) {
+            sails.config.customLogger.log('error', 'OVH SMS API error sending SMS', { error: errsend.message });
             return reject(errsend);
           }
+          sails.config.customLogger.log('info', 'SMS sent via OVH', { provider: 'OVH' });
           return resolve();
         }
       );
@@ -47,28 +44,15 @@ function sendSmsWithOvh(phoneNumber, message) {
   });
 }
 
-/**
- * Sends an SMS through the Swisscom REST plateform.
- *
- * @param {string} phoneNumber - The phone number to send the SMS to.
- * @param {string} message - The short message to send.
- * @returns {void}
- */
 function sendSmsWithSwisscom(phoneNumber, message) {
-  const https = require('https');
-
-  sender = process.env.SMS_SWISSCOM_SENDER;
-  if (sender.match(/^[0-9+ ]*$/)) {
-    sourceAddrTon = 1;
-  } else {
-    sourceAddrTon = 5;
-  }
+  let sender = process.env.SMS_SWISSCOM_SENDER;
+  let sourceAddrTon = sender.match(/^[0-9+ ]*$/) ? 1 : 5;
 
   const payload = {
     destination_addr: phoneNumber.replace(/[^0-9\+]/g, ''),
     dest_addr_ton: 1,
     dest_addr_npi: 1,
-    source_addr: process.env.SMS_SWISSCOM_SENDER,
+    source_addr: sender,
     source_addr_ton: sourceAddrTon,
     source_addr_npi: 1,
     data_coding: 'utf8',
@@ -88,22 +72,19 @@ function sendSmsWithSwisscom(phoneNumber, message) {
       (res) => {
         let rawData = '';
         res.setEncoding('utf8');
-        res.on('data', (chunk) => {
-          rawData += chunk;
-        });
+        res.on('data', (chunk) => { rawData += chunk; });
         res.on('end', () => {
-          console.log('Will get raw data');
-          console.log('raw data', rawData);
+          sails.config.customLogger.log('verbose', 'Swisscom response raw data', { rawData });
           try {
             const parsedData = JSON.parse(rawData);
-            console.log('GOT SWISSCOM DATA', parsedData);
             if ('message_ids' in parsedData || 'message_id' in parsedData) {
+              sails.config.customLogger.log('info', 'SMS sent via Swisscom', { provider: 'SWISSCOM' });
               return resolve();
             }
-            console.error(parsedData);
+            sails.config.customLogger.log('error', 'Swisscom SMS response indicates failure', { response: parsedData });
             return reject(parsedData);
           } catch (e) {
-            console.error(e.message);
+            sails.config.customLogger.log('error', 'Error parsing Swisscom response', { error: e?.message || e});
             return reject(e);
           }
         });
@@ -112,51 +93,23 @@ function sendSmsWithSwisscom(phoneNumber, message) {
 
     try {
       request.on('error', (e) => {
-        console.error('ERROR', e.message);
+        sails.config.customLogger.log('error', 'Swisscom SMS request error', { error: e?.message || e });
         return reject(e);
       });
-      console.log(
-        'Siss come auth header  ',
-        `${process.env.SMS_SWISSCOM_ACCOUNT}:${process.env.SMS_SWISSCOM_PASSWORD}`
-      );
-      console.log(
-        'SISSCOME URI',
-        `https://messagingproxy.swisscom.ch:4300/rest/1.0.0/submit_sm/${process.env.SMS_SWISSCOM_ACCOUNT}`
-      );
-      console.log('SWISSCOM JSON PAYLOAD..............');
-      console.log(JSON.stringify(payload));
+      sails.config.customLogger.log('info', 'Sending SMS via Swisscom', { provider: 'SWISSCOM' });
       request.write(JSON.stringify(payload));
       request.end();
     } catch (error) {
-      console.log('error write to request ', error);
+      sails.config.customLogger.log('error', 'Error writing Swisscom request', { error: error.message });
       return reject(error);
     }
   });
 }
 
-/**
- * Sends an SMS Logs
- *
- * @param {string} phoneNumber
- * @param {string} message
- * @returns {void}
- */
 function sendSmsWithInLog(phoneNumber, message) {
-  console.log('SMS LOG - Message:', message);
-  phoneNumber = phoneNumber.replace(/^00/, '+');
-  console.log('SMS LOG - Phone Number:', phoneNumber);
-  return new Promise((resolve) => {
-    return resolve();
-  });
+  sails.config.customLogger.log('info', 'SMS LOG - Message sent via LOG', { provider: 'LOG' });
+  return new Promise((resolve) => resolve());
 }
-
-/**
- * Sends an SMS through the Twillo SMS Gateway API
- *
- * @param {string} message
- * @param {string} phoneNumber
- * @returns {void}
- */
 
 function sendSmsWithTwilio(phoneNumber, message) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -171,27 +124,16 @@ function sendSmsWithTwilio(phoneNumber, message) {
         from: twilioPhoneNumber,
         to: phoneNumber,
       })
-      .then((message) => {
-        console.log('Twilio SMS sent:', message.sid);
-        resolve(message.sid);
+      .then((msg) => {
+        sails.config.customLogger.log('info', 'Twilio SMS sent', { provider: 'TWILIO', messageSid: msg.sid });
+        resolve(msg.sid);
       })
       .catch((error) => {
-        console.error('Error sending Twilio SMS:', error);
+        sails.config.customLogger.log('error', 'Error sending Twilio SMS', { provider: 'TWILIO', error: error.message });
         reject(error);
       });
   });
 }
-
-/**
- * Sends an SMS through the Twillo WhatsApp API
- *
- * @param {string} message
- * @param {string} phoneNumber
- * @param {string} contentSid
- * @param {object} contentVariables
- * @param {string} statusCallback
- * @returns {void}
- */
 
 async function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, contentVariables, statusCallback) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
@@ -213,42 +155,29 @@ async function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, conte
     if (contentSid) {
       payload.contentSid = contentSid;
     }
-
     if (statusCallback) {
       payload.statusCallback = statusCallback;
     }
-
     if (contentVariables) {
       payload.contentVariables = JSON.stringify(contentVariables);
     }
 
-    console.log('Sending Twilio WhatsApp message with payload:', payload);
-
+    sails.config.customLogger.log('info', 'Sending Twilio WhatsApp message', { provider: 'TWILIO_WHATSAPP' });
     const messageResponse = await client.messages.create(payload);
-
-    console.log('Twilio WhatsApp message created successfully:', messageResponse.sid);
+    sails.config.customLogger.log('info', 'Twilio WhatsApp message sent', { provider: 'TWILIO_WHATSAPP', messageSid: messageResponse.sid });
     return messageResponse.sid;
   } catch (error) {
-    console.error('Error sending Twilio WhatsApp message:', error.message);
+    sails.config.customLogger.log('error', 'Error sending Twilio WhatsApp message', { provider: 'TWILIO_WHATSAPP', error: error.message });
     throw error;
   }
 }
-/**
- * Sends an SMS through Odoo API
- *
- * @param {string} phoneNumber
- * @param {string} message
- * @param {string} senderEmail
- * @returns {void}
- */
-function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
-  const https = require('https');
 
+function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
   phoneNumber = phoneNumber.replace(/^00/, '+');
   const OdooAPI = {
     appKey: process.env.ODOO_SMS_KEY,
   };
-  console.log('Sending SMS...');
+  sails.config.customLogger.log('info', 'Sending SMS via Odoo', { provider: 'ODOO_SMS' });
 
   const data = JSON.stringify({
     body: message,
@@ -264,7 +193,7 @@ function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
     headers: {
       'Content-Type': 'application/json',
       'X-Auth-API': OdooAPI.appKey,
-      host: process.env.ODOO_SMS_HOST
+      host: process.env.ODOO_SMS_HOST,
     },
   };
 
@@ -272,55 +201,47 @@ function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
     const req = https.request(options, (res) => {
       let rawData = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        rawData += chunk;
-      });
+      res.on('data', (chunk) => { rawData += chunk; });
       res.on('end', () => {
-
         try {
           const parsedData = JSON.parse(rawData);
           if (parsedData?.result?.error) {
+            sails.config.customLogger.log('error', 'Odoo SMS API error', { error: parsedData.result.error });
             return reject(new Error(parsedData.result.error));
           } else {
+            sails.config.customLogger.log('info', 'SMS sent via Odoo', { provider: 'ODOO_SMS' });
             return resolve();
           }
         } catch (e) {
+          sails.config.customLogger.log('error', 'Error parsing Odoo SMS API response', { error: e.message });
           return reject(e);
         }
       });
-      console.log(`statusCode: ${res.statusCode}`);
+      sails.config.customLogger.log('verbose', 'Odoo SMS API response status code', { statusCode: res.statusCode });
     });
 
     try {
       req.on('error', (e) => {
-        console.error('ERROR', e.message);
+        sails.config.customLogger.log('error', 'Odoo SMS API request error', { error: e.message });
         return reject(e);
       });
+      sails.config.customLogger.log('info', 'Sending SMS via Odoo', { provider: 'ODOO_SMS' });
       req.write(data);
       req.end();
     } catch (error) {
-      console.log('error write to request ', error);
+      sails.config.customLogger.log('error', 'Error writing to Odoo SMS API request', { error: error.message });
       return reject(error);
     }
   });
 }
 
-/**
- * Sends an SMS through the Clickatel SMS Gateway API
- *
- * @param {string} phoneNumber
- * @param {string} message
- * @returns {void}
- */
 function sendSmsWithClickatel(phoneNumber, message) {
-  const https = require('https');
-
   phoneNumber = phoneNumber.replace(/^00/, '+');
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL,
   };
-  console.log(clickATel);
-  console.log('Sending SMS...');
+  sails.config.customLogger.log('verbose', 'Clickatell config loaded', { provider: 'CLICKATEL' });
+  sails.config.customLogger.log('info', 'Sending SMS via Clickatell', { provider: 'CLICKATEL' });
 
   const data = JSON.stringify({
     content: message,
@@ -342,58 +263,47 @@ function sendSmsWithClickatel(phoneNumber, message) {
     const req = https.request(options, (res) => {
       let rawData = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        rawData += chunk;
-      });
+      res.on('data', (chunk) => { rawData += chunk; });
       res.on('end', () => {
-        console.log('Will get raw data');
-        console.log('raw data', rawData);
+        sails.config.customLogger.log('verbose', 'Clickatell raw response data', { rawData });
         try {
           const parsedData = JSON.parse(rawData);
-          console.log('GOT CLICKATEL DATA', parsedData);
           if (parsedData.messages[0]?.accepted) {
+            sails.config.customLogger.log('info', 'SMS sent via Clickatell', { provider: 'CLICKATEL' });
             return resolve();
           }
-          console.error(parsedData);
+          sails.config.customLogger.log('error', 'Clickatell SMS API error', { response: parsedData });
           return reject(parsedData);
         } catch (e) {
-          console.error(e.message);
+          sails.config.customLogger.log('error', 'Error parsing Clickatell SMS API response', { error: e.message });
           return reject(e);
         }
       });
-      console.log(`statusCode: ${res.statusCode}`);
+      sails.config.customLogger.log('verbose', 'Clickatell SMS API response status code', { statusCode: res.statusCode });
     });
 
     try {
       req.on('error', (e) => {
-        console.error('ERROR', e.message);
+        sails.config.customLogger.log('error', 'Clickatell SMS API request error', { error: e.message });
         return reject(e);
       });
+      sails.config.customLogger.log('info', 'Sending SMS via Clickatell', { provider: 'CLICKATEL' });
       req.write(data);
       req.end();
     } catch (error) {
-      console.log('error write to request ', error);
+      sails.config.customLogger.log('error', 'Error writing to Clickatell SMS API request', { error: error.message });
       return reject(error);
     }
   });
 }
 
-/**
- * Sends an SMS through the Clickatel SMS New API
- *
- * @param {string} phoneNumber
- * @param {string} message
- * @returns {void}
- */
 function sendSmsWithClickatelAPI(phoneNumber, message) {
-  const https = require('https');
-
   phoneNumber = phoneNumber.replace(/^00/, '');
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL_API,
   };
-  console.log(clickATel);
-  console.log('Sending SMS...');
+  sails.config.customLogger.log('verbose', 'Clickatell API config loaded', { provider: 'CLICKATEL_API' });
+  sails.config.customLogger.log('info', 'Sending SMS via Clickatell API', { provider: 'CLICKATEL_API' });
 
   const data = JSON.stringify({
     text: message,
@@ -416,37 +326,35 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
     const req = https.request(options, (res) => {
       let rawData = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => {
-        rawData += chunk;
-      });
+      res.on('data', (chunk) => { rawData += chunk; });
       res.on('end', () => {
-        console.log('Will get raw data');
-        console.log('raw data', rawData);
+        sails.config.customLogger.log('verbose', 'Clickatell API raw response', { rawData });
         try {
           const parsedData = JSON.parse(rawData);
-          console.log('GOT CLICKATEL DATA', parsedData);
           if (parsedData.data.message[0]?.accepted) {
+            sails.config.customLogger.log('info', 'SMS sent via Clickatell API', { provider: 'CLICKATEL_API' });
             return resolve();
           }
-          console.error(parsedData);
+          sails.config.customLogger.log('error', 'Clickatell API SMS error', { response: parsedData });
           return reject(parsedData);
         } catch (e) {
-          console.error(e.message);
+          sails.config.customLogger.log('error', 'Error parsing Clickatell API response', { error: e.message });
           return reject(e);
         }
       });
-      console.log(`statusCode: ${res.statusCode}`);
+      sails.config.customLogger.log('verbose', 'Clickatell API SMS response status code', { statusCode: res.statusCode });
     });
 
     try {
       req.on('error', (e) => {
-        console.error('ERROR', e.message);
+        sails.config.customLogger.log('error', 'Clickatell API request error', { error: e.message });
         return reject(e);
       });
+      sails.config.customLogger.log('info', 'Sending SMS via Clickatell API', { provider: 'CLICKATEL_API' });
       req.write(data);
       req.end();
     } catch (error) {
-      console.log('error write to request ', error);
+      sails.config.customLogger.log('error', 'Error writing to Clickatell API request', { error: error.message });
       return reject(error);
     }
   });
@@ -493,7 +401,7 @@ module.exports = {
 
   async fn(inputs, exits) {
     try {
-      const {message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params, statusCallback} = inputs || {};
+      const { message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params, statusCallback } = inputs || {};
 
       if (process.env.NODE_ENV === "development") {
         await sendSmsWithInLog(phoneNumber, message);
@@ -510,30 +418,28 @@ module.exports = {
         });
 
         for (const provider of providers) {
-
           const prefixes = provider.prefix?.split(",");
           const matchesPrefix = prefixes?.some((prefix) =>
-            prefix === "*" || phoneNumber?.startsWith(prefix)
+            prefix === "*" || (phoneNumber && phoneNumber.startsWith(prefix))
           );
 
           if (!matchesPrefix) {
-            console.log(`Skipping provider ${provider.provider} - no matching prefix.`);
+            sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - no matching prefix.`, { provider: provider.provider });
             continue;
           }
 
           const excludedPrefixes = prefixes?.filter(prefix => prefix.startsWith("!"));
           const isExcluded = excludedPrefixes?.some(excludedPrefix =>
-            phoneNumber?.startsWith(excludedPrefix.substring(1))
+            phoneNumber && phoneNumber.startsWith(excludedPrefix.substring(1))
           );
 
           if (isExcluded) {
-            console.log(`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+            sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - phone number matches excluded prefix.`, { provider: provider.provider });
             continue;
           }
 
           try {
-            console.log(`Sending an SMS to ${phoneNumber} through ${provider.provider}`);
-
+            sails.config.customLogger.log('info', `Attempting to send SMS through ${provider.provider}`, { provider: provider.provider });
             switch (provider.provider) {
               case 'TWILIO':
                 await sendSmsWithTwilio(phoneNumber, message);
@@ -554,27 +460,26 @@ module.exports = {
                 try {
                   await sendSmsWithOdoo(phoneNumber, message, senderEmail);
                 } catch (odooError) {
-                  console.error(`Failed to send SMS through Odoo:`, odooError.message);
+                  sails.config.customLogger.log('error', 'Failed to send SMS through Odoo', { error: odooError.message });
                   return exits.error(new Error(odooError.message));
                 }
                 break;
               default:
-                console.error(`Provider ${provider.provider} not recognized`);
+                sails.config.customLogger.log('error', `Provider ${provider.provider} not recognized`, { provider: provider.provider });
                 continue;
             }
-
+            sails.config.customLogger.log('info', `SMS sent via ${provider.provider}`, { provider: provider.provider });
             return exits.success();
           } catch (error) {
-            console.error(`Failed to send SMS through ${provider.provider}:`, error);
+            sails.config.customLogger.log('error', `Failed to send SMS through ${provider.provider}`, { provider: provider.provider, error: error?.message || error });
           }
         }
       }
-      console.error(
-        'No SMS provider succeeded or phone number not whitelisted'
-      );
-      exits.error(new Error('SMS sending failed'));
+      sails.config.customLogger.log('error', 'No SMS provider succeeded or phone number not whitelisted');
+      return exits.error(new Error('SMS sending failed'));
     } catch (error) {
-      exits.error(error);
+      sails.config.customLogger.log('error', 'Unexpected error in SMS action', { error: error?.message || error });
+      return exits.error(error);
     }
   },
 };

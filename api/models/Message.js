@@ -1,26 +1,8 @@
-/**
- * Message.js
- *
- * @description :: A model definition represents a database table/collection.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
- */
 const RINGING_TIMEOUT = 5 * 60 * 1000;
 const CALL_DURATION_TIMEOUT = 2 * 60 * 60 * 1000;
 
 module.exports = {
   attributes: {
-    //  ╔═╗╦═╗╦╔╦╗╦╔╦╗╦╦  ╦╔═╗╔═╗
-    //  ╠═╝╠╦╝║║║║║ ║ ║╚╗╔╝║╣ ╚═╗
-    //  ╩  ╩╚═╩╩ ╩╩ ╩ ╩ ╚╝ ╚═╝╚═╝
-
-    //  ╔═╗╔╦╗╔╗ ╔═╗╔╦╗╔═╗
-    //  ║╣ ║║║╠╩╗║╣  ║║╚═╗
-    //  ╚═╝╩ ╩╚═╝╚═╝═╩╝╚═╝
-
-    //  ╔═╗╔═╗╔═╗╔═╗╔═╗╦╔═╗╔╦╗╦╔═╗╔╗╔╔═╗
-    //  ╠═╣╚═╗╚═╗║ ║║  ║╠═╣ ║ ║║ ║║║║╚═╗
-    //  ╩ ╩╚═╝╚═╝╚═╝╚═╝╩╩ ╩ ╩ ╩╚═╝╝╚╝╚═╝
-
     from: {
       model: 'user',
     },
@@ -36,7 +18,6 @@ module.exports = {
     },
     read: {
       type: 'boolean',
-      // default:false
     },
     type: {
       type: 'string',
@@ -81,8 +62,9 @@ module.exports = {
       defaultsTo: {},
     },
   },
+
   async endCall(message, consultation, reason) {
-    console.log('End call');
+    sails.config.customLogger.log('info', 'End call triggered', { consultationId: consultation.id, messageId: message.id });
     await Message.updateOne({
       id: message.id,
       consultation: consultation.id,
@@ -91,10 +73,10 @@ module.exports = {
       status: 'ended',
     });
 
-    const consultationParticipants =
-      await Consultation.getConsultationParticipants(consultation);
+    const consultationParticipants = await Consultation.getConsultationParticipants(consultation);
 
     consultationParticipants.forEach((participant) => {
+      sails.config.customLogger.log('info', 'Broadcasting endCall event', { participantId: participant, consultationId: consultation.id });
       sails.sockets.broadcast(participant, 'endCall', {
         data: {
           reason,
@@ -115,26 +97,21 @@ module.exports = {
           role: user.role,
           id: user.id,
         };
+        sails.config.customLogger.log('info', `Message beforeCreate: Added user details for MongoID: ${user.id}`);
       }
       return proceed();
     } catch (error) {
-      console.error('Error in beforeCreate: ', error.message);
+      sails.config.customLogger.log('error', 'Error in beforeCreate', error);
       return proceed(error);
     }
   },
 
   async afterCreate(message, proceed) {
-    const consultation = await Consultation.findOne({
-      id: message.consultation,
-    });
+    sails.config.customLogger.log('info', 'afterCreate hook triggered', { messageId: message.id, consultationId: message.consultation });
 
-    const user = await User.findOne({
-      id: message.from,
-    });
-
-    const toUser = await User.findOne({
-      id: message.to,
-    });
+    const consultation = await Consultation.findOne({ id: message.consultation });
+    const user = await User.findOne({ id: message.from });
+    const toUser = await User.findOne({ id: message.to });
 
     let roomNames = [
       message.to || consultation.queue || consultation.doctor,
@@ -152,18 +129,23 @@ module.exports = {
       id: user.id,
     };
 
+    sails.config.customLogger.log('info', 'Broadcasting newMessage event', { roomNames });
     sails.sockets.broadcast(roomNames, 'newMessage', {
       data: { ...message, fromUserDetail },
     });
 
     if (message.type === 'audioCall' || message.type === 'videoCall') {
+      sails.config.customLogger.log('info', 'Broadcasting newMessage event for call type', { userId: message.from });
       sails.sockets.broadcast(message.from, 'newMessage', { data: message });
+
+      sails.config.customLogger.log('info', 'Scheduling RINGING_TIMEOUT helper', { messageId: message.id });
       await sails.helpers.schedule.with({
         name: 'RINGING_TIMEOUT',
         data: { message, consultation },
         time: new Date(Date.now() + RINGING_TIMEOUT),
       });
 
+      sails.config.customLogger.log('info', 'Scheduling DURATION_TIMEOUT helper', { messageId: message.id });
       await sails.helpers.schedule.with({
         name: 'DURATION_TIMEOUT',
         data: { message },
@@ -183,45 +165,34 @@ module.exports = {
         !consultation.flagPatientOnline &&
         !consultation.flagPatientNotified
       ) {
+        sails.config.customLogger.log('info', 'Updating public invite status to SENT', { inviteToken: consultation.invitationToken });
         await PublicInvite.updateOne({
           inviteToken: consultation.invitationToken,
         }).set({ status: 'SENT' });
 
-        const locale =
-          publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+        const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
 
         if (
           toUser &&
           toUser.email &&
           toUser.role === sails.config.globals.ROLE_NURSE
         ) {
+          sails.config.customLogger.log('info', 'Sending email notification to nurse', { email: toUser.email });
           await sails.helpers.email.with({
             to: toUser.email,
-            subject: sails._t(
-              locale,
-              'notification for offline action subject',
-              { branding: process.env.BRANDING }
-            ),
-            text: sails._t(
-              locale,
-              'notification for offline action text for nurse'
-            ),
+            subject: sails._t(locale, 'notification for offline action subject', { branding: process.env.BRANDING }),
+            text: sails._t(locale, 'notification for offline action text for nurse'),
           });
 
           await Consultation.updateOne({ id: consultation.id }).set({
             flagPatientNotified: true,
           });
         } else if (publicInvite.emailAddress) {
+          sails.config.customLogger.log('info', 'Sending email notification to patient', { email: publicInvite.emailAddress });
           await sails.helpers.email.with({
             to: publicInvite.emailAddress,
-            subject: sails._t(
-              locale,
-              'notification for offline action subject',
-              { branding: process.env.BRANDING }
-            ),
-            text: sails._t(locale, 'notification for offline action text', {
-              url,
-            }),
+            subject: sails._t(locale, 'notification for offline action subject', { branding: process.env.BRANDING }),
+            text: sails._t(locale, 'notification for offline action text', { url }),
           });
           await Consultation.updateOne({ id: consultation.id }).set({
             flagPatientNotified: true,
@@ -233,15 +204,12 @@ module.exports = {
           toUser.phoneNumber &&
           toUser.role === sails.config.globals.ROLE_NURSE
         ) {
+          sails.config.customLogger.log('info', 'Sending SMS notification to nurse', { phoneNumber: toUser.phoneNumber });
           await sails.helpers.sms.with({
             phoneNumber: toUser.phoneNumber,
-            message: sails._t(
-              locale,
-              'notification for offline action text for nurse'
-            ),
+            message: sails._t(locale, 'notification for offline action text for nurse'),
             senderEmail: publicInvite?.doctor?.email,
           });
-
           await Consultation.updateOne({ id: consultation.id }).set({
             flagPatientNotified: true,
           });
@@ -254,69 +222,52 @@ module.exports = {
         !consultation.flagDoctorOnline &&
         !consultation.flagDoctorNotified
       ) {
-        const doctorLang =
-          publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+        const doctorLang = publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
 
         if (toUser?.enableNotif && toUser?.notifPhoneNumber) {
-
           if (toUser.messageService === '1') {
             const type = 'notification for offline action text for doctor';
-            const doctorLanguage =
-              toUser.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
-
+            const doctorLanguage = toUser.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
             if (doctorLanguage) {
-              const template = await WhatsappTemplate.findOne({ language: doctorLanguage, key: type, approvalStatus: 'approved' });
+              const template = await WhatsappTemplate.findOne({
+                language: doctorLanguage,
+                key: type,
+                approvalStatus: 'approved',
+              });
               if (template && template.sid) {
                 const twilioTemplatedId = template.sid;
                 const params = {};
-                if (twilioTemplatedId) {
-                  await sails.helpers.sms.with({
-                    phoneNumber: toUser?.notifPhoneNumber,
-                    message: sails._t(
-                      doctorLang,
-                      'notification for offline action text for doctor'
-                    ),
-                    senderEmail: toUser?.email,
-                    whatsApp: true,
-                    params,
-                    twilioTemplatedId
-                  });
-                } else {
-                  console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
-                }
+                sails.config.customLogger.log('info', 'Sending WhatsApp SMS to doctor', { phoneNumber: toUser.notifPhoneNumber });
+                await sails.helpers.sms.with({
+                  phoneNumber: toUser?.notifPhoneNumber,
+                  message: sails._t(doctorLang, 'notification for offline action text for doctor'),
+                  senderEmail: toUser?.email,
+                  whatsApp: true,
+                  params,
+                  twilioTemplatedId,
+                });
               } else {
-                console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+                sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS - Template id is missing or not approved');
               }
             }
           } else {
+            sails.config.customLogger.log('info', 'Sending SMS notification to doctor', { phoneNumber: toUser.notifPhoneNumber });
             await sails.helpers.sms.with({
               phoneNumber: toUser?.notifPhoneNumber,
-              message: sails._t(
-                doctorLang,
-                'notification for offline action text for doctor'
-              ),
+              message: sails._t(doctorLang, 'notification for offline action text for doctor'),
               senderEmail: toUser?.email,
             });
           }
-
-
           await Consultation.updateOne({ id: consultation.id }).set({
             flagDoctorNotified: true,
           });
         } else if (toUser?.email) {
+          sails.config.customLogger.log('info', 'Sending email notification to doctor', { email: toUser.email });
           await sails.helpers.email.with({
             to: toUser.email,
-            subject: sails._t(
-              doctorLang,
-              'notification for offline action subject',
-              { branding: process.env.BRANDING }
-            ),
-            text: sails._t(
-              doctorLang,
-              'notification for offline action text for doctor'
-            ),
+            subject: sails._t(doctorLang, 'notification for offline action subject', { branding: process.env.BRANDING }),
+            text: sails._t(doctorLang, 'notification for offline action text for doctor'),
           });
-
           await Consultation.updateOne({ id: consultation.id }).set({
             flagDoctorNotified: true,
           });
@@ -325,5 +276,5 @@ module.exports = {
     }
 
     return proceed();
-  },
+  }
 };

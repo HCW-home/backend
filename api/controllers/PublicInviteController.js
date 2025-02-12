@@ -14,7 +14,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
       );
 
       if (isExcluded) {
-        console.log(`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+        sails.config.customLogger.log('info',`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
         continue;
       }
 

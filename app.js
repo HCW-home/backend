@@ -1,14 +1,14 @@
 /**
  * app.jvar allowCrossDomain = function (req, res, next) {
-  res.header('Access-Control-Allow-Origin', '*')
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH')
-  res.header('Access-Control-Allow-Headers', 'Content-Type')
+ res.header('Access-Control-Allow-Origin', '*')
+ res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH')
+ res.header('Access-Control-Allow-Headers', 'Content-Type')
 
-  next()
-}
-if (process.env.NODE_ENV === 'development') {
-  app.use(allowCrossDomain)
-}s
+ next()
+ }
+ if (process.env.NODE_ENV === 'development') {
+ app.use(allowCrossDomain)
+ }s
  *
  * Use `app.js` to run your app without `sails lift`.
  * To start the server, run: `node app.js`.
@@ -37,8 +37,8 @@ process.chdir(__dirname);
 
 // #6106 Implement proxy settings for backend
 require('dotenv').config();
-const { bootstrap } = require('global-agent')
-bootstrap()
+const { bootstrap } = require('global-agent');
+bootstrap();
 
 // Attempt to import `sails` dependency, as well as `rc` (for loading `.sailsrc` files).
 let sails;
@@ -47,24 +47,22 @@ try {
   sails = require('sails');
   rc = require('sails/accessible/rc');
 } catch (err) {
-  console.error('Encountered an error when attempting to require(\'sails\'):');
-  console.error(err.stack);
-  console.error('--');
-  console.error('To run an app using `node app.js`, you need to have Sails installed');
-  console.error('locally (`./node_modules/sails`).  To do that, just make sure you\'re');
-  console.error('in the same directory as your app and run `npm install`.');
-  console.error();
-  console.error('If Sails is installed globally (i.e. `npm install -g sails`) you can');
-  console.error('also run this app with `sails lift`.  Running with `sails lift` will');
-  console.error('not run this file (`app.js`), but it will do exactly the same thing.');
-  console.error('(It even uses your app directory\'s local Sails install, if possible.)');
+  console.error(
+    `Encountered an error when attempting to require('sails'):
+      ${err.stack}
+      --
+      To run an app using "node app.js", you need to have Sails installed locally ("./node_modules/sails"). Just make sure you're in the same directory as your app and run "npm install".
+
+      If Sails is installed globally (i.e. "npm install -g sails"), you can also run this app with "sails lift". Running with "sails lift" will not run this file ("app.js"), but it will do exactly the same thing.
+      (It even uses your app directory's local Sails install, if possible.)`
+  );
   return;
 }// -•
 
 const path = require('path');
-const fs = require('fs')
+const fs = require('fs');
 
-const locales = fs.readdirSync(path.join(__dirname, './config/locales')).map(f=>f.replace('.json',''))
+const locales = fs.readdirSync(path.join(__dirname, './config/locales')).map(f => f.replace('.json', ''));
 const i18n = new (require('i18n-2'))({
   locales,
   directory: path.join(__dirname, './config/locales'),
@@ -75,8 +73,8 @@ const i18n = new (require('i18n-2'))({
 const { vsprintf } = require('sprintf-js');
 
 
-sails._t = function (locale) {
-  locale = locales.includes(locale)? locale: 'en'
+sails._t = function(locale) {
+  locale = locales.includes(locale) ? locale : 'en';
   let msg = i18n.translate(locale, arguments[1]);
 
   if (arguments.length > 2) {

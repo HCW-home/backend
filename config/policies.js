@@ -97,7 +97,6 @@ module.exports.policies = {
   },
   AuthController: {
     loginLocal: true,
-    loginCert: true,
     loginSaml: true,
     loginOpenId: true,
     loginOpenIdReturn: true,
@@ -114,9 +113,6 @@ module.exports.policies = {
     externalAuth: true,
     refreshToken: true,
     verifyRefreshToken: true,
-  },
-  SupportController: {
-    supportRequest: ["isLoggedIn"],
   },
   ExpertController: {
     sendExpertLink: ["isLoggedIn"],

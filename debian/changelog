@@ -1,4 +1,20 @@
-hcw-athome-backend (0.5.29) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.38) UNRELEASED; urgency=medium
+
+  * log fix
+  * change development log level
+  * change log level in production
+  * update locales
+  * add supported locales dynamically
+  * fix second guest invite reminder
+  * fix second invite reminder template
+  * new docker release
+  * change please use this link template
+  * update acknowledgment needed statuses
+  * translation updates for whatsapp templates body
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 07 Feb 2025 09:45:41 +0000
+
+hcw-athome-backend (0.5.31) focal; urgency=medium
 
   [ Olivier Bitsch ]
   * Update to version 0.5.20.
@@ -36,8 +52,29 @@ hcw-athome-backend (0.5.29) UNRELEASED; urgency=medium
   * make sid nullable
   * remove nullable
   * update category of whatsapp templates
+  * translation update
+  * update uk translations
+  * update scheduled patient invite translation
+  * refs  #7770, Logs format update
+  * add logs for helpers
+  * add logs for user and publicinvite model
+  * remove unused code from model
+  * add logs for services
+  * remove unused files, update file upload with logs
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 27 Jan 2025 15:17:16 +0000
+  [ Olivier Bitsch ]
+  * Translated using Weblate (French)
+
+  [ Gor Grigoryan ]
+  * refs #8059, Order whatsapp templates in admin by alphabetic order
+  * add more logs in consultation model
+  * refs #7770, Logs format update
+
+  [ Olivier Bitsch ]
+  * Translated using Weblate (German)
+  * Translated using Weblate (French)
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 05 Feb 2025 15:00:19 +0100
 
 hcw-athome-backend (0.5.20) focal; urgency=medium
 

@@ -1,10 +1,3 @@
-/**
- * Consultation.js
- *
- * @description :: A model definition represents a database table/collection.
- * @docs        :: https://sailsjs.com/docs/concepts/models-and-orm/models
- */
-
 const { ObjectId } = require('mongodb');
 const _ = require('@sailshq/lodash');
 const moment = require('moment');
@@ -192,9 +185,7 @@ module.exports = {
         id: process.env.DEFAULT_QUEUE_ID,
       });
       if (defaultQueue) {
-        console.log(
-          'Assigning the default queue to the consultation as no queue is set'
-        );
+        sails.config.customLogger.log('info', 'Assigning the default queue to the consultation as no queue is set', { defaultQueueId: defaultQueue?.id });
         consultation.queue = defaultQueue.id;
       }
     }
@@ -203,20 +194,20 @@ module.exports = {
 
   async afterCreate(consultation, proceed) {
     await Consultation.broadcastNewConsultation(consultation);
-
+    sails.config.customLogger.log('info', 'New consultation broadcast', { consultationId: consultation.id });
     return proceed();
   },
 
   async beforeDestroy(criteria, proceed) {
-    console.log('DELETE CONSULTATION', criteria);
+    sails.config.customLogger.log('info', 'Deleting consultation', { criteria });
     const consultation = await Consultation.findOne({ _id: criteria.where.id });
     await Message.destroy({ consultation: criteria.where.id });
     if (consultation.invitationToken) {
       await PublicInvite.updateOne({
         inviteToken: consultation.invitationToken,
       }).set({ status: 'SENT' });
+      sails.config.customLogger.log('info', 'Public invite status updated to SENT for consultation', { consultationId: consultation?.id });
     }
-
     sails.sockets.broadcast(
       consultation.queue || consultation.doctor,
       'consultationCanceled',
@@ -225,6 +216,7 @@ module.exports = {
         data: { _id: criteria.where.id, consultation: criteria.where },
       }
     );
+    sails.config.customLogger.log('info', 'Consultation cancellation broadcasted', { consultationId: consultation.id });
     return proceed();
   },
 
@@ -237,24 +229,25 @@ module.exports = {
     if (consultation.guestInvite) {
       guestInvite = await PublicInvite.findOne({ id: consultation.guestInvite });
     }
-
-    (await Consultation.getConsultationParticipants(consultation)).forEach(
-      (participant) => {
-        sails.sockets.broadcast(participant, 'newConsultation', {
-          event: 'newConsultation',
-          data: {
-            _id: consultation.id,
-            unreadCount: 0,
-            consultation,
-            nurse,
-            translator,
-            guest,
-            queue,
-            guestInvite
-          },
-        });
-      }
-    );
+    sails.config.customLogger.log('info', 'Broadcasting new consultation', { consultationId: consultation.id });
+    const participants = await Consultation.getConsultationParticipants(consultation);
+    participants.forEach((participant) => {
+      sails.sockets.broadcast(participant, 'newConsultation', {
+        event: 'newConsultation',
+        data: {
+          _id: consultation.id,
+          unreadCount: 0,
+          consultation,
+          nurse,
+          translator,
+          guest,
+          queue,
+          guestInvite
+        }
+      });
+      sails.config.customLogger.log('info', 'Broadcast new consultation to participant', { consultationId: consultation.id, participant });
+    });
+    sails.config.customLogger.log('info', 'Finished broadcasting new consultation', { consultationId: consultation.id, participantCount: participants.length });
   },
 
   async getConsultationParticipants(consultation) {
@@ -285,6 +278,7 @@ module.exports = {
         consultationParticipants.push(expert);
       });
     }
+    sails.config.customLogger.log('info', `Consultation participants computed for consultation id ${consultation.id}`, { count: consultationParticipants.length });
     return consultationParticipants;
   },
 
@@ -293,7 +287,6 @@ module.exports = {
   },
 
   async getAnonymousDetails(consultation) {
-    // consultation = await Consultation.findOne({id:'5e81e3838475f6352ef40aec'})
     const anonymousConsultation = {
       consultationId: consultation.id,
       IMADTeam: consultation.IMADTeam,
@@ -361,7 +354,7 @@ module.exports = {
           }
         }
       } catch (error) {
-        console.log('Error finding invite ', error);
+        sails.config.customLogger.log('error', `Error finding invite`, { error: error?.message || error });
       }
     }
 
@@ -410,66 +403,65 @@ module.exports = {
       anonymousConsultation.successfulCallsCount = successfulCallsCount;
       anonymousConsultation.averageCallDuration = averageCallDuration;
 
-      console.log('anonymous consultation ', anonymousConsultation);
+      sails.config.customLogger.log('info', `Anonymous consultation details computed for consultation id ${consultation.id}`);
     } catch (error) {
-      console.log('Error counting messages ', error);
+      sails.config.customLogger.log('error', `Error counting messages for consultation id ${consultation.id}`, { error: error?.message || error });
     }
-    console.log('create anonymous ', anonymousConsultation);
+
+    sails.config.customLogger.log('info', `Anonymous consultation created for consultation id ${consultation.id}`);
 
     return anonymousConsultation;
   },
+
   async sendConsultationClosed(consultation) {
-    // emit consultation closed event with the consultation
-    (await Consultation.getConsultationParticipants(consultation)).forEach(
-      (participant) => {
-        sails.sockets.broadcast(participant, 'consultationClosed', {
-          data: {
-            consultation,
-            _id: consultation.id,
-          },
-        });
-      }
-    );
+    const participants = await Consultation.getConsultationParticipants(consultation);
+    sails.config.customLogger.log('info', `Broadcasting consultationClosed for consultation id ${consultation.id}`, { participantCount: participants.length });
+    participants.forEach((participant) => {
+      sails.sockets.broadcast(participant, 'consultationClosed', {
+        data: {
+          consultation,
+          _id: consultation.id,
+        },
+      });
+      sails.config.customLogger.log('info', `Broadcast consultationClosed to participant`, { consultationId: consultation.id, participant });
+    });
   },
+
   async closeConsultation(consultation) {
     if (consultation.status === 'closed') {
       return;
     }
     const db = Consultation.getDatastore().manager;
-
     const closedAt = new Date();
 
     try {
-      const anonymousConsultation = await Consultation.getAnonymousDetails(
-        consultation
-      );
+      const anonymousConsultation = await Consultation.getAnonymousDetails(consultation);
       await AnonymousConsultation.create(anonymousConsultation);
+      sails.config.customLogger.log('info', `Anonymous consultation details saved for consultation id ${consultation.id}`);
     } catch (error) {
-      console.error('Error Saving anonymous details ', error);
+      sails.config.customLogger.log('error', `Error saving anonymous details for consultation id ${consultation.id}`, { error: error?.message || error });
     }
 
     if (consultation.invitationToken) {
       try {
-        const patientInvite = await PublicInvite.findOne({
-          inviteToken: consultation.invitationToken,
-        });
+        const patientInvite = await PublicInvite.findOne({ inviteToken: consultation.invitationToken });
         if (patientInvite) {
           await PublicInvite.destroyPatientInvite(patientInvite);
+          sails.config.customLogger.log('info', `Patient invite destroyed for consultation id ${consultation.id}`);
         }
       } catch (error) {
-        console.error('Error destroying Invite ', error);
+        sails.config.customLogger.log('error', `Error destroying invite for consultation id ${consultation.id}`, { error: error?.message || error });
       }
     }
 
     const messageCollection = db.collection('message');
     const consultationCollection = db.collection('consultation');
+
     try {
       const callMessages = await Message.find({
         consultation: consultation.id,
         type: { in: ['videoCall', 'audioCall'] },
       });
-      // const callMessages = await callMessagesCursor.toArray();
-      // save info for stats
       try {
         await AnonymousCall.createEach(
           callMessages.map((m) => {
@@ -477,46 +469,56 @@ module.exports = {
             return m;
           })
         );
+        sails.config.customLogger.log('info', `Anonymous calls saved for consultation id ${consultation.id}`, { count: callMessages.length });
       } catch (error) {
-        console.log('Error creating anonymous calls ', error);
+        sails.config.customLogger.log('error', `Error creating anonymous calls for consultation id ${consultation.id}`, { error: error?.message || error });
       }
     } catch (error) {
-      console.log('Error finding messages ', error);
+      sails.config.customLogger.log('error', `Error finding call messages for consultation id ${consultation.id}`, { consultationId: consultation.id, error: error?.message || error });
     }
+
     if (!consultation.queue) {
       consultation.queue = null;
     }
 
-    // mark consultation as closed and set closedAtISO for mongodb ttl
-    const { result } = await consultationCollection.updateOne(
-      { _id: new ObjectId(consultation.id) },
-      {
-        $set: {
-          status: 'closed',
-          closedAtISO: closedAt,
-          closedAt: closedAt.getTime(),
-        },
-      }
-    );
+    try {
+      await consultationCollection.updateOne(
+        { _id: new ObjectId(consultation.id) },
+        {
+          $set: {
+            status: 'closed',
+            closedAtISO: closedAt,
+            closedAt: closedAt.getTime(),
+          },
+        }
+      );
+      sails.config.customLogger.log('info', `Consultation status updated to closed in database for consultation id ${consultation.id}`);
+    } catch (error) {
+      sails.config.customLogger.log('error', `Error updating consultation status in database for consultation id ${consultation.id}`, { consultationId: consultation.id, error: error?.message || error });
+    }
 
-    // set consultationClosedAtISO for mongodb ttl index
-    await messageCollection.updateOne(
-      { consultation: new ObjectId(consultation.id) },
-      {
-        $set: {
-          consultationClosedAtISO: closedAt,
-          consultationClosedAt: closedAt.getTime(),
+    try {
+      await messageCollection.updateOne(
+        { consultation: new ObjectId(consultation.id) },
+        {
+          $set: {
+            consultationClosedAtISO: closedAt,
+            consultationClosedAt: closedAt.getTime(),
+          },
         },
-      },
-      { multi: true }
-    );
+        { multi: true }
+      );
+      sails.config.customLogger.log('info', `Messages updated with consultation closed timestamps for consultation id ${consultation.id}`);
+    } catch (error) {
+      sails.config.customLogger.log('error', `Error updating messages with consultation closed timestamps for consultation id ${consultation.id}`, { consultationId: consultation.id, error: error?.message || error });
+    }
 
     consultation.status = 'closed';
     consultation.closedAtISO = closedAt;
     consultation.closedAt = closedAt.getTime();
 
-    // emit consultation closed event with the consultation
     await Consultation.sendConsultationClosed(consultation);
+    sails.config.customLogger.log('info', `Consultation closed event emitted for consultation id ${consultation.id}`);
   },
 
   async getUserConsultationsFilter(user) {
@@ -659,9 +661,11 @@ module.exports = {
             _id: consultation._id,
           },
         });
+        sails.config.customLogger.log('info', `Broadcast online status change to participant ${participantId} for consultation ${consultation._id}`);
       }
     }
   },
+
   getConsultationReport(consultation) {
     if (consultation.owner) {
       consultation.owner.name = `${consultation.owner.firstName} ${consultation.owner.lastName}`;
@@ -694,18 +698,26 @@ module.exports = {
       }
       mappedConsultation[col.colName] = value;
     });
+    sails.config.customLogger.log('info', `Consultation report generated for consultation id ${consultation.id}`);
     return mappedConsultation;
   },
-  columns,
+
   async sendPatientReadyToQueue(consultation, queue) {
-    const doctors = await Queue.getQueueUsers(queue);
-    doctors.forEach(async (doctor) => {
-      await Consultation.sendPatientReadyToDoctor(consultation, doctor);
-    });
+    try {
+      const doctors = await Queue.getQueueUsers(queue);
+      sails.config.customLogger.log('info', `Sending patient ready notification for consultation id ${consultation.id} to queue`, { consultationId: consultation.id, queueId: queue.id, doctorsCount: doctors.length });
+      for (const doctor of doctors) {
+        await Consultation.sendPatientReadyToDoctor(consultation, doctor);
+        sails.config.customLogger.log('info', `Patient ready notification sent to doctor`, { consultationId: consultation.id, doctorId: doctor.id });
+      }
+    } catch (error) {
+      sails.config.customLogger.log('error', `Error sending patient ready notifications for consultation id ${consultation.id}`, { consultationId: consultation.id, error: error?.message || error });
+      throw error;
+    }
   },
+
   async sendPatientReadyToDoctor(consultation, doctor) {
     const doctorId = doctor._id ? doctor._id.toString() : doctor.id;
-
     if (doctor && doctor.enableNotif && doctor.notifPhoneNumber) {
       const tokenString = await PublicInvite.generateToken();
       const token = await Token.create({
@@ -717,25 +729,21 @@ module.exports = {
       const tokenCollection = db.collection('token');
       await tokenCollection.updateOne(
         { _id: new ObjectId(token.id) },
-        {
-          $set: {
-            closedAtISO: new Date(),
-          },
-        }
+        { $set: { closedAtISO: new Date() } }
       );
       const url = `${process.env.DOCTOR_URL}/app/plan-consultation?token=${tokenString}`;
-      const doctorLanguage =
-        doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
-
+      const doctorLanguage = doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
       if (doctor.messageService === '1') {
         const type = 'patient is ready';
         if (doctorLanguage) {
-          const template = await WhatsappTemplate.findOne({ language: doctorLanguage, key: type, approvalStatus: 'approved' });
+          const template = await WhatsappTemplate.findOne({
+            language: doctorLanguage,
+            key: type,
+            approvalStatus: 'approved'
+          });
           if (template && template.sid) {
             const twilioTemplatedId = template.sid;
-            const params = {
-              1: tokenString
-            };
+            const params = { 1: tokenString };
             if (twilioTemplatedId) {
               await sails.helpers.sms.with({
                 phoneNumber: doctor.notifPhoneNumber,
@@ -745,29 +753,23 @@ module.exports = {
                 params,
                 twilioTemplatedId
               });
+              sails.config.customLogger.log('info', `WhatsApp SMS sent to doctor for consultation ${consultation.id}`, { doctorId });
             } else {
-              console.log('ERROR SENDING WhatsApp SMS', 'Template id is missing');
+              sails.config.customLogger.log('warn', `Template id is missing for WhatsApp SMS for doctor ${doctorId}`);
             }
           } else {
-            console.log('ERROR SENDING WhatsApp SMS', 'Template is not  approved');
+            sails.config.customLogger.log('warn', `WhatsApp template not approved or not found for doctor ${doctorId}`);
           }
         }
-
-
       } else {
         await sails.helpers.sms.with({
           phoneNumber: doctor.notifPhoneNumber,
           message: sails._t(doctorLanguage, 'patient is ready', { url }),
           senderEmail: doctor?.email,
         });
+        sails.config.customLogger.log('info', `SMS sent to doctor for consultation ${consultation.id}`, { doctorId });
       }
     }
-  },
-  // afterUpdate(consultation){
-  //   Consultation.getConsultationParticipants().forEach(participant=>{
-  //     sails.sockets.broadcast(participant, 'consultationUpdated', {
-  //       data: {consultation}
-  //     })
-  //   })
-  // }
+  }
+
 };

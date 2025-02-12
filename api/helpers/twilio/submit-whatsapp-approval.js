@@ -28,6 +28,7 @@ module.exports = {
     const authToken = process.env.TWILIO_AUTH_TOKEN;
 
     try {
+      sails.config.customLogger.log('info', `Submitting WhatsApp Template for approval with SID: ${sid}`);
       const endpoint = `https://content.twilio.com/v1/Content/${sid}/ApprovalRequests/whatsapp`;
 
       const response = await axios.post(
@@ -44,10 +45,11 @@ module.exports = {
         }
       );
 
+      sails.config.customLogger.log('info', `WhatsApp Template submitted for approval with SID: ${sid}`);
       return exits.success(response.data);
     } catch (error) {
-      console.error('Error submitting WhatsApp template for approval:', error.response?.data || error.message);
-      return exits.error(error.response?.data || error.message);
+      sails.config.customLogger.log('error', `Error submitting WhatsApp Template for approval with SID: ${sid}`, error.response ? error.response.data : error.message);
+      return exits.error(error.response ? error.response.data : error.message);
     }
   },
 };

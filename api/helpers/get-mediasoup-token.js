@@ -1,14 +1,7 @@
 const axios = require('axios');
-var Buffer = require('buffer/').Buffer
 module.exports = {
-
-
   friendlyName: 'Get mediasoup token',
-
-
   description: '',
-
-
   inputs: {
     peerId: {
       type: 'string',
@@ -27,7 +20,6 @@ module.exports = {
 
 
   exits: {
-
     success: {
       outputFriendlyName: 'Mediasoup token',
     },
@@ -36,9 +28,6 @@ module.exports = {
 
 
   fn: async function (inputs, exists) {
-
-
-
     const response = await axios.post(
       inputs.server.url+'/session',
       {
@@ -57,9 +46,6 @@ module.exports = {
     );
 
     return inputs.server.url.replace(/^.+?\:/,'wss:') + `?token=${response.data.token}`
-
   }
-
-
 };
 

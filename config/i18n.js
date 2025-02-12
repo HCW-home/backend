@@ -12,6 +12,23 @@
  * https://sailsjs.com/docs/concepts/internationalization
  */
 
+const fs = require('fs');
+const path = require('path');
+
+const localesDir = path.resolve(process.cwd(), 'config', 'locales');
+
+let supportedLocales = [];
+
+try {
+  const files = fs.readdirSync(localesDir);
+  supportedLocales = files
+    .filter(file => file.endsWith('.json'))
+    .map(file => file.split('.')[0]);
+} catch (err) {
+  sails.config.customLogger.log('error','Error reading locales directory:', err?.message);
+  supportedLocales = ['en'];
+}
+
 module.exports.i18n = {
 
   /***************************************************************************
@@ -20,7 +37,7 @@ module.exports.i18n = {
    *                                                                          *
    ***************************************************************************/
 
-  locales: ['am', 'ar', 'de', 'en', 'es', 'fa', 'fr', 'it', 'ru', 'ta', 'ti', 'uk'],
+  locales: supportedLocales,
 
   /****************************************************************************
    *                                                                           *

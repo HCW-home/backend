@@ -14,7 +14,7 @@
   "not approved": "Օգտատերը հաստատված չէ",
   "patient invite": "Սեղմեք այստեղ՝ ձեր %(branding)s հեռավար խորհրդակցության մուտք գործելու համար: %(url)s",
   "guest invite": "Սեղմեք այստեղ՝ ձեր %(branding)s հեռավար խորհրդակցության մուտք գործելու համար: %(url)s",
-  "scheduled patient invite": "Բարև, ձեզ հրավիրել են %(branding)s հարթակի հեռավար խորհրդակցությանը՝ %(inviteTime)s: Մենք խորհուրդ ենք տալիս նախապես ստուգել ձեր սարքի համապատասխանությունը հետևյալ հղումով.\n\n%(testingUrl)s",
+  "scheduled patient invite": "Բարև, ձեզ հրավիրել են %(branding)s հարթակի հեռավար խորհրդակցությանը՝ %(inviteTime)s: Խնդրում ենք հաստատել այս ամսաթիվը հետևյալ հղումով.\n\n%(testingUrl)s",
   "scheduled guest invite": "Բարև, ձեզ հրավիրել են %(branding)s հարթակի հեռավար խորհրդակցությանը՝ %(inviteTime)s: Մենք խորհուրդ ենք տալիս նախապես ստուգել ձեր սարքի համապատասխանությունը հետևյալ հղումով: %(testingUrl)s",
   "first invite reminder": "D-1 հիշեցում: Ձեր %(branding)s հեռավար խորհրդակցությունը տեղի կունենա %(timePhrase)s՝ %(inviteTime)s:",
   "second invite reminder": "Ձեր խորհրդակցությունը կմեկնարկի %(timePhrase)s: %(url)s",
@@ -81,6 +81,7 @@
   "day": "օր",
   "days": "օրեր",
   "in %(count)s %(unit)s": "%(count)s %(unit)s հետո",
-  "visit": "Այցելել",
-  "acknowledge invite": "Հաստատել հրավերը"
+  "join": "Այցելել",
+  "acknowledge invite": "Հաստատել հրավերը",
+  "verification code message": "Ձեր հաստատման կոդն է %(code)s։ Այս կոդը վավեր է %(minutes)s րոպե"
 }

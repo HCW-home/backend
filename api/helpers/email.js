@@ -66,12 +66,14 @@ module.exports = {
 
   async fn(inputs, exits) {
     if (process.env.NODE_ENV === 'development') {
-      console.log('Email not sent because of development env', inputs);
-      console.log('Sending email>', inputs.text);
+      sails.config.customLogger.log('info', 'Email not sent because of development env', inputs);
+      sails.config.customLogger.log('info', 'Sending email >', inputs.text);
       return exits.success();
     }
 
-    const html = "<p>".concat(inputs.text.replace(/(http[s]?\:\/\/[^ ]*)/, '<a href="$1">$1</a>'));
+    const html = "<p>".concat(
+      inputs.text.replace(/(http[s]?\:\/\/[^ ]*)/, '<a href="$1">$1</a>')
+    );
 
     const emailTask = {
       options: {
@@ -84,11 +86,11 @@ module.exports = {
       },
       callback: (error, info) => {
         if (error) {
-          sails.log('error sending email ', error);
-          exits.error(error);
+          sails.config.customLogger.log('error', 'Error sending email', error);
+          return exits.error(error);
         } else {
-          sails.log('email sent successfully ');
-          exits.success();
+          sails.config.customLogger.log('info', 'Email sent successfully');
+          return exits.success();
         }
       }
     };

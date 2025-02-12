@@ -18,6 +18,7 @@ module.exports = {
     const authToken = process.env.TWILIO_AUTH_TOKEN;
 
     try {
+      sails.config.customLogger.log('info', `Fetching approval status for template SID: ${sid}`);
       const response = await axios.get(
         `https://content.twilio.com/v1/Content/${sid}/ApprovalRequests`,
         {
@@ -32,12 +33,13 @@ module.exports = {
       );
 
       const approvalRequest = response.data.whatsapp || {};
-
+      sails.config.customLogger.log('info', `Fetched approval status for template SID: ${sid}`, { status: approvalRequest.status });
       return exits.success({
         status: approvalRequest.status,
         rejectionReason: approvalRequest.rejection_reason || null,
       });
     } catch (error) {
+      sails.config.customLogger.log('error', `Error fetching approval status for template SID: ${sid}`, error?.response ? error.response?.data : error?.message);
       return exits.error(error.response ? error.response.data : error.message);
     }
   },
