@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.38) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.39) UNRELEASED; urgency=medium
 
   * log fix
   * change development log level
