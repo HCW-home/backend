@@ -1,17 +1,4 @@
-/**
- * SubscribeToDoctorsController
- *
- * @description ::  subscribe doctor users to a doctors  room .
- * @help        :: See https://sailsjs.com/docs/concepts/actions
- */
 
-
-/**
- * Promisify sails.sockets.join
- *
- * @param {object} req
- * @param {string} room
- */
 function joinP (req, room) {
 
   return new Promise((resolve, reject) => {

@@ -15,10 +15,10 @@ module.exports = {
     const checkMongo = new Promise((resolve, reject) => {
       let mongoDbNativeConnection = sails.getDatastore().manager;
       if (!mongoDbNativeConnection) {
-        sails.config.customLogger.log('error', 'MongoDB not reachable', { component: 'MongoDB' });
+        sails.config.customLogger.log('error', 'MongoDB not reachable', null, 'message');
         reject(new Error('MongoDB not reachable'));
       } else {
-        sails.config.customLogger.log('info', 'MongoDB is healthy', { component: 'MongoDB' });
+        sails.config.customLogger.log('info', 'MongoDB is healthy', null, 'message');
         resolve();
       }
     });
@@ -33,12 +33,11 @@ module.exports = {
         redisClient.disconnect();
         if (err || result !== 'PONG') {
           sails.config.customLogger.log('error', 'Redis not reachable', {
-            component: 'Redis',
             error: err ? err.message : 'Invalid response'
-          });
+          }, 'message');
           reject(new Error('Redis not reachable'));
         } else {
-          sails.config.customLogger.log('info', 'Redis is healthy', { component: 'Redis' });
+          sails.config.customLogger.log('info', 'Redis is healthy', null, 'message');
           resolve();
         }
       });
@@ -49,15 +48,13 @@ module.exports = {
         fs.access(process.env.CLAM_SOCKET, (err) => {
           if (err) {
             sails.config.customLogger.log('error', 'ClamAV UNIX socket not reachable', {
-              component: 'ClamAV',
               socket: process.env.CLAM_SOCKET
-            });
+            }, 'message');
             reject(new Error('ClamAV UNIX socket not reachable'));
           } else {
             sails.config.customLogger.log('info', 'ClamAV UNIX socket is reachable', {
-              component: 'ClamAV',
               socket: process.env.CLAM_SOCKET
-            });
+            }, 'message');
             resolve();
           }
         });
@@ -67,18 +64,16 @@ module.exports = {
         clamavClient.connect(clamPort, process.env.CLAM_HOST, () => {
           clamavClient.end();
           sails.config.customLogger.log('info', 'ClamAV TCP socket is reachable', {
-            component: 'ClamAV',
             host: process.env.CLAM_HOST,
             port: clamPort
-          });
+          }, 'message');
           resolve();
         });
         clamavClient.on('error', (err) => {
           sails.config.customLogger.log('error', 'ClamAV TCP socket not reachable', {
-            component: 'ClamAV',
             host: process.env.CLAM_HOST,
             error: err.message
-          });
+          }, 'message');
           reject(new Error('ClamAV TCP socket not reachable'));
         });
       } else {
@@ -86,15 +81,13 @@ module.exports = {
         fs.access(defaultSocket, (err) => {
           if (err) {
             sails.config.customLogger.log('error', 'ClamAV default UNIX socket not reachable', {
-              component: 'ClamAV',
               socket: defaultSocket
-            });
+            }, 'message');
             reject(new Error('ClamAV default UNIX socket not reachable'));
           } else {
             sails.config.customLogger.log('info', 'ClamAV default UNIX socket is reachable', {
-              component: 'ClamAV',
               socket: defaultSocket
-            });
+            }, 'message');
             resolve();
           }
         });
@@ -106,7 +99,7 @@ module.exports = {
       response.responseTime = Date.now() - startTime;
       sails.config.customLogger.log('info', 'System health check successful', {
         responseTime: response.responseTime
-      });
+      }, 'message');
       return res.status(200).send(response);
     } catch (error) {
       response.status = 'failure';
@@ -119,7 +112,7 @@ module.exports = {
       if (error.message.includes('ClamAV')) {
         response.clamav = error.message;
       }
-      sails.config.customLogger.log('error', 'System health check failed', { error: error.message });
+      sails.config.customLogger.log('error', 'System health check failed', { error: error.message }, 'server-action');
       return res.status(503).send(response);
     }
   }

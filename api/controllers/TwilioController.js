@@ -14,13 +14,13 @@ module.exports = {
       sails.config.customLogger.log('info', 'Twilio status callback processed', {
         messageSid,
         messageStatus,
-      });
+      }, 'server-action');
 
       return res.ok();
     } catch (error) {
       sails.config.customLogger.log('error', 'Error handling Twilio status callback', {
         error: error?.message,
-      });
+      }, 'server-action');
       return res.serverError();
     }
   }
