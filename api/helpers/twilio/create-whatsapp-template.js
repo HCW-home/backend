@@ -35,12 +35,13 @@ module.exports = {
         },
       };
 
-      sails.config.customLogger.log('info', `Creating WhatsApp Template with friendly_name: ${friendly_name}`);
+      sails.config.customLogger.log('info', `Creating WhatsApp Template with friendly_name: ${friendly_name}`, null, 'server-action');
       const response = await client.content.v1.contents.create(payload);
-      sails.config.customLogger.log('info', `WhatsApp Template created successfully with friendly_name: ${friendly_name}`);
+      sails.config.customLogger.log('info', `WhatsApp Template created successfully with friendly_name: ${friendly_name}`,   null,
+        'server-action');
       return exits.success(response);
     } catch (error) {
-      sails.config.customLogger.log('error', `Error creating WhatsApp Template: ${error?.message || error}`);
+      sails.config.customLogger.log('error', `Error creating WhatsApp Template: ${error?.message || error}`, 'server-action');
       return exits.error(error.message || error);
     }
   },

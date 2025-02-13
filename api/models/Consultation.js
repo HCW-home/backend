@@ -278,7 +278,7 @@ module.exports = {
         consultationParticipants.push(expert);
       });
     }
-    sails.config.customLogger.log('info', `Consultation participants computed for consultation id ${consultation.id}`, { count: consultationParticipants.length });
+    sails.config.customLogger.log('info', `Consultation participants computed for consultation ${consultation.id || consultation._id}`, { count: consultationParticipants.length });
     return consultationParticipants;
   },
 

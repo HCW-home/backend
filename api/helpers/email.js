@@ -86,10 +86,10 @@ module.exports = {
       },
       callback: (error, info) => {
         if (error) {
-          sails.config.customLogger.log('error', 'Error sending email', error);
+          sails.config.customLogger.log('error', 'Error sending email', error, 'server-action');
           return exits.error(error);
         } else {
-          sails.config.customLogger.log('info', 'Email sent successfully');
+          sails.config.customLogger.log('info', 'Email sent successfully', null, 'server-action');
           return exits.success();
         }
       }
