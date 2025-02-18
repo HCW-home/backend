@@ -1,5 +1,6 @@
-hcw-athome-backend (0.5.38) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.39) UNRELEASED; urgency=medium
 
+  [ Gor Grigoryan ]
   * log fix
   * change development log level
   * change log level in production
@@ -12,7 +13,23 @@ hcw-athome-backend (0.5.38) UNRELEASED; urgency=medium
   * update acknowledgment needed statuses
   * translation updates for whatsapp templates body
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 07 Feb 2025 09:45:41 +0000
+  [ Weblate ]
+  * Update translation files
+
+  [ Anonymous ]
+  * Translated using Weblate (Ukrainian)
+
+  [ Gor Grigoryan ]
+  * update message service on invite update
+  * refs #8051, Local login verification sms is sent only in Fr
+  * refs #7885, fix error messages returned on create invite
+  * add LOGFORMAR variable for showing logs in different ways, add logs for helpers
+  * add logs in custom method for some controllers
+  * add log format for models
+  * add log format for auth controller
+  * add more logs
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 18 Feb 2025 14:04:51 +0000
 
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
