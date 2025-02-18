@@ -125,6 +125,7 @@ module.exports = {
         error: error.details,
       });
     }
+    sails.config.customLogger.log('silly', 'Create invite payload', { body: req.body });
 
     const currentUserPublic = {
       id: req.user.id,

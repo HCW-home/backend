@@ -247,13 +247,13 @@ module.exports = {
         },
       ];
 
-      sails.config.customLogger.log('info', 'Running consultation overview aggregation');
+      sails.config.customLogger.log('info', 'Running consultation overview aggregation', null, 'message');
 
       const consultationCollection = db.collection('consultation');
       const results = await consultationCollection.aggregate(agg);
       const data = await results.toArray();
 
-      sails.config.customLogger.log('info', 'Aggregation completed', { resultCount: data.length });
+      sails.config.customLogger.log('info', `Aggregation completed resultCount is ${data.length}`, null, 'message');
 
       for (const index in data) {
         const item = data[index];
@@ -265,13 +265,13 @@ module.exports = {
           sails.config.customLogger.log('info', 'Processed experts for consultation', {
             consultationId: item.consultation.id,
             expertCount: experts.length
-          });
+          }, 'message');
         }
       }
 
       res.json(data);
     } catch (err) {
-      sails.config.customLogger.log('error', 'Error in consultationOverview', { error: err?.message || err });
+      sails.config.customLogger.log('error', 'Error in consultationOverview', { error: err?.message || err }, 'server-action');
       return res.serverError(err);
 
     }
@@ -285,7 +285,7 @@ module.exports = {
 
       if (user.role === 'guest' || user.role === 'translator') {
         if (!req.body.invitationToken) {
-          sails.config.customLogger.log('info', 'No invitationToken provided for guest/translator', { userId: user.id });
+          sails.config.customLogger.log('info', `No invitationToken provided for guest/translator userId ${user.id}`, null, 'message');
           return res.status(200).send(null);
         }
 
@@ -293,18 +293,18 @@ module.exports = {
           inviteToken: sanitize(req.body.invitationToken),
         });
         if (!subInvite) {
-          sails.config.customLogger.log('warn', 'Sub-invite not found', { token: req.body.invitationToken });
+          sails.config.customLogger.log('warn', `Sub-invite not found token ${req.body.invitationToken}`, null, 'message');
           return res.status(400).send();
         }
 
         invite = await PublicInvite.findOne({ id: subInvite.patientInvite });
         if (!invite) {
-          sails.config.customLogger.log('warn', 'Invite not found for sub-invite', { subInviteId: subInvite.id });
+          sails.config.customLogger.log('warn', `Invite not found for sub-invite ${subInvite.id}`, null, 'message');
           return res.status(400).send();
         }
 
         if (invite.emailAddress || invite.phoneNumber) {
-          sails.config.customLogger.log('info', 'Invite contains emailAddress/phoneNumber, consultation not created', { inviteId: invite.id });
+          sails.config.customLogger.log('info', `Invite contains emailAddress/phoneNumber, consultation not created invite id ${invite.id}`, null, 'message');
           return res.status(200).send(null);
         }
         req.body.invitationToken = invite.inviteToken;
@@ -325,7 +325,7 @@ module.exports = {
           invitationToken: req.body.invitationToken,
         });
         if (existingConsultation) {
-          sails.config.customLogger.log('info', 'Existing consultation found', { invitationToken: req.body.invitationToken, consultationId: existingConsultation.id });
+          sails.config.customLogger.log('info', 'Existing consultation found', { invitationToken: req.body.invitationToken, consultationId: existingConsultation.id }, 'message');
           return res.json(existingConsultation);
         }
 
@@ -334,7 +334,7 @@ module.exports = {
           Consultation.update({ invitationToken: invite.inviteToken }, {})
             .fetch()
             .then((consultation) => {
-              sails.config.customLogger.log('info', 'Returning consultation update for expert invite', { invitationToken: invite.inviteToken, consultationId: consultation?.[0]?.id });
+              sails.config.customLogger.log('info', 'Returning consultation update for expert invite', { invitationToken: invite.inviteToken, consultationId: consultation?.[0]?.id }, 'server-action');
               res.json(consultation[0]);
             });
           return;
@@ -342,7 +342,7 @@ module.exports = {
 
         if (invite) {
           if (invite.scheduledFor && (invite.scheduledFor - Date.now() > 10 * 60 * 1000)) {
-            sails.config.customLogger.log('warn', 'Attempt to create consultation too early', { inviteId: invite.id, scheduledFor: invite.scheduledFor });
+            sails.config.customLogger.log('warn', 'Attempt to create consultation too early', { inviteId: invite.id, scheduledFor: invite.scheduledFor }, null, 'message');
             return res.status(401).json({ success: false, message: 'Too early for consultation' });
           }
 
@@ -386,7 +386,7 @@ module.exports = {
           if (translatorInvite) {
             consultationJson.translatorInvite = translatorInvite.id;
           }
-          sails.config.customLogger.log('info', 'Processed sub-invites for consultation creation', { inviteId: invite.id });
+          sails.config.customLogger.log('info', `Processed sub-invites for consultation creation inviteId ${invite.id}`, null, 'message');
         }
       }
 
@@ -403,34 +403,34 @@ module.exports = {
         consultationJson.id = newInvite.id;
         consultationJson.invitationToken = newInvite.inviteToken;
         consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${newInvite.expertToken}`;
-        sails.config.customLogger.log('info', 'New invite created by nurse', { newInviteId: newInvite.id });
+        sails.config.customLogger.log('info', `New invite created by nurse ${newInvite.id}`, null, 'server-action');
       }
 
       const newConsultation = await Consultation.create(consultationJson).fetch();
-      sails.config.customLogger.log('info', 'Consultation created', { consultationId: newConsultation.id });
+      sails.config.customLogger.log('info', `Consultation created ${newConsultation.id}`, null, 'server-action');
 
       await Consultation.changeOnlineStatus(req.user, true);
 
       if (!req.body.invitationToken && process.env.DEFAULT_QUEUE_ID) {
         await Consultation.sendPatientReadyToQueue(newConsultation, process.env.DEFAULT_QUEUE_ID);
-        sails.config.customLogger.log('info', 'Patient ready notification sent to default queue', { consultationId: newConsultation.id, queueId: process.env.DEFAULT_QUEUE_ID });
+        sails.config.customLogger.log('info', 'Patient ready notification sent to default queue', { consultationId: newConsultation.id, queueId: process.env.DEFAULT_QUEUE_ID }, 'server-action');
       } else if (!req.body.invitationToken && newConsultation.queue) {
         await Consultation.sendPatientReadyToQueue(newConsultation, newConsultation.queue);
-        sails.config.customLogger.log('info', 'Patient ready notification sent to consultation queue', { consultationId: newConsultation.id, queueId: newConsultation.queue });
+        sails.config.customLogger.log('info', 'Patient ready notification sent to consultation queue', { consultationId: newConsultation.id, queueId: newConsultation.queue }, 'server-action');
       } else {
         if (invite && invite.queue && !invite.doctor) {
           await Consultation.sendPatientReadyToQueue(newConsultation, invite.queue);
-          sails.config.customLogger.log('info', 'Patient ready notification sent based on invite queue', { consultationId: newConsultation.id, queueId: invite.queue });
+          sails.config.customLogger.log('info', 'Patient ready notification sent based on invite queue', { consultationId: newConsultation.id, queueId: invite.queue }, 'server-action');
         } else if (invite?.doctor) {
           const doctor = await User.findOne({ id: invite.doctor });
           await Consultation.sendPatientReadyToDoctor(newConsultation, doctor);
-          sails.config.customLogger.log('info', 'Patient ready notification sent to doctor based on invite', { consultationId: newConsultation.id, doctorId: doctor.id });
+          sails.config.customLogger.log('info', 'Patient ready notification sent to doctor based on invite', { consultationId: newConsultation.id, doctorId: doctor.id }, 'server-action');
         }
       }
 
       return res.json(newConsultation);
     } catch (err) {
-      sails.config.customLogger.log('error', 'Error while creating consultation', { error: err?.message || err });
+      sails.config.customLogger.log('error', 'Error while creating consultation', { error: err?.message || err }, 'server-action');
       const error = err && err.cause ? err.cause : err;
       return res.status(400).json(error);
     }
@@ -448,11 +448,11 @@ module.exports = {
       });
 
       if (!consultation) {
-        sails.config.customLogger.log('warn', `Consultation with id ${req.params.consultation} not found or not pending`, { consultationId: req.params.consultation });
+        sails.config.customLogger.log('warn', `Consultation with id ${req.params.consultation} not found or not pending`, null, 'message');
         return res.notFound();
       }
 
-      sails.config.customLogger.log('info', `Consultation accepted by doctor`, { consultationId: consultation.id, doctorId: req.user.id });
+      sails.config.customLogger.log('info', `Consultation ${consultation.id} accepted by doctor ${req.user.id}`, null, 'server-action');
 
       const participants = await Consultation.getConsultationParticipants(consultation);
       participants.forEach((participant) => {
@@ -467,14 +467,14 @@ module.exports = {
             }
           }
         });
-        sails.config.customLogger.log('info', `Broadcasted consultationAccepted event to participant`, { consultationId: consultation.id, participant });
+        sails.config.customLogger.log('info', `Broadcast consultationAccepted event to participant`, { consultationId: consultation.id, participant }, 'server-action');
       });
 
       return res.status(200).json({
         message: 'success'
       });
     } catch (err) {
-      sails.config.customLogger.log('error', 'Error accepting consultation', { consultationId: req.params.consultation, error: err.message });
+      sails.config.customLogger.log('error', 'Error accepting consultation', { consultationId: req.params.consultation, error: err?.message || err }, 'server-action');
       return res.serverError({ error: 'Error accepting consultation' });
     }
   },
@@ -483,13 +483,13 @@ module.exports = {
     try {
       const consultation = await Consultation.findOne({ id: req.params.consultation });
       if (!consultation || consultation.status !== 'active') {
-        sails.config.customLogger.log('warn', 'Consultation not found or not active for closure', { consultationId: req.params.consultation });
+        sails.config.customLogger.log('warn', `Consultation ${req.params.consultation} not found or not active for closure`, null, 'message');
         const anonymousConsultation = await AnonymousConsultation.find({ consultationId: req.params.consultation });
         if (anonymousConsultation) {
-          sails.config.customLogger.log('info', 'Returning anonymous consultation data', { consultationId: req.params.consultation });
+          sails.config.customLogger.log('info', `Returning anonymous consultation data consultationId ${req.params.consultation}`, null, 'server-action');
           return res.status(200).json(anonymousConsultation);
         } else {
-          sails.config.customLogger.log('warn', 'Anonymous consultation not found', { consultationId: req.params.consultation });
+          sails.config.customLogger.log('warn', `Anonymous consultation with id ${req.params.consultation} not found`, null, 'message');
           return res.notFound();
         }
       }
@@ -500,24 +500,24 @@ module.exports = {
         status: { in: ['ringing', 'ongoing'] },
       };
 
-      sails.config.customLogger.log('info', 'Searching for ongoing calls', { consultationId: req.params.consultation });
+      sails.config.customLogger.log('info', `Searching for ongoing calls for ${req.params.consultation}`, null, 'message');
       const [call] = await Message.find({
         where: selector,
         sort: [{ createdAt: 'DESC' }],
       }).limit(1);
 
       if (call) {
-        sails.config.customLogger.log('info', 'Ongoing call found, ending call', { callId: call.id, consultationId: req.params.consultation });
+        sails.config.customLogger.log('info', 'Ongoing call found, ending call', { callId: call.id, consultationId: req.params.consultation }, 'server-action');
         await Message.endCall(call, consultation, 'CONSULTATION_CLOSED');
       } else {
-        sails.config.customLogger.log('info', 'No ongoing call found for consultation', { consultationId: req.params.consultation });
+        sails.config.customLogger.log('info', `No ongoing call found for consultation ${req.params.consultation}`, null, 'server-action');
       }
 
       await Consultation.closeConsultation(consultation);
-      sails.config.customLogger.log('info', 'Consultation closed successfully', { consultationId: consultation.id });
+      sails.config.customLogger.log('info', `Consultation ${consultation.id} closed successfully`, null, 'server-action');
       return res.status(200).json(consultation);
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error closing consultation', { consultationId: req.params.consultation, error: error.message });
+      sails.config.customLogger.log('error', 'Error closing consultation', { consultationId: req.params.consultation, error: error?.message || error }, 'server-action');
       return res.serverError({ error: 'Error closing consultation', details: error.message });
     }
   },
@@ -525,33 +525,33 @@ module.exports = {
   async testCall(req, res) {
     try {
       const mediasoupServers = await sails.helpers.getMediasoupServers();
-      sails.config.customLogger.log('info', 'Retrieved mediasoup servers', { serverCount: mediasoupServers.length });
+      sails.config.customLogger.log('info', `Retrieved mediasoup servers serverCount is ${mediasoupServers.length}`, null, 'server-action');
 
       const serverIndex = Math.floor(Math.random() * mediasoupServers.length);
       const mediasoupServer = mediasoupServers[serverIndex];
-      sails.config.customLogger.log('info', 'Selected mediasoup server', { serverIndex });
+      sails.config.customLogger.log('info', 'Selected mediasoup server', null, 'server-action');
 
       const roomIdPeerId = 'test_' + uuid.v4();
-      sails.config.customLogger.log('info', 'Generated roomIdPeerId', { roomIdPeerId });
+      sails.config.customLogger.log('info', `Generated roomIdPeerId ${roomIdPeerId}`, null, 'server-action');
 
       const token = await sails.helpers.getMediasoupToken.with({
         roomId: roomIdPeerId,
         peerId: roomIdPeerId,
         server: mediasoupServer,
       });
-      sails.config.customLogger.log('info', 'Obtained mediasoup token', { roomIdPeerId });
+      sails.config.customLogger.log('info', `Obtained mediasoup token for ${roomIdPeerId}`, null, 'server-action');
 
       return res.json({ token, peerId: roomIdPeerId });
     } catch (err) {
-      sails.config.customLogger.log('error', 'Error in testCall', { error: err?.message || err });
-      return res.status(400).json({ error: 'An error occurred', details: err.message });
+      sails.config.customLogger.log('error', 'Error in testCall', { error: err?.message || err }, 'server-action');
+      return res.status(400).json({ error: 'An error occurred', details: err?.message }, 'server-action');
     }
   },
 
   async call(req, res) {
     try {
       const mediasoupServers = await sails.helpers.getMediasoupServers();
-      sails.config.customLogger.log('info', 'Retrieved mediasoup servers', { count: mediasoupServers.length });
+      sails.config.customLogger.log('info', `Retrieved mediasoup servers count is ${mediasoupServers.length}`, null, 'server-action');
       const serverIndex = Math.floor(Math.random() * mediasoupServers.length);
       const mediasoupServer = mediasoupServers[serverIndex];
       sails.config.customLogger.log('info', 'Selected mediasoup server', { serverIndex, server: mediasoupServer.url });
