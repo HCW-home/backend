@@ -17,7 +17,7 @@ module.exports = {
 
         let formattedMessage;
 
-        if (this.logFormat === 'custom') {
+        if (this.logFormat === 'splunk') {
           formattedMessage = category
             ? `${timestamp};${level};${category}: ${message}`
             : `${timestamp};${level}: ${message}`;
