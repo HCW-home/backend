@@ -601,7 +601,7 @@ module.exports = {
       if (publicInvite && !consultation.flagPatientOnline && !consultation.flagPatientNotified) {
         await PublicInvite.updateOne({ inviteToken: consultation.invitationToken }).set({ status: 'SENT' });
         const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
-        const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+        const locale = publicInvite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
         if (toUser && toUser.email && toUser.role === sails.config.globals.ROLE_NURSE) {
           await sails.helpers.email.with({
             to: toUser.email,
@@ -1073,7 +1073,7 @@ module.exports = {
       const patientLanguage =
         consultation.invite && consultation.invite.patientLanguage
           ? consultation.invite.patientLanguage
-          : process.env.DEFAULT_PATIENT_LOCALE;
+          : sails.config.globals.DEFAULT_PATIENT_LOCALE;
       const doctorDelayMsg = sails._t(patientLanguage, 'doctor delay in minutes', {
         delay,
         patientLanguage,

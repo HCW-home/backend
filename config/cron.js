@@ -114,7 +114,7 @@ const inviteJobs = {
   FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
 
     await sails.helpers.email.with({
       to: invite.emailAddress,
@@ -126,7 +126,7 @@ const inviteJobs = {
   SECOND_INVITE_REMINDER_EMAIL: async (invite) => {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
 
     await sails.helpers.email.with({
       to: invite.emailAddress,

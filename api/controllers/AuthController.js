@@ -727,7 +727,7 @@ module.exports = {
       matomoId: sails.config.globals.MATOMO_ID,
       extraMimeTypes: !!sails.config.globals.EXTRA_MIME_TYPES,
       doctorTermsVersion: sails.config.globals.DOCTOR_TERMS_VERSION,
-      defaultPatientLocale: process.env.DEFAULT_PATIENT_LOCALE,
+      defaultPatientLocale: sails.config.globals.DEFAULT_PATIENT_LOCALE,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(',')
         : '', //! sending metadata to the front in config

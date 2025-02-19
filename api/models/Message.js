@@ -174,7 +174,7 @@ module.exports = {
           inviteToken: consultation.invitationToken,
         }).set({ status: 'SENT' });
 
-        const locale = publicInvite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+        const locale = publicInvite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
 
         if (
           toUser &&

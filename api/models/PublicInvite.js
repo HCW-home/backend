@@ -359,7 +359,7 @@ module.exports = {
     sails.config.customLogger.log('info', `sendPatientInvite: Starting patient invite ${invite.id}} process`, null, 'message');
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -496,7 +496,7 @@ module.exports = {
     sails.config.customLogger.log('info', 'sendGuestInvite: Starting guest invite process', { inviteId: invite.id }, 'message');
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const testCallUrl = `${process.env.PUBLIC_URL}/test-call`;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
@@ -612,7 +612,7 @@ module.exports = {
 
   getReminderMessage(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -708,7 +708,7 @@ module.exports = {
   },
 
   async createAndSendICS(invite) {
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const currentTime = Date.now();
     let scheduledTime = invite.scheduledFor;
     if (invite.patientTZ) {

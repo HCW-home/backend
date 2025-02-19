@@ -11,7 +11,7 @@ module.exports = {
 
   async acceptRequest (req, res) {
 
-    const locale = req.headers.locale || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = req.headers.locale || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     try {
 
       const translatorRequestInvite = await PublicInvite.findOne({ type: 'TRANSLATOR_REQUEST', inviteToken: req.params.translationRequestToken }).populate('translationOrganization');;
@@ -161,7 +161,7 @@ module.exports = {
     const translatorRequestInvite = await PublicInvite.findOne({ type: 'TRANSLATOR_REQUEST',
       inviteToken: req.params.translationRequestToken }).populate('doctor').populate('patientInvite').populate('translationOrganization');
 
-    const locale = req.headers.locale || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = req.headers.locale || sails.config.globals.DEFAULT_PATIENT_LOCALE;
 
     if (!translatorRequestInvite.translationOrganization.canRefuse) {
       return res.status(400).json({
