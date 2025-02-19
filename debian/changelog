@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.40) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.41) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * log fix
@@ -30,7 +30,13 @@ hcw-athome-backend (0.5.40) UNRELEASED; urgency=medium
   * add more logs
   * refs #8120, new env var DEFAULT_PATIENT_TIMEZONE
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 19 Feb 2025 10:50:21 +0000
+  [ Olivier Bitsch ]
+  * Translated using Weblate (Ukrainian)
+
+  [ Gor Grigoryan ]
+  * add description for DEFAULT_PATIENT_LOCALE
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 19 Feb 2025 14:06:41 +0000
 
 hcw-athome-backend (0.5.31) focal; urgency=medium
 
