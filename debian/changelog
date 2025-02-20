@@ -23,7 +23,7 @@ hcw-athome-backend (0.5.42) focal; urgency=medium
   * update message service on invite update
   * refs #8051, Local login verification sms is sent only in Fr
   * refs #7885, fix error messages returned on create invite
-  * add LOGFORMAR variable for showing logs in different ways, add logs for helpers
+  * add LOGFORMAT variable for showing logs in different ways, add logs for helpers
   * add logs in custom method for some controllers
   * add log format for models
   * add log format for auth controller
