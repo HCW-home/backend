@@ -770,6 +770,8 @@ module.exports = {
         sails.config.customLogger.log('info', `SMS sent to doctor ${doctorId} for consultation ${consultation.id}`, null, 'message');
       }
     }
-  }
+  },
+
+  columns,
 
 };

@@ -1027,5 +1027,7 @@ module.exports = {
     });
 
     sails.config.customLogger.log('info', `cancelGuestInvite: Completed cancellation of guest invite ${patientInvite.id}`, null, 'message');
-  }
+  },
+
+  generateToken,
 };
