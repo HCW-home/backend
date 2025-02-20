@@ -18,7 +18,7 @@ module.exports = {
         sails.config.customLogger.log('error', 'MongoDB not reachable', null, 'message');
         reject(new Error('MongoDB not reachable'));
       } else {
-        sails.config.customLogger.log('info', 'MongoDB is healthy', null, 'message');
+        sails.config.customLogger.log('verbose', 'MongoDB is healthy', null, 'message');
         resolve();
       }
     });
@@ -37,7 +37,7 @@ module.exports = {
           }, 'message');
           reject(new Error('Redis not reachable'));
         } else {
-          sails.config.customLogger.log('info', 'Redis is healthy', null, 'message');
+          sails.config.customLogger.log('verbose', 'Redis is healthy', null, 'message');
           resolve();
         }
       });
@@ -52,7 +52,7 @@ module.exports = {
             }, 'message');
             reject(new Error('ClamAV UNIX socket not reachable'));
           } else {
-            sails.config.customLogger.log('info', 'ClamAV UNIX socket is reachable', {
+            sails.config.customLogger.log('verbose', 'ClamAV UNIX socket is reachable', {
               socket: process.env.CLAM_SOCKET
             }, 'message');
             resolve();
@@ -63,7 +63,7 @@ module.exports = {
         const clamPort = process.env.CLAM_PORT || 3310;
         clamavClient.connect(clamPort, process.env.CLAM_HOST, () => {
           clamavClient.end();
-          sails.config.customLogger.log('info', 'ClamAV TCP socket is reachable', {
+          sails.config.customLogger.log('verbose', 'ClamAV TCP socket is reachable', {
             host: process.env.CLAM_HOST,
             port: clamPort
           }, 'message');
@@ -85,7 +85,7 @@ module.exports = {
             }, 'message');
             reject(new Error('ClamAV default UNIX socket not reachable'));
           } else {
-            sails.config.customLogger.log('info', 'ClamAV default UNIX socket is reachable', {
+            sails.config.customLogger.log('verbose', 'ClamAV default UNIX socket is reachable', {
               socket: defaultSocket
             }, 'message');
             resolve();
@@ -97,7 +97,7 @@ module.exports = {
     try {
       await Promise.all([checkMongo, checkRedis, checkClamAV]);
       response.responseTime = Date.now() - startTime;
-      sails.config.customLogger.log('info', 'System health check successful', {
+      sails.config.customLogger.log('verbose', 'System health check successful', {
         responseTime: response.responseTime
       }, 'message');
       return res.status(200).send(response);
