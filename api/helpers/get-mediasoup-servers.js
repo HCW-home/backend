@@ -22,7 +22,7 @@ module.exports = {
       server.active === true || !server.hasOwnProperty('active')
     );
 
-    sails.config.customLogger.log('info',  'servers', servers, 'server-action');
+    sails.config.customLogger.log('verbose',  'servers', servers, 'server-action');
 
     try {
       const serversStatues = await Promise.all(servers.map(async server => {
@@ -39,7 +39,7 @@ module.exports = {
         return (server.activeSessions < server.maxNumberOfSessions) && server.reachable;
       });
 
-      sails.config.customLogger.log('info', `AVAILABLE SERVERS:: ${JSON.stringify(availableServers)}`, 'message');
+      sails.config.customLogger.log('verbose', `AVAILABLE SERVERS:: ${JSON.stringify(availableServers)}`, 'message');
 
       if (!availableServers.length) {
         sails.config.customLogger.log(

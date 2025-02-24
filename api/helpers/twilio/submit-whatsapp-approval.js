@@ -45,7 +45,7 @@ module.exports = {
         }
       );
 
-      sails.config.customLogger.log('info', `WhatsApp Template submitted for approval with SID: ${sid}`, null, 'server-action');
+      sails.config.customLogger.log('verbose', `WhatsApp Template submitted for approval with SID: ${sid}`, null, 'server-action');
       return exits.success(response.data);
     } catch (error) {
       sails.config.customLogger.log('error', `Error submitting WhatsApp Template for approval with SID: ${sid}`, error.response ? error.response.data : error.message,

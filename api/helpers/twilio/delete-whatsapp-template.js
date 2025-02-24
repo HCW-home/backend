@@ -25,7 +25,7 @@ module.exports = {
           password: authToken,
         },
       });
-      sails.config.customLogger.log('info', `Successfully deleted WhatsApp Template in Twilio with ID: ${twilioTemplateId}`, null, 'server-action');
+      sails.config.customLogger.log('verbose', `Successfully deleted WhatsApp Template in Twilio with ID: ${twilioTemplateId}`, null, 'server-action');
       return exits.success({ message: 'Template deleted successfully in Twilio' });
     } catch (error) {
       sails.config.customLogger.log('error', `Error deleting WhatsApp Template in Twilio: ${error.response ? JSON.stringify(error.response.data) : error.message}`, 'server-action');

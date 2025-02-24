@@ -439,7 +439,7 @@ if (process.env.LOGIN_METHOD === 'openid') {
         });
 
         if (!user) {
-          sails.config.customLogger.log('info', `Nurse user not found for email: ${email}, checking for admin user`, null, 'message');
+          sails.config.customLogger.log('verbose', `Nurse user not found for email: ${email}, checking for admin user`, null, 'message');
           const adminUser = await User.findOne({ email, role: sails.config.globals.ROLE_ADMIN });
           if (adminUser) {
             user = adminUser;

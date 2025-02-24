@@ -120,7 +120,7 @@ module.exports = {
           sails.config.customLogger.log('error', 'Error generating salt', { error: err?.message || err }, 'server-action');
           return reject(err);
         }
-        sails.config.customLogger.log('info', 'Salt generated successfully', null, 'message');
+        sails.config.customLogger.log('verbose', 'Salt generated successfully', null, 'message');
         bcrypt.hash(clearPassword, salt, (err, hash) => {
           if (err) {
             sails.config.customLogger.log('error', 'Error encrypting password', { error: err?.message || err }, 'server-action');
@@ -138,7 +138,7 @@ module.exports = {
   },
 
   async beforeCreate(user, cb) {
-    sails.config.customLogger.log('info', 'User beforeCreate hook triggered', { userId: user.id || 'new user' }, 'message');
+    sails.config.customLogger.log('verbose', 'User beforeCreate hook triggered', { userId: user.id || 'new user' }, 'message');
     try {
       if (!user.password) {
         sails.config.customLogger.log('info', 'User beforeCreate: No password provided, skipping password hashing', null, 'message');
@@ -176,15 +176,15 @@ module.exports = {
     try {
       if (valuesToSet.email) {
         if (valuesToSet.password) {
-          sails.config.customLogger.log('info', 'User beforeUpdate: Password update detected, hashing password', null, 'message');
+          sails.config.customLogger.log('verbose', 'User beforeUpdate: Password update detected, hashing password', null, 'message');
           bcrypt.genSalt(10, (err, salt) => {
             if (err) {
-              sails.config.customLogger.log('error', 'User beforeUpdate: Error generating salt for password update', { error: err.message }, 'server-action');
+              sails.config.customLogger.log('error', 'User beforeUpdate: Error generating salt for password update', { error: err?.message || err}, 'server-action');
               return proceed(err);
             }
             bcrypt.hash(valuesToSet.password, salt, (err, hash) => {
               if (err) {
-                sails.config.customLogger.log('error', 'User beforeUpdate: Error hashing updated password', { error: err.message }, 'server-action');
+                sails.config.customLogger.log('error', 'User beforeUpdate: Error hashing updated password', { error: err?.message || err }, 'server-action');
                 return proceed(err);
               }
               valuesToSet.password = hash;
@@ -199,7 +199,7 @@ module.exports = {
         async function checkDuplicateEmail() {
           const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
           if (currentUser && currentUser.email === valuesToSet.email) {
-            sails.config.customLogger.log('info', 'User beforeUpdate: Email unchanged', null, 'message');
+            sails.config.customLogger.log('verbose', 'User beforeUpdate: Email unchanged', null, 'message');
             return proceed();
           }
           const existingUsers = await User.find({
@@ -213,15 +213,15 @@ module.exports = {
             err.code = 400;
             return proceed(err);
           }
-          sails.config.customLogger.log('info', 'User beforeUpdate: Email validation passed', null, 'message');
+          sails.config.customLogger.log('verbose', 'User beforeUpdate: Email validation passed', null, 'message');
           return proceed();
         }
       } else {
-        sails.config.customLogger.log('info', 'User beforeUpdate: No email update detected, proceeding', null, 'message');
+        sails.config.customLogger.log('verbose', 'User beforeUpdate: No email update detected, proceeding', null, 'message');
         proceed();
       }
     } catch (e) {
-      sails.config.customLogger.log('error', 'User beforeUpdate: Unexpected error', { error: e.message }, 'server-action');
+      sails.config.customLogger.log('error', 'User beforeUpdate: Unexpected error', { error: e?.message }, 'server-action');
       return proceed(e);
     }
   }
