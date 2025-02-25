@@ -39,7 +39,7 @@ module.exports = {
         return (server.activeSessions < server.maxNumberOfSessions) && server.reachable;
       });
 
-      sails.config.customLogger.log('verbose', `AVAILABLE SERVERS:: ${JSON.stringify(availableServers)}`, 'message');
+      sails.config.customLogger.log('verbose', `AVAILABLE SERVERS:: ${JSON.stringify(availableServers)}`, null,'message');
 
       if (!availableServers.length) {
         sails.config.customLogger.log(

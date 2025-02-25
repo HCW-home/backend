@@ -474,7 +474,7 @@ module.exports = {
         sails.config.customLogger.log('error', `Error creating anonymous calls for consultation id ${consultation.id}`, { error: error?.message || error }, 'server-action');
       }
     } catch (error) {
-      sails.config.customLogger.log('error', `Error finding call messages for consultation id ${consultation.id}`, { consultationId: consultation.id, error: error?.message || error }, 'server-action');
+      sails.config.customLogger.log('error', `Error finding call messages for consultation id ${consultation.id}`, { error: error?.message || error }, 'server-action');
     }
 
     if (!consultation.queue) {

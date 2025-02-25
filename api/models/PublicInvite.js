@@ -776,7 +776,7 @@ module.exports = {
             email: invite.doctor?.email,
           },
         };
-        sails.config.customLogger.log('info', `createAndSendICS: Creating ICS event for invite ${invite.id}`, null, 'message');
+        sails.config.customLogger.log('verbose', `createAndSendICS: Creating ICS event for invite ${invite.id}`, null, 'message');
 
         ics.createEvent(event, async (error, value) => {
           if (error) {
@@ -784,7 +784,7 @@ module.exports = {
             return;
           }
           let testUrl = testingUrl + `/${invite.inviteToken}`;
-          sails.config.customLogger.log('info', `createAndSendICS: ICS event created successfully for invite ${invite.id}`, null, 'server-action');
+          sails.config.customLogger.log('verbose', `createAndSendICS: ICS event created successfully for invite ${invite.id}`, null, 'server-action');
           try {
             await sails.helpers.email.with({
               to: invite.emailAddress,
@@ -825,7 +825,7 @@ module.exports = {
     }
     const timeUntilScheduled = scheduledTime - currentTime;
 
-    sails.config.customLogger.log('verbose', 'setPatientOrGuestInviteReminders: Calculated time until scheduled', { timeUntilScheduled } , 'message');
+    sails.config.customLogger.log('verbose', `setPatientOrGuestInviteReminders: Calculated time until scheduled ${timeUntilScheduled}`, null , 'message');
 
     if (timeUntilScheduled > TIME_UNTIL_SCHEDULE) {
       if (invite.phoneNumber) {
@@ -973,7 +973,7 @@ module.exports = {
   },
 
   async cancelTranslationRequestInvite(patientInvite) {
-    sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Starting cancellation of translator request invite ${patientInvite.id}`, null, 'message');
+    sails.config.customLogger.log('verbose', `cancelTranslationRequestInvite: Starting cancellation of translator request invite ${patientInvite.id}`, null, 'message');
 
     if (!patientInvite.translatorRequestInvite) return;
 
@@ -1004,7 +1004,7 @@ module.exports = {
   },
 
   async cancelGuestInvite(patientInvite) {
-    sails.config.customLogger.log('info', `cancelGuestInvite: Starting cancellation of guest invite ${patientInvite.id}`, null,'message');
+    sails.config.customLogger.log('verbose', `cancelGuestInvite: Starting cancellation of guest invite ${patientInvite.id}`, null,'message');
 
     if (!patientInvite.guestInvite) return;
 
