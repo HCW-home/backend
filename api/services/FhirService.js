@@ -216,7 +216,6 @@ module.exports = {
       type: 'PATIENT',
       metadata: metadata || null,
       doctor,
-      status: 'accepted',
     }
   },
 
