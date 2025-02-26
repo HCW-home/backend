@@ -1,4 +1,4 @@
-const validator = require("validator");
+const validator = require('validator');
 
 
 module.exports = {
@@ -11,6 +11,7 @@ module.exports = {
       res.serverError(err);
     }
   },
+
   update: async function(req, res) {
     const id = validator.escape(req.params.id).trim();
 
@@ -39,6 +40,7 @@ module.exports = {
       return res.serverError(err);
     }
   },
+
   batchUpdateOrder: async function(req, res) {
     const updates = req.body;
 

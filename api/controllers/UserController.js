@@ -1,9 +1,3 @@
-/**
- * UserController
- *
- * @description :: Server-side actions for handling incoming requests.
- * @help        :: See https://sailsjs.com/docs/concepts/actions
- */
 const validator = require("validator");
 const sanitize = require('mongo-sanitize');
 
@@ -196,23 +190,4 @@ module.exports = {
     }
   },
 
-  // async count(req, res){
-  //   let count
-  //   if(req.query.where){
-
-  //     try {
-  //       count = await User.count( {where: JSON.parse(req.query.where)})
-  //     } catch (error) {
-  //       return res.status(400).json({
-  //         success: false,
-  //         error
-  //       })
-  //     }
-  //   }else{
-  //     count = await User.count( {})
-  //   }
-  //   return res.status(200).json({
-  //     count
-  //   })
-  // }
 };

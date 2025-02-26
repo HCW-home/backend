@@ -1,8 +1,9 @@
 module.exports = {
   customLogger: {
     level: process.env.LOGLEVEL || 'info',
+    logFormat: process.env.LOGFORMAT || 'default',
     levels: {
-      silent: 0	,
+      silent: 0,
       error: 1,
       warn: 2,
       debug: 3,
@@ -10,12 +11,24 @@ module.exports = {
       verbose: 5,
       silly: 6,
     },
-    log: function (level, message, meta) {
+    log: function(level, message, meta, category) {
       if (this.levels[level] <= this.levels[this.level]) {
-        if (meta) {
-          sails.log[level](message, meta);
+        const timestamp = new Date().toISOString();
+
+        let formattedMessage;
+
+        if (this.logFormat === 'splunk') {
+          formattedMessage = category
+            ? `${timestamp};${level};${category}: ${message}`
+            : `${timestamp};${level}: ${message}`;
         } else {
-          sails.log[level](message);
+          formattedMessage = message;
+        }
+
+        if (meta) {
+          sails.log[level](formattedMessage, meta);
+        } else {
+          sails.log[level](formattedMessage);
         }
       }
     },

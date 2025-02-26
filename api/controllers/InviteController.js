@@ -125,6 +125,7 @@ module.exports = {
         error: error.details,
       });
     }
+    sails.config.customLogger.log('silly', 'Create invite payload', { body: req.body });
 
     const currentUserPublic = {
       id: req.user.id,
@@ -221,13 +222,14 @@ module.exports = {
       }
     }
 
-    if (value.patientTZ) {
-      const isTZValid = moment.tz.names().includes(value.patientTZ);
+    const tz = value.patientTZ || sails.config.globals.DEFAULT_PATIENT_TIMEZONE
+    if (tz) {
+      const isTZValid = moment.tz.names().includes(tz);
       if (!isTZValid) {
-        sails.config.customLogger.log('warn', 'Unknown timezone identifier', { uid: req.user.id, patientTZ: value.patientTZ });
+        sails.config.customLogger.log('warn', 'Unknown timezone identifier', { uid: req.user.id, patientTZ: tz });
         return res.status(400).json({
           success: false,
-          error: `Unknown timezone identifier ${value.patientTZ}`,
+          error: `Unknown timezone identifier ${tz}`,
         });
       }
     }
@@ -321,7 +323,7 @@ module.exports = {
         patientLanguage: value.language,
         type: 'PATIENT',
         birthDate: value.birthDate,
-        patientTZ: value.patientTZ,
+        patientTZ: tz,
         metadata: value.metadata,
       };
       if (doctor) {

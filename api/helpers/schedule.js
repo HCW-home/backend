@@ -36,31 +36,31 @@ module.exports = {
         const delay = inputs.time.getTime() - now.getTime();
         if (delay > 0) {
           if (inviteJobs[inputs.name]) {
-            sails.config.customLogger.log('info', `Scheduling job '${inputs.name}' to run in ${delay} ms`);
+            sails.config.customLogger.log('info', `Scheduling job '${inputs.name}' to run in ${delay} ms`, null, 'server-action');
             setTimeout(async () => {
               await inviteJobs[inputs.name](inputs.data.invite);
             }, delay);
           } else {
-            sails.config.customLogger.log('info', `Invalid helper name: '${inputs.name}'`);
+            sails.config.customLogger.log('info', `Invalid helper name: '${inputs.name}'`, null, 'server-action');
           }
         } else {
-          sails.config.customLogger.log('error', `Invalid time: ${inputs.time}`);
+          sails.config.customLogger.log('error', `Invalid time: ${inputs.time}`,null, 'server-action');
           return exits.error();
         }
       } else {
-        sails.config.customLogger.log('info', `Scheduling job '${inputs.name}' with cron string '${inputs.time}'`);
+        sails.config.customLogger.log('info', `Scheduling job '${inputs.name}' with cron string '${inputs.time}'`,null, 'server-action');
         if (inviteJobs[inputs.name]) {
           const job = new CronJob(inputs.time, async () => {
             await inviteJobs[inputs.name](inputs.data.invite);
           }, null, true);
           job.start();
         } else {
-          sails.config.customLogger.log('info', `Invalid helper name: '${inputs.name}'`);
+          sails.config.customLogger.log('info', `Invalid helper name: '${inputs.name}'`, null, 'server-action');
         }
       }
       return exits.success();
     } catch (error) {
-      sails.config.customLogger.log('error', `Error in schedule function: ${error}`);
+      sails.config.customLogger.log('error', `Error in schedule function: ${error}`,null, 'server-action');
       return exits.error();
     }
   },

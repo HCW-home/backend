@@ -192,21 +192,21 @@ module.exports = {
   },
 
   async beforeCreate(obj, proceed) {
-    sails.config.customLogger.log('info', 'beforeCreate: Generating tokens');
+    sails.config.customLogger.log('verbose', 'beforeCreate: Generating tokens', null, 'message');
     obj.inviteToken = await generateToken();
     obj.expertToken = await generateToken();
-    sails.config.customLogger.log('info', 'beforeCreate: Tokens generated');
+    sails.config.customLogger.log('verbose', 'beforeCreate: Tokens generated',null, 'message');
     return proceed();
   },
 
   async beforeUpdate(valuesToSet, proceed) {
-    sails.config.customLogger.log('info', 'beforeUpdate: Validating scheduledFor date');
+    sails.config.customLogger.log('verbose', 'beforeUpdate: Validating scheduledFor date', null, 'message');
 
     if (valuesToSet.scheduledFor && !moment(valuesToSet.scheduledFor).isValid()) {
       const err = new Error('ScheduledFor is not a valid date ');
       err.name = 'INVALID_SCHEDULED_FOR';
       err.code = 400;
-      sails.config.customLogger.log('error', 'beforeUpdate: Invalid scheduledFor date');
+      sails.config.customLogger.log('error', 'beforeUpdate: Invalid scheduledFor date', null, 'message');
       return proceed(err);
     }
 
@@ -217,18 +217,18 @@ module.exports = {
         const err = new Error('Consultation Time cannot be in the past ');
         err.name = 'INVALID_SCHEDULED_FOR';
         err.code = 400;
-        sails.config.customLogger.log('error', 'beforeUpdate: Consultation Time is in the past');
+        sails.config.customLogger.log('error', 'beforeUpdate: Consultation Time is in the past', null, 'message');
         return proceed(err);
       }
     } else if (valuesToSet.scheduledFor && new Date(valuesToSet.scheduledFor) < new Date()) {
       const err = new Error('Consultation Time cannot be in the past ');
       err.name = 'INVALID_SCHEDULED_FOR';
       err.code = 400;
-      sails.config.customLogger.log('error', 'beforeUpdate: Consultation Time is in the past');
+      sails.config.customLogger.log('error', 'beforeUpdate: Consultation Time is in the past', null, 'message');
       return proceed(err);
     }
 
-    sails.config.customLogger.log('info', 'beforeUpdate: Date validation passed');
+    sails.config.customLogger.log('info', 'beforeUpdate: Date validation passed', null, 'message');
     return proceed();
   },
 
@@ -237,7 +237,7 @@ module.exports = {
   },
 
   sendTranslationRequestInvite(invite, email) {
-    sails.config.customLogger.log('info', 'Sending translation request invite email');
+    sails.config.customLogger.log('info', 'Sending translation request invite email', null, 'server-action');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorLangCode = invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
     const inviteTime = invite.scheduledFor
@@ -250,7 +250,7 @@ module.exports = {
     const doctorLanguage = sails._t(doctorLangCode, doctorLangCode);
     const patientLanguage = sails._t(doctorLangCode, invite.patientLanguage);
     const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
-    sails.config.customLogger.log('info', 'Translation invite email prepared');
+    sails.config.customLogger.log('info', 'Translation invite email prepared', null, 'message');
     return sails.helpers.email.with({
       to: email,
       subject: sails._t(doctorLangCode, 'translation request email subject', {
@@ -279,11 +279,11 @@ module.exports = {
   },
 
   sendTranslatorInvite(invite, email) {
-    sails.config.customLogger.log('info', 'sendTranslatorInvite: Preparing translator invite email');
+    sails.config.customLogger.log('info', 'sendTranslatorInvite: Preparing translator invite email', null, 'message');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorLang = invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
     const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
-    sails.config.customLogger.log('info', 'sendTranslatorInvite: Translator invite email content prepared');
+    sails.config.customLogger.log('info', 'sendTranslatorInvite: Translator invite email content prepared', null, 'message');
 
     return sails.helpers.email.with({
       to: email,
@@ -301,7 +301,7 @@ module.exports = {
 
   async expireTranslatorRequest(job) {
     const { invite } = job.attrs.data;
-    sails.config.customLogger.log('info', 'expireTranslatorRequest: Started processing translator request expiration', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `expireTranslatorRequest: Started processing translator request expiration inviteId ${invite.id}`,null, 'message');
 
     const translatorRequestInvite = await PublicInvite.findOne({
       type: 'TRANSLATOR_REQUEST',
@@ -312,31 +312,31 @@ module.exports = {
       .populate('translationOrganization');
 
     if (translatorRequestInvite.status === 'SENT') {
-      sails.config.customLogger.log('info', 'expireTranslatorRequest: Translator request invite status is SENT', { inviteId: translatorRequestInvite?.id });
+      sails.config.customLogger.log('info', `expireTranslatorRequest: Translator request invite ${translatorRequestInvite?.id} status is SENT`, null, 'message');
 
       await PublicInvite.updateOne({
         type: 'TRANSLATOR_REQUEST',
         id: invite.id,
       }).set({ status: 'REFUSED' });
-      sails.config.customLogger.log('info', 'expireTranslatorRequest: Updated translator request invite status to REFUSED', { inviteId: translatorRequestInvite?.id });
+      sails.config.customLogger.log('info', `expireTranslatorRequest: Updated translator request invite ${translatorRequestInvite?.id} status to REFUSED`, null, 'server-action');
 
       await PublicInvite.updateOne({
         id: translatorRequestInvite.patientInvite.id,
       }).set({ status: 'CANCELED' });
-      sails.config.customLogger.log('info', 'expireTranslatorRequest: Updated patient invite status to CANCELED', { patientInviteId: translatorRequestInvite.patientInvite?.id });
+      sails.config.customLogger.log('info', `expireTranslatorRequest: Updated patient invite ${translatorRequestInvite?.patientInvite?.id} status to CANCELED`, null, 'server-action');
 
       if (translatorRequestInvite.patientInvite.guestInvite) {
         await PublicInvite.updateOne({
           id: translatorRequestInvite.patientInvite.guestInvite,
         }).set({ status: 'CANCELED' });
-        sails.config.customLogger.log('info', 'expireTranslatorRequest: Updated guest invite status to CANCELED', { guestInviteId: translatorRequestInvite?.patientInvite?.guestInvite });
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Updated guest invite ${translatorRequestInvite?.patientInvite?.guestInvite} status to CANCELED`, null, 'server-action');
       }
 
       if (translatorRequestInvite.doctor.email) {
         const docLocale =
           translatorRequestInvite.doctor.preferredLanguage ||
           process.env.DEFAULT_DOCTOR_LOCALE;
-        sails.config.customLogger.log('info', 'expireTranslatorRequest: Sending email notification to doctor', { doctorId: translatorRequestInvite.doctor.id });
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Sending email notification to doctor ${translatorRequestInvite.doctor.id}`, null, 'message');
 
         await sails.helpers.email.with({
           to: translatorRequestInvite.doctor.email,
@@ -345,26 +345,26 @@ module.exports = {
             branding: process.env.BRANDING,
           }),
         });
-        sails.config.customLogger.log('info', 'expireTranslatorRequest: Email notification sent to doctor', { doctorId: translatorRequestInvite.doctor.id });
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Email notification sent to doctor ${translatorRequestInvite.doctor.id}`, null, 'server-action');
       }
     }
   },
 
   async setTranslatorRequestTimer(invite) {
-    sails.config.customLogger.log('info', 'Setting translator request timer', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `Setting translator request timer for invite ${invite.id}`, null, 'message');
     await sails.helpers.schedule.with({
       name: 'TRANSLATOR_REQUEST_EXPIRE',
       data: { invite },
       time: new Date(Date.now() + TRANSLATOR_REQUEST_TIMEOUT),
     });
-    sails.config.customLogger.log('info', 'Translator request timer set', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `Translator request timer set for invite ${invite.id}`, null, 'server-action');
   },
 
   async sendPatientInvite(invite, resend = false) {
-    sails.config.customLogger.log('info', 'sendPatientInvite: Starting patient invite process', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `sendPatientInvite: Starting patient invite ${invite.id}} process`, null, 'message');
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -396,11 +396,11 @@ module.exports = {
           branding: process.env.BRANDING,
           doctorName,
         });
-    sails.config.customLogger.log('info', 'sendPatientInvite: Invite message prepared', { inviteId: invite.id });
+    sails.config.customLogger.log('verbose', `sendPatientInvite: Invite with id ${invite.id} message prepared`, null, 'message');
 
     if (invite.emailAddress && (!invite.scheduledFor || resend)) {
       try {
-        sails.config.customLogger.log('info', 'sendPatientInvite: Sending email invite', { email: invite.emailAddress });
+        sails.config.customLogger.log('verbose', `sendPatientInvite: Sending email invite to ${invite.emailAddress}`, null, 'server-action');
         await sails.helpers.email.with({
           to: invite.emailAddress,
           subject: sails._t(locale, 'your consultation link', {
@@ -410,9 +410,9 @@ module.exports = {
           }),
           text: message,
         });
-        sails.config.customLogger.log('info', 'sendPatientInvite: Email invite sent', { email: invite.emailAddress });
+        sails.config.customLogger.log('info', `sendPatientInvite: Email invite sent to ${invite.emailAddress}`, null, 'server-action');
       } catch (error) {
-        sails.config.customLogger.log('error', 'sendPatientInvite: Error sending email invite', { error: error.message });
+        sails.config.customLogger.log('error', 'sendPatientInvite: Error sending email invite', { error: error?.message || error }, 'server-action');
         if (!invite.phoneNumber) {
           return Promise.reject(error);
         }
@@ -422,22 +422,22 @@ module.exports = {
     if (invite.phoneNumber) {
       if (invite.messageService === '2') {
         try {
-          sails.config.customLogger.log('info', 'sendPatientInvite: Sending SMS invite', { phoneNumber: invite.phoneNumber });
+          sails.config.customLogger.log('verbose', `sendPatientInvite: Sending SMS invite to ${invite.phoneNumber}`, null, 'message');
           await sails.helpers.sms.with({
             phoneNumber: invite.phoneNumber,
             message,
             senderEmail: invite?.doctor?.email,
             whatsApp: false,
           });
-          sails.config.customLogger.log('info', 'sendPatientInvite: SMS invite sent', { phoneNumber: invite.phoneNumber });
+          sails.config.customLogger.log('info', `sendPatientInvite: SMS invite sent to ${invite.phoneNumber}`, null, 'server-action');
         } catch (error) {
-          sails.config.customLogger.log('error', 'sendPatientInvite: Error sending SMS invite', { error: error.message });
+          sails.config.customLogger.log('error', 'sendPatientInvite: Error sending SMS invite', { error: error?.message || error }, 'server-action');
           return Promise.reject(error);
         }
       } else {
         if (invite.messageService === '1') {
           try {
-            sails.config.customLogger.log('info', 'sendPatientInvite: Preparing WhatsApp SMS invite', { phoneNumber: invite.phoneNumber });
+            sails.config.customLogger.log('verbose', `sendPatientInvite: Preparing WhatsApp SMS invite to ${invite.phoneNumber}`, null, 'message');
             const type = invite.scheduledFor && invite.scheduledFor > Date.now() ? 'scheduled patient invite' : 'patient invite';
             if (invite.patientLanguage) {
               const template = await WhatsappTemplate.findOne({
@@ -445,7 +445,7 @@ module.exports = {
                 key: type,
                 approvalStatus: 'approved'
               });
-              sails.config.customLogger.log('info', 'sendPatientInvite: Retrieved WhatsApp template', { templateId: template ? template.id : null });
+              sails.config.customLogger.log('verbose', `sendPatientInvite: Retrieved WhatsApp template ${template ? template.id : null}`, null, 'server-action');
               if (template && template.sid) {
                 const twilioTemplatedId = template.sid;
                 let params = {};
@@ -473,24 +473,24 @@ module.exports = {
                       twilioTemplatedId,
                       statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
                     });
-                    sails.config.customLogger.log('info', 'sendPatientInvite: WhatsApp SMS invite sent', { whatsappMessageSid });
+                    sails.config.customLogger.log('info', `sendPatientInvite: WhatsApp SMS invite sent whatsappMessageSid ${whatsappMessageSid}`, null, 'server-action');
                     if (whatsappMessageSid) {
                       await PublicInvite.updateOne({ id: invite.id }).set({ whatsappMessageSid });
-                      sails.config.customLogger.log('info', 'sendPatientInvite: Updated PublicInvite with WhatsApp SMS SID', { inviteId: invite.id });
+                      sails.config.customLogger.log('info', `sendPatientInvite: Updated PublicInvite with WhatsApp SMS SID inviteId ${invite.id}`, null, 'server-action');
                     }
                   } catch (error) {
-                    sails.config.customLogger.log('error', 'sendPatientInvite: Error sending WhatsApp SMS invite', { error: error?.message || error });
+                    sails.config.customLogger.log('error', 'sendPatientInvite: Error sending WhatsApp SMS invite', { error: error?.message || error }, 'server-action');
                     return Promise.reject(error);
                   }
                 } else {
-                  sails.config.customLogger.log('error', 'sendPatientInvite: WhatsApp Template id is missing');
+                  sails.config.customLogger.log('error', 'sendPatientInvite: WhatsApp Template id is missing', null, 'message');
                 }
               } else {
-                sails.config.customLogger.log('error', 'sendPatientInvite: WhatsApp Template is not approved or missing');
+                sails.config.customLogger.log('error', 'sendPatientInvite: WhatsApp Template is not approved or missing', null, 'message');
               }
             }
           } catch (error) {
-            sails.config.customLogger.log('error', 'sendPatientInvite: Error in WhatsApp SMS invite process', { error: error?.message || error });
+            sails.config.customLogger.log('error', 'sendPatientInvite: Error in WhatsApp SMS invite process', { error: error?.message || error }, 'server-action');
           }
         }
       }
@@ -498,10 +498,10 @@ module.exports = {
   },
 
   async sendGuestInvite(invite) {
-    sails.config.customLogger.log('info', 'sendGuestInvite: Starting guest invite process', { inviteId: invite.id });
+    sails.config.customLogger.log('verbose', `sendGuestInvite: Starting guest invite process ${invite.id}`, null, 'message');
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const testCallUrl = `${process.env.PUBLIC_URL}/test-call`;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
@@ -531,11 +531,11 @@ module.exports = {
           branding: process.env.BRANDING,
           doctorName,
         });
-    sails.config.customLogger.log('info', 'sendGuestInvite: Invite message prepared', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `sendGuestInvite: Invite message prepared for ${invite.id}`,null, 'message');
 
     if (invite.emailAddress) {
       try {
-        sails.config.customLogger.log('info', 'sendGuestInvite: Sending email invite', { email: invite.emailAddress });
+        sails.config.customLogger.log('verbose', `sendGuestInvite: Sending email invite to ${invite.emailAddress}`, null, 'message');
         await sails.helpers.email.with({
           to: invite.emailAddress,
           subject: sails._t(locale, 'your consultation link', {
@@ -545,9 +545,9 @@ module.exports = {
           }),
           text: message,
         });
-        sails.config.customLogger.log('info', 'sendGuestInvite: Email invite sent', { email: invite.emailAddress });
+        sails.config.customLogger.log('info', `sendGuestInvite: Email invite sent to ${invite.emailAddress}`, null, 'server-action');
       } catch (error) {
-        sails.config.customLogger.log('error', 'sendGuestInvite: Error sending guest invite email', { error: error.message });
+        sails.config.customLogger.log('error', 'sendGuestInvite: Error sending guest invite email', { error: error?.message || error }, 'server-action');
         if (!invite.phoneNumber) {
           return Promise.reject(error);
         }
@@ -579,7 +579,7 @@ module.exports = {
               };
             }
             try {
-              sails.config.customLogger.log('info', 'sendGuestInvite: Sending WhatsApp SMS invite', { phoneNumber: invite.phoneNumber });
+              sails.config.customLogger.log('verbose', `sendGuestInvite: Sending WhatsApp SMS invite to ${invite.phoneNumber}`, null, 'message');
               await sails.helpers.sms.with({
                 phoneNumber: invite.phoneNumber,
                 message,
@@ -588,27 +588,27 @@ module.exports = {
                 params,
                 twilioTemplatedId,
               });
-              sails.config.customLogger.log('info', 'sendGuestInvite: WhatsApp SMS invite sent', { phoneNumber: invite.phoneNumber });
+              sails.config.customLogger.log('info', `sendGuestInvite: WhatsApp SMS invite sent to ${invite.phoneNumber}`, null, 'server-action');
             } catch (error) {
-              sails.config.customLogger.log('error', 'sendGuestInvite: Error sending WhatsApp SMS invite', { error: error.message });
+              sails.config.customLogger.log('error', 'sendGuestInvite: Error sending WhatsApp SMS invite', { error: error?.message || error }, 'server-action');
               return Promise.reject(error);
             }
           } else {
-            sails.config.customLogger.log('error', 'sendGuestInvite: WhatsApp SMS template is missing or not approved');
+            sails.config.customLogger.log('error', 'sendGuestInvite: WhatsApp SMS template is missing or not approved', null, 'message');
           }
         }
       } else {
         try {
-          sails.config.customLogger.log('info', 'sendGuestInvite: Sending standard SMS invite', { phoneNumber: invite.phoneNumber });
+          sails.config.customLogger.log('info', `sendGuestInvite: Sending standard SMS invite to ${invite.phoneNumber}`, null, 'message');
           await sails.helpers.sms.with({
             phoneNumber: invite.phoneNumber,
             message,
             senderEmail: invite.doctor?.email,
             whatsApp: false,
           });
-          sails.config.customLogger.log('info', 'sendGuestInvite: Standard SMS invite sent', { phoneNumber: invite.phoneNumber });
+          sails.config.customLogger.log('info', `sendGuestInvite: Standard SMS invite sent to ${invite.phoneNumber}`, null, 'server-action');
         } catch (error) {
-          sails.config.customLogger.log('error', 'sendGuestInvite: Error sending standard SMS invite', { error: error.message });
+          sails.config.customLogger.log('error', 'sendGuestInvite: Error sending standard SMS invite', { error: error?.message || error }, 'server-action');
           return Promise.reject(error);
         }
       }
@@ -617,7 +617,7 @@ module.exports = {
 
   getReminderMessage(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const timezone = invite.patientTZ || 'UTC';
     const inviteTime = invite.scheduledFor
       ? moment(invite.scheduledFor)
@@ -713,7 +713,7 @@ module.exports = {
   },
 
   async createAndSendICS(invite) {
-    const locale = invite.patientLanguage || process.env.DEFAULT_PATIENT_LOCALE;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const currentTime = Date.now();
     let scheduledTime = invite.scheduledFor;
     if (invite.patientTZ) {
@@ -730,7 +730,7 @@ module.exports = {
     const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
-    sails.config.customLogger.log('info', 'createAndSendICS: Started processing invite', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `createAndSendICS: Started processing invite ${invite.id}`, null, 'message');
 
     if (timeUntilScheduled < SECOND_INVITE_REMINDER) {
       const message = sails._t(locale, 'patient invite', {
@@ -739,7 +739,7 @@ module.exports = {
         doctorName,
       });
       try {
-        sails.config.customLogger.log('info', 'createAndSendICS: Sending immediate email invite', { inviteId: invite.id });
+        sails.config.customLogger.log('info', `createAndSendICS: Sending immediate email invite ${invite.id}`, null, 'message');
         await sails.helpers.email.with({
           to: invite.emailAddress,
           subject: sails._t(locale, 'your consultation link', {
@@ -750,9 +750,9 @@ module.exports = {
           text: message,
         });
         await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
-        sails.config.customLogger.log('info', 'createAndSendICS: Email invite sent and status updated', { inviteId: invite.id });
+        sails.config.customLogger.log('info', `createAndSendICS: Email invite sent and status updated ${invite.id}`, null, 'server-action');
       } catch (error) {
-        sails.config.customLogger.log('error', 'createAndSendICS: Error sending immediate email invite', { error: error?.message || error });
+        sails.config.customLogger.log('error', 'createAndSendICS: Error sending immediate email invite', { error: error?.message || error }, 'server-action');
         if (!invite.phoneNumber) {
           return Promise.reject(error);
         }
@@ -781,15 +781,15 @@ module.exports = {
             email: invite.doctor?.email,
           },
         };
-        sails.config.customLogger.log('info', 'createAndSendICS: Creating ICS event', { inviteId: invite.id });
+        sails.config.customLogger.log('verbose', `createAndSendICS: Creating ICS event for invite ${invite.id}`, null, 'message');
 
         ics.createEvent(event, async (error, value) => {
           if (error) {
-            sails.config.customLogger.log('error', 'createAndSendICS: Error creating ICS event', { error: error.message });
+            sails.config.customLogger.log('error', 'createAndSendICS: Error creating ICS event', { error: error?.message || error }, 'server-action');
             return;
           }
           let testUrl = testingUrl + `/${invite.inviteToken}`;
-          sails.config.customLogger.log('info', 'createAndSendICS: ICS event created successfully', { inviteId: invite.id });
+          sails.config.customLogger.log('verbose', `createAndSendICS: ICS event created successfully for invite ${invite.id}`, null, 'server-action');
           try {
             await sails.helpers.email.with({
               to: invite.emailAddress,
@@ -809,19 +809,19 @@ module.exports = {
                 },
               ],
             });
-            sails.config.customLogger.log('info', 'createAndSendICS: Email with ICS attachment sent', { inviteId: invite.id });
+            sails.config.customLogger.log('info', `createAndSendICS: Email with ICS attachment sent for invite ${invite.id}`, null, 'message');
           } catch (err) {
-            sails.config.customLogger.log('error', 'createAndSendICS: Error sending email with ICS attachment', { error: err?.message || err });
+            sails.config.customLogger.log('error', 'createAndSendICS: Error sending email with ICS attachment', { error: err?.message || err }, 'server-action');
           }
         });
       } catch (err) {
-        sails.config.customLogger.log('error', 'createAndSendICS: An error occurred during ICS creation process', { error: err?.message || err });
+        sails.config.customLogger.log('error', 'createAndSendICS: An error occurred during ICS creation process', { error: err?.message || err }, 'server-action');
       }
     }
   },
 
   async setPatientOrGuestInviteReminders(invite) {
-    sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Starting invite reminder scheduling', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `setPatientOrGuestInviteReminders: Starting invite reminder scheduling for ${invite.id}`, null, 'message');
 
     const currentTime = Date.now();
     let scheduledTime = invite.scheduledFor;
@@ -830,12 +830,12 @@ module.exports = {
     }
     const timeUntilScheduled = scheduledTime - currentTime;
 
-    sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Calculated time until scheduled', { timeUntilScheduled });
+    sails.config.customLogger.log('verbose', `setPatientOrGuestInviteReminders: Calculated time until scheduled ${timeUntilScheduled}`, null , 'message');
 
     if (timeUntilScheduled > TIME_UNTIL_SCHEDULE) {
       if (invite.phoneNumber) {
         if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
-          sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling FIRST_INVITE_REMINDER_SMS');
+          sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling FIRST_INVITE_REMINDER_SMS', null, 'message');
           await sails.helpers.schedule.with({
             name: 'FIRST_INVITE_REMINDER_SMS',
             data: { invite },
@@ -846,7 +846,7 @@ module.exports = {
 
       if (invite.emailAddress) {
         if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
-          sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling FIRST_INVITE_REMINDER_EMAIL');
+          sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling FIRST_INVITE_REMINDER_EMAIL', null, 'message');
           await sails.helpers.schedule.with({
             name: 'FIRST_INVITE_REMINDER_EMAIL',
             data: { invite },
@@ -858,7 +858,7 @@ module.exports = {
 
     if (invite.phoneNumber) {
       if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
-        sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling SECOND_INVITE_REMINDER_SMS');
+        sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling SECOND_INVITE_REMINDER_SMS', null, 'message');
         await sails.helpers.schedule.with({
           name: 'SECOND_INVITE_REMINDER_SMS',
           data: { invite },
@@ -869,7 +869,7 @@ module.exports = {
 
     if (invite.emailAddress) {
       if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
-        sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling SECOND_INVITE_REMINDER_EMAIL');
+        sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Scheduling SECOND_INVITE_REMINDER_EMAIL', null, 'message');
         await sails.helpers.schedule.with({
           name: 'SECOND_INVITE_REMINDER_EMAIL',
           data: { invite },
@@ -878,7 +878,7 @@ module.exports = {
       }
     }
 
-    sails.config.customLogger.log('info', 'setPatientOrGuestInviteReminders: Completed scheduling invite reminders', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `setPatientOrGuestInviteReminders: Completed scheduling invite reminders ${invite.id}`, null, 'message');
   },
 
   async destroyPatientInvite(invite) {
@@ -886,9 +886,9 @@ module.exports = {
     const userCollection = db.collection('user');
 
     if (invite.guestInvite) {
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Destroying guest invite', { inviteId: invite.guestInvite });
+      sails.config.customLogger.log('verbose', `destroyPatientInvite: Destroying guest invite ${invite.guestInvite}`, null, 'message');
       await PublicInvite.destroyOne({ id: invite.guestInvite });
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Updating guest user with consultation closed time', { userId: invite.guestInvite });
+      sails.config.customLogger.log('info', 'destroyPatientInvite: Updating guest user with consultation closed time', { userId: invite.guestInvite }, 'server-action');
       await userCollection.updateOne(
         { username: invite.guestInvite },
         {
@@ -899,13 +899,13 @@ module.exports = {
       );
     }
     if (invite.translatorRequestInvite) {
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Destroying translator request invite', { inviteId: invite.translatorRequestInvite });
+      sails.config.customLogger.log('verbose', `destroyPatientInvite: Destroying translator request invite ${invite.translatorRequestInvite}`, null, 'server-action');
       await PublicInvite.destroyOne({ id: invite.translatorRequestInvite });
     }
     if (invite.translatorInvite) {
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Destroying translator invite', { inviteId: invite.translatorInvite });
+      sails.config.customLogger.log('info', `destroyPatientInvite: Destroying translator invite ${invite.translatorInvite}`, null, 'server-action');
       await PublicInvite.destroyOne({ id: invite.translatorInvite });
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Updating translator user with consultation closed time', { userId: invite.translatorInvite });
+      sails.config.customLogger.log('info', 'destroyPatientInvite: Updating translator user with consultation closed time', { userId: invite.translatorInvite }, 'server-action');
       await userCollection.updateOne(
         { username: invite.translatorInvite },
         {
@@ -916,9 +916,9 @@ module.exports = {
       );
     }
 
-    sails.config.customLogger.log('info', 'destroyPatientInvite: Destroying main invite', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `destroyPatientInvite: Destroying main invite ${invite.id}`, null, 'server-action');
     await PublicInvite.destroyOne({ id: invite.id });
-    sails.config.customLogger.log('info', 'destroyPatientInvite: Updating main user with consultation closed time', { userId: invite.id });
+    sails.config.customLogger.log('info', 'destroyPatientInvite: Updating main user with consultation closed time', { userId: invite.id }, 'server-action');
     await userCollection.updateOne(
       { username: invite.id },
       {
@@ -930,7 +930,7 @@ module.exports = {
   },
 
   async refuseTranslatorRequest(translatorRequestInvite) {
-    sails.config.customLogger.log('info', 'refuseTranslatorRequest: Starting translator request refusal', { translatorRequestInviteId: translatorRequestInvite.id });
+    sails.config.customLogger.log('verbose', `refuseTranslatorRequest: Starting translator request refusal ${translatorRequestInvite.id}`, null, 'message');
 
     translatorRequestInvite = await PublicInvite.findOne({
       id: translatorRequestInvite.id,
@@ -939,31 +939,31 @@ module.exports = {
       .populate('patientInvite')
       .populate('translationOrganization');
 
-    sails.config.customLogger.log('info', 'refuseTranslatorRequest: Translator request invite loaded', { translatorRequestInviteId: translatorRequestInvite.id });
+    sails.config.customLogger.log('info', `refuseTranslatorRequest: Translator request invite loaded ${translatorRequestInvite.id}`, null, 'message');
 
     await PublicInvite.updateOne({
       type: 'TRANSLATOR_REQUEST',
       id: translatorRequestInvite.id,
     }).set({ status: 'REFUSED' });
-    sails.config.customLogger.log('info', 'refuseTranslatorRequest: Updated translator request invite status to REFUSED', { translatorRequestInviteId: translatorRequestInvite.id });
+    sails.config.customLogger.log('info', `refuseTranslatorRequest: Updated translator request invite status to REFUSED ${translatorRequestInvite.id}`, null, 'message');
 
     await PublicInvite.updateOne({
       id: translatorRequestInvite.patientInvite.id,
     }).set({ status: 'CANCELED' });
-    sails.config.customLogger.log('info', 'refuseTranslatorRequest: Updated patient invite status to CANCELED', { patientInviteId: translatorRequestInvite.patientInvite.id });
+    sails.config.customLogger.log('info', `refuseTranslatorRequest: Updated patient invite status to CANCELED ${translatorRequestInvite?.patientInvite?.id}`, null, 'server-action');
 
     if (translatorRequestInvite.patientInvite.guestInvite) {
       await PublicInvite.updateOne({
         id: translatorRequestInvite.patientInvite.guestInvite,
       }).set({ status: 'CANCELED' });
-      sails.config.customLogger.log('info', 'refuseTranslatorRequest: Updated guest invite status to CANCELED', { guestInviteId: translatorRequestInvite.patientInvite.guestInvite });
+      sails.config.customLogger.log('info', `refuseTranslatorRequest: Updated guest invite status to CANCELED ${translatorRequestInvite.patientInvite.guestInvite}`, null, 'server-action');
     }
 
     if (translatorRequestInvite.doctor.email) {
       const docLocale =
         translatorRequestInvite.doctor.preferredLanguage ||
         process.env.DEFAULT_DOCTOR_LOCALE;
-      sails.config.customLogger.log('info', 'refuseTranslatorRequest: Sending refusal email to doctor', { doctorId: translatorRequestInvite.doctor.id });
+      sails.config.customLogger.log('info', `refuseTranslatorRequest: Sending refusal email to doctor ${translatorRequestInvite.doctor?.id}`, null, 'message');
       await sails.helpers.email.with({
         to: translatorRequestInvite.doctor.email,
         subject: sails._t(docLocale, 'translation request refused subject'),
@@ -971,45 +971,45 @@ module.exports = {
           branding: process.env.BRANDING,
         }),
       });
-      sails.config.customLogger.log('info', 'refuseTranslatorRequest: Refusal email sent to doctor', { doctorId: translatorRequestInvite.doctor.id });
+      sails.config.customLogger.log('info', `refuseTranslatorRequest: Refusal email sent to doctor ${translatorRequestInvite.doctor?.id}`, null, 'server-action');
     }
 
-    sails.config.customLogger.log('info', 'refuseTranslatorRequest: Completed translator request refusal', { translatorRequestInviteId: translatorRequestInvite.id });
+    sails.config.customLogger.log('info', `refuseTranslatorRequest: Completed translator request refusal ${translatorRequestInvite.id}`, null, 'server-action');
   },
 
   async cancelTranslationRequestInvite(patientInvite) {
-    sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Starting cancellation of translator request invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('verbose', `cancelTranslationRequestInvite: Starting cancellation of translator request invite ${patientInvite.id}`, null, 'message');
 
     if (!patientInvite.translatorRequestInvite) return;
 
     const translatorRequestInviteId = patientInvite.translatorRequestInvite.id || patientInvite.translatorRequestInvite;
-    sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Destroying translator request invite', { translatorRequestInviteId });
+    sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Destroying translator request invite ${translatorRequestInviteId}`, null, 'server-action');
     await PublicInvite.destroyOne({ id: translatorRequestInviteId });
 
     if (patientInvite.translatorInvite) {
       const translatorInviteId = patientInvite.translatorInvite.id || patientInvite.translatorInvite;
-      sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Destroying translator invite', { translatorInviteId });
+      sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Destroying translator invite ${translatorInviteId}`, null, 'server-action');
       await PublicInvite.destroyOne({ id: translatorInviteId });
-      sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Destroying user associated with translator invite', { translatorInviteId });
+      sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Destroying user associated with translator invite ${translatorInviteId}`, null, 'server-action');
       await User.destroyOne({ username: translatorInviteId });
     }
 
-    sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Clearing translator invite references from patient invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Clearing translator invite references from patient invite ${patientInvite.id}`, null, 'server-action');
     await PublicInvite.updateOne({ id: patientInvite.id }).set({
       translatorRequestInvite: null,
       translatorInvite: null,
     });
 
-    sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Clearing translation organization from patient invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Clearing translation organization from patient invite ${patientInvite.id}`, null, 'server-action');
     await PublicInvite.updateOne({ id: patientInvite.id }).set({
       translationOrganization: null,
     });
 
-    sails.config.customLogger.log('info', 'cancelTranslationRequestInvite: Completed cancellation of translator request invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('info', `cancelTranslationRequestInvite: Completed cancellation of translator request invite ${patientInvite.id}`, null, 'server-action');
   },
 
   async cancelGuestInvite(patientInvite) {
-    sails.config.customLogger.log('info', 'cancelGuestInvite: Starting cancellation of guest invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('verbose', `cancelGuestInvite: Starting cancellation of guest invite ${patientInvite.id}`, null,'message');
 
     if (!patientInvite.guestInvite) return;
 
@@ -1017,20 +1017,22 @@ module.exports = {
       guestEmailAddress: '',
       guestPhoneNumber: '',
     });
-    sails.config.customLogger.log('info', 'cancelGuestInvite: Cleared guest email and phone from patient invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('info', `cancelGuestInvite: Cleared guest email and phone from patient invite ${patientInvite.id}`, null, 'server-action');
 
     const guestInviteId = patientInvite.guestInvite.id || patientInvite.guestInvite;
-    sails.config.customLogger.log('info', 'cancelGuestInvite: Destroying guest invite', { guestInviteId });
+    sails.config.customLogger.log('info', `cancelGuestInvite: Destroying guest invite ${guestInviteId}`, null, 'server-action');
     await PublicInvite.destroyOne({ id: guestInviteId });
 
-    sails.config.customLogger.log('info', 'cancelGuestInvite: Destroying user associated with guest invite', { guestInviteId });
+    sails.config.customLogger.log('info', `cancelGuestInvite: Destroying user associated with guest invite ${guestInviteId}`, null, 'server-action');
     await User.destroyOne({ username: guestInviteId });
 
-    sails.config.customLogger.log('info', 'cancelGuestInvite: Removing guest invite reference from patient invite', { patientInviteId: patientInvite.id });
+    sails.config.customLogger.log('info', `cancelGuestInvite: Removing guest invite reference from patient invite ${patientInvite.id}`, null, 'server-action');
     await PublicInvite.updateOne({ id: patientInvite.id }).set({
       guestInvite: null,
     });
 
-    sails.config.customLogger.log('info', 'cancelGuestInvite: Completed cancellation of guest invite', { patientInviteId: patientInvite.id });
-  }
+    sails.config.customLogger.log('info', `cancelGuestInvite: Completed cancellation of guest invite ${patientInvite.id}`, null, 'message');
+  },
+
+  generateToken,
 };

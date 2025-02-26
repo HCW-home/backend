@@ -2,7 +2,7 @@ module.exports = {
   async find(req, res) {
     const userId = req.user ? req.user.id : 'unknown';
     const userRole = req.user ? req.user.role : 'unknown';
-    sails.config.customLogger.log('info', `Queue find action initiated for user with id ${userId} and role ${userRole}`);
+    sails.config.customLogger.log('info', `Queue find action initiated for user with id ${userId} and role ${userRole}`, null, 'user-action');
 
     const viewAll = req.user.role === sails.config.globals.ROLE_ADMIN ? !!req.query.viewAllQueues : false;
 
@@ -13,7 +13,7 @@ module.exports = {
       req.user.role === sails.config.globals.ROLE_SCHEDULER
     ) {
       const queues = await Queue.find({});
-      sails.config.customLogger.log('info', 'Returning all queues', { userId, queueCount: queues.length });
+      sails.config.customLogger.log('info', 'Returning all queues', { userId, queueCount: queues.length }, 'server-action');
       return res.json(queues);
     }
 
@@ -21,11 +21,11 @@ module.exports = {
       sails.config.customLogger.log('info', 'Returning allowed queues for user', {
         userId,
         allowedQueueCount: req.user.allowedQueues.length,
-      });
+      }, 'server-action');
       return res.json(req.user.allowedQueues);
     }
 
-    sails.config.customLogger.log('warn', `No queues available for user with id ${userId}`);
+    sails.config.customLogger.log('warn', `No queues available for user with id ${userId}`, null, 'message');
     return res.json([]);
   }
 };

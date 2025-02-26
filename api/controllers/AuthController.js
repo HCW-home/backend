@@ -57,7 +57,7 @@ module.exports = {
       });
 
       if (!invite) {
-        sails.config.customLogger.log('warn', 'Login invite attempted with an invalid token.');
+        sails.config.customLogger.log('warn', 'Login invite attempted with an invalid token.', null, 'message');
         return res.status(401).send({ error: 'Invalid invite token' });
       }
 
@@ -65,24 +65,24 @@ module.exports = {
 
       passport.authenticate('invite', async (err, user) => {
         if (err || !user) {
-          sails.config.customLogger.log('warn', `Failed invitation authentication. ${err?.message || err}`);
+          sails.config.customLogger.log('warn', `Failed invitation authentication. ${err?.message || err}`, null, 'server-action');
           return res.status(401).send({ err });
         }
 
-        sails.config.customLogger.log('info', `Invitation login: user ${user.id} authenticated successfully.`);
+        sails.config.customLogger.log('info', `Invitation login: user ${user.id} authenticated successfully.`, null, 'message');
 
         try {
           await User.updateOne({ id: user.id }).set({ lastLoginType: 'invite' });
-          sails.config.customLogger.log('info', `User ${user.id} updated lastLoginType to "invite".`);
+          sails.config.customLogger.log('info', `User ${user.id} updated lastLoginType to "invite".`, null, 'server-action');
         } catch (updateError) {
-          sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${updateError}`);
+          sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${updateError}`, null, 'server-action');
         }
 
         req.logIn(user, function(err) {
           req.session.cookie.expires = 7 * 24 * 60 * 50 * 1000;
 
           if (err) {
-            sails.config.customLogger.log('error', `Error during login for user ${user.id}: ${err}`);
+            sails.config.customLogger.log('error', `Error during login for user ${user.id}: ${err}`, null, 'server-action');
             return res.status(500).send();
           }
 
@@ -90,14 +90,14 @@ module.exports = {
           user.token = token;
           user.refreshToken = refreshToken;
 
-          sails.config.customLogger.log('info', `User ${user.id} logged in using invite. isExpert: ${isExpert}.`);
+          sails.config.customLogger.log('info', `User ${user.id} logged in using invite. isExpert: ${isExpert}.`, null, 'message');
           return res.json({ user });
         });
       })(req, res, (err) => {
-        sails.config.customLogger.log('error', `Error in passport.authenticate callback for login invite: ${err}`);
+        sails.config.customLogger.log('error', `Error in passport.authenticate callback for login invite: ${err}`, null, 'server-action');
       });
     } catch (e) {
-      sails.config.customLogger.log('error', `Unexpected error in loginInvite: ${e}`);
+      sails.config.customLogger.log('error', `Unexpected error in loginInvite: ${e?.message || e}`, null, 'server-action');
       return res.status(500).send();
     }
   },
@@ -107,7 +107,7 @@ module.exports = {
       try {
         User.validate("email", req.body.email);
       } catch (error) {
-        sails.config.customLogger.log('warn', 'Invalid email provided for forgotPassword.');
+        sails.config.customLogger.log('warn', 'Invalid email provided for forgotPassword.', null, 'message');
         return res.status(401).json({ message: "Email is invalid" });
       }
       const db = User.getDatastore().manager;
@@ -135,9 +135,9 @@ module.exports = {
             { _id: user._id },
             { $set: { resetPasswordToken } }
           );
-          sails.config.customLogger.log('info', `User ${user._id} updated with resetPasswordToken.`);
+          sails.config.customLogger.log('info', `User ${user._id} updated with resetPasswordToken.`, null, 'server-action');
         } catch (updateError) {
-          sails.config.customLogger.log('error', `Error updating user ${user._id} with resetPasswordToken: ${updateError.message}`);
+          sails.config.customLogger.log('error', `Error updating user ${user._id} with resetPasswordToken: ${updateError.message}`, null, 'server-action');
         }
         const url = `${process.env.DOCTOR_URL}/app/reset-password?token=${resetPasswordToken}`;
         const doctorLanguage = user.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
@@ -147,26 +147,26 @@ module.exports = {
             subject: sails._t(doctorLanguage, "forgot password email subject", { url }),
             text: sails._t(doctorLanguage, "forgot password email", { url }),
           });
-          sails.config.customLogger.log('info', `Forgot password email sent to user ${user._id}.`);
+          sails.config.customLogger.log('info', `Forgot password email sent to user ${user._id}.`, null, 'server-action');
         } catch (emailError) {
-          sails.config.customLogger.log('error', `Error sending forgot password email to user ${user._id}: ${emailError.message}`);
+          sails.config.customLogger.log('error', `Error sending forgot password email to user ${user._id}: ${emailError.message}`, null, 'server-action');
         }
       } else {
-        sails.config.customLogger.log('info', 'Forgot password requested for non-existent user.');
+        sails.config.customLogger.log('info', 'Forgot password requested for non-existent user.', null, 'message');
       }
     } catch (error) {
-      sails.config.customLogger.log('error', `Unexpected error in forgotPassword: ${error.message}`);
+      sails.config.customLogger.log('error', `Unexpected error in forgotPassword: ${error?.message || error}`, null, 'server-action');
     }
   },
 
   async resetPassword(req, res) {
     const passwordFormat = new RegExp('^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})');
     if (!req.body.token) {
-      sails.config.customLogger.log('warn', 'resetPassword attempted without token.');
+      sails.config.customLogger.log('warn', 'resetPassword attempted without token.', null, 'message');
       return res.status(400).json({ message: 'token-missing' });
     }
     if (!passwordFormat.test(req.body.password)) {
-      sails.config.customLogger.log('warn', 'resetPassword attempted with weak password.');
+      sails.config.customLogger.log('warn', 'resetPassword attempted with weak password.', null, 'message');
       return res.status(400).json({ message: 'password-too-weak' });
     }
     try {
@@ -174,12 +174,12 @@ module.exports = {
       const token = validator.escape(req.body.token).trim();
       const user = await User.findOne({ resetPasswordToken: token });
       await User.updateOne({ resetPasswordToken: token }).set({ password, resetPasswordToken: '' });
-      sails.config.customLogger.log('info', `Password reset processed for user ${user ? user._id : 'unknown'}.`);
+      sails.config.customLogger.log('info', `Password reset processed for user ${user?._id || user?._id}.`, null, 'server-action');
       if (!user) {
         throw new Error('token-expired');
       }
     } catch (err) {
-      sails.config.customLogger.log('error', `Error in resetPassword: ${err.message}`);
+      sails.config.customLogger.log('error', `Error in resetPassword: ${err.message}`, null, 'server-action');
       if (err.name === 'TokenExpiredError') {
         return res.status(400).json({ message: 'token-expired' });
       } else {
@@ -192,13 +192,13 @@ module.exports = {
   async loginLocal(req, res) {
     const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
     if (headersErrors) {
-      sails.config.customLogger.log('warn', 'Invalid headers in loginLocal.');
+      sails.config.customLogger.log('warn', 'Invalid headers in loginLocal.', null, 'message');
       return res.status(400).json({ success: false, message: headersErrors.details });
     }
     const locale = headers.locale || i18n.defaultLocale;
     const isLoginLocalAllowed = await canLoginLocal(req);
     if (!isLoginLocalAllowed) {
-      sails.config.customLogger.log('warn', 'Password login is disabled.');
+      sails.config.customLogger.log('warn', 'Password login is disabled.', null, 'message');
       return res.status(400).json({ message: sails._t(locale, 'password login is disabled') });
     }
     const isAdmin = await User.count({ email: req.body.email, role: 'admin' });
@@ -212,21 +212,21 @@ module.exports = {
     passport.authenticate('local', async (err, user, info = {}) => {
       if (err) {
         if (err?.message === 'User is not approved') {
-          sails.config.customLogger.log('error', 'User not approved in loginLocal.');
+          sails.config.customLogger.log('error', 'User not approved in loginLocal.', null, 'message');
           return res.status(403).json({ message: sails._t(locale, 'not approved') });
         }
-        sails.config.customLogger.log('error', `LoginLocal error: ${err?.message || 'Unknown error'}`);
+        sails.config.customLogger.log('error', `LoginLocal error: ${err?.message || 'Unknown error'}`, null, 'server-action');
         return res.status(500).json({ message: info.message || err?.message || sails._t(locale, 'server error') });
       }
       if (!user) {
-        sails.config.customLogger.log('warn', 'LoginLocal failed: user not found.');
+        sails.config.customLogger.log('warn', 'LoginLocal failed: user not found.', null, 'message');
         return res.status(400).json({ message: info.message, user });
       }
       try {
         await User.updateOne({ id: user.id }).set({ lastLoginType: 'local' });
-        sails.config.customLogger.log('info', `User ${user.id} updated lastLoginType to local.`);
+        sails.config.customLogger.log('info', `User ${user.id} updated lastLoginType to local.`, null, 'server-action');
       } catch (error) {
-        sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error.message}`);
+        sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error.message}`, null, 'server-action');
       }
       if (process.env.NODE_ENV !== 'development' && (user.role === 'doctor' || user.role === 'admin')) {
         const localLoginDetails = { id: user.id, localLoginToken: true, singleFactor: true };
@@ -237,7 +237,7 @@ module.exports = {
             const decoded = jwt.verify(user.smsVerificationCode, sails.config.globals.APP_SECRET);
             verificationCode = decoded.code;
           } catch (error) {
-            sails.config.customLogger.log('error', `Error verifying smsVerificationCode for user ${user.id}: ${error?.message || error}`);
+            sails.config.customLogger.log('error', `Error verifying smsVerificationCode for user ${user.id}: ${error?.message || error}`, null, 'server-action');
           }
         }
         verificationCode = verificationCode || generateVerificationCode();
@@ -253,9 +253,9 @@ module.exports = {
             }),
             senderEmail: user?.email
           });
-          sails.config.customLogger.log('info', `SMS sent to user ${user.id} with verification code.`);
+          sails.config.customLogger.log('info', `SMS sent to user ${user.id} with verification code.`, null, 'server-action');
         } catch (err) {
-          sails.config.customLogger.log('error', `Error sending SMS to user ${user.id}: ${err.message}`);
+          sails.config.customLogger.log('error', `Error sending SMS to user ${user.id}: ${err.message}`, null, 'server-action');
           return res.status(500).json({ message: "Echec d'envoi du SMS" });
         }
         return res.status(200).json({ localLoginToken, user: user.id, role: user.role });
@@ -265,14 +265,14 @@ module.exports = {
         }
         req.logIn(user, function(err) {
           if (err) {
-            sails.config.customLogger.log('error', `Error logging in user ${user.id}: ${err.message}`);
+            sails.config.customLogger.log('error', `Error logging in user ${user.id}: ${err.message}`, null, 'server-action');
           }
           return res.status(200).send({ message: info.message, user });
         });
       }
     })(req, res, (err) => {
       if (err) {
-        sails.config.customLogger.log('error', `Error with LOGIN in loginLocal: ${err.message || 'Unknown error'}`);
+        sails.config.customLogger.log('error', `Error with LOGIN in loginLocal: ${err.message || 'Unknown error'}`, null, 'server-action');
       }
     });
   },
@@ -280,7 +280,7 @@ module.exports = {
   loginSms(req, res) {
     const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
     if (headersErrors) {
-      sails.config.customLogger.log('warn', 'Invalid headers in loginSms.');
+      sails.config.customLogger.log('warn', 'Invalid headers in loginSms.', null, 'message');
       return res.status(400).json({
         success: false,
         message: headersErrors.details,
@@ -290,18 +290,18 @@ module.exports = {
     passport.authenticate('sms', async (err, user, info = {}) => {
       if (err) {
         if (err?.message === 'User is not approved') {
-          sails.config.customLogger.log('error', 'User not approved in loginSms.');
+          sails.config.customLogger.log('error', 'User not approved in loginSms.', null, 'message');
           return res.status(403).json({
             message: sails._t(locale, 'not approved'),
           });
         }
-        sails.config.customLogger.log('error', `loginSms error: ${err?.message || 'Unknown error'}`);
+        sails.config.customLogger.log('error', `loginSms error: ${err?.message || 'Unknown error'}`, null, 'server-action');
         return res.status(500).json({
           message: info.message || err?.message || 'Server Error',
         });
       }
       if (!user) {
-        sails.config.customLogger.log('warn', 'loginSms failed: user not found.');
+        sails.config.customLogger.log('warn', 'loginSms failed: user not found.', null, 'message');
         return res.status(400).json({
           message: info.message,
           user,
@@ -309,9 +309,9 @@ module.exports = {
       }
       try {
         await User.updateOne({ id: user.id }).set({ smsVerificationCode: '' });
-        sails.config.customLogger.log('info', `User ${user.id} smsVerificationCode cleared.`);
+        sails.config.customLogger.log('info', `User ${user.id} smsVerificationCode cleared.`, null, 'server-action');
       } catch (updateError) {
-        sails.config.customLogger.log('error', `Error updating user ${user.id} in loginSms: ${updateError.message}`);
+        sails.config.customLogger.log('error', `Error updating user ${user.id} in loginSms: ${updateError.message}`, null, 'server-action');
       }
       const localLoginDetails = {
         id: user.id,
@@ -326,7 +326,7 @@ module.exports = {
       });
     })(req, res, (err) => {
       if (err) {
-        sails.config.customLogger.log('error', `Error with LOGIN in loginSms: ${err.message || 'Unknown error'}`);
+        sails.config.customLogger.log('error', `Error with LOGIN in loginSms: ${err?.message || 'Unknown error'}`, null, 'server-action');
       }
     });
   },
@@ -334,34 +334,34 @@ module.exports = {
   login2FA(req, res) {
     const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
     if (headersErrors) {
-      sails.config.customLogger.log('warn', 'Invalid headers in login2FA.');
+      sails.config.customLogger.log('warn', 'Invalid headers in login2FA.', null, 'message');
       return res.status(400).json({ success: false, message: headersErrors.details });
     }
     const locale = headers.locale || i18n.defaultLocale;
     passport.authenticate('2FA', (err, user, info = {}) => {
       if (err) {
         if (err?.message === 'User is not approved') {
-          sails.config.customLogger.log('error', 'User not approved in login2FA.');
+          sails.config.customLogger.log('error', 'User not approved in login2FA.', null, 'message');
           return res.status(403).json({ message: sails._t(locale, 'not approved') });
         }
-        sails.config.customLogger.log('error', `login2FA error: ${err?.message || 'Unknown error'}`);
+        sails.config.customLogger.log('error', `login2FA error: ${err?.message || 'Unknown error'}`, null, 'server-action');
         return res.status(500).json({ message: info.message || err?.message || 'Server Error' });
       }
       if (!user) {
-        sails.config.customLogger.log('warn', 'login2FA failed: user not found.');
+        sails.config.customLogger.log('warn', 'login2FA failed: user not found.', null, 'message');
         return res.status(400).json({ message: info.message, user });
       }
       req.logIn(user, function(err) {
         if (err) {
-          sails.config.customLogger.log('error', `Error logging in user ${user.id} in login2FA: ${err.message}`);
+          sails.config.customLogger.log('error', `Error logging in user ${user.id} in login2FA: ${err?.message}`, null, 'server-action');
           return res.status(500).send();
         }
-        sails.config.customLogger.log('info', `User ${user.id} logged in via 2FA.`);
+        sails.config.customLogger.log('info', `User ${user.id} logged in via 2FA.`, null, 'message');
         return res.status(200).send({ message: info.message, user });
       });
     })(req, res, (err) => {
       if (err) {
-        sails.config.customLogger.log('error', `Error with LOGIN in login2FA: ${err.message || 'Unknown error'}`);
+        sails.config.customLogger.log('error', `Error with LOGIN in login2FA: ${err?.message || 'Unknown error'}`, null, 'server-action');
       }
     });
   },
@@ -370,7 +370,7 @@ module.exports = {
     const refreshToken = sanitize(req.body.refreshToken);
 
     if (!refreshToken) {
-      sails.config.customLogger.log('warn', 'Refresh token missing in request.');
+      sails.config.customLogger.log('warn', 'Refresh token missing in request.', null, 'message');
       return res.status(400).json({ error: 'Refresh token is required' });
     }
 
@@ -378,14 +378,14 @@ module.exports = {
       const decoded = await TokenService.verifyToken(refreshToken, true);
       const user = await User.findOne({ id: decoded.id });
       if (!user || user.status !== 'approved') {
-        sails.config.customLogger.log('warn', `Refresh token attempt for invalid or unapproved user: ${decoded.id}`);
+        sails.config.customLogger.log('warn', `Refresh token attempt for invalid or unapproved user: ${decoded.id}`, null, 'message');
         return res.status(401).json({ error: 'User not found' });
       }
       const tokens = TokenService.generateToken(user);
-      sails.config.customLogger.log('info', `Refresh token successful for user ${user.id}.`);
+      sails.config.customLogger.log('info', `Refresh token successful for user ${user.id}.`, null, 'server-action');
       return res.json(tokens);
     } catch (error) {
-      sails.config.customLogger.log('error', `Error refreshing token: ${error.message}`);
+      sails.config.customLogger.log('error', `Error refreshing token: ${error.message}`, null, 'server-action');
       return res.status(401).json({ error: 'Invalid refresh token' });
     }
   },
@@ -393,15 +393,15 @@ module.exports = {
   verifyRefreshToken: async function(req, res) {
     const refreshToken = req.body.refreshToken;
     if (!refreshToken) {
-      sails.config.customLogger.log('warn', 'Refresh token missing in verifyRefreshToken.');
+      sails.config.customLogger.log('warn', 'Refresh token missing in verifyRefreshToken.', null, 'message');
       return res.status(400).json({ error: 'Refresh token is required' });
     }
     try {
       const decoded = await TokenService.verifyToken(refreshToken, true);
-      sails.config.customLogger.log('info', 'Refresh token verified successfully.');
+      sails.config.customLogger.log('info', 'Refresh token verified successfully.', null, 'server-action');
       return res.status(200).json({ message: 'Token is valid' });
     } catch (error) {
-      sails.config.customLogger.log('error', `Error verifying refresh token: ${error.message}`);
+      sails.config.customLogger.log('error', `Error verifying refresh token: ${error.message}`, null, 'server-action');
       if (error.name === 'TokenExpiredError') {
         return res.status(401).json({ error: 'Token expired' });
       } else if (error.name === 'JsonWebTokenError') {
@@ -416,15 +416,15 @@ module.exports = {
     const performLogout = () => {
       req.logout((err) => {
         if (err) {
-          sails.config.customLogger.log('error', `Error during req.logout: ${err.message}`);
+          sails.config.customLogger.log('error', `Error during req.logout: ${err.message}`, null, 'server-action');
           return res.status(500).send();
         }
         req.session.destroy((err) => {
           if (err) {
-            sails.config.customLogger.log('error', `Error destroying session: ${err.message}`);
+            sails.config.customLogger.log('error', `Error destroying session: ${err.message}`, null, 'server-action');
             return res.status(500).send();
           }
-          sails.config.customLogger.log('info', 'User session destroyed successfully.');
+          sails.config.customLogger.log('info', 'User session destroyed successfully.', null, 'server-action');
           res.status(200).send();
         });
       });
@@ -434,14 +434,14 @@ module.exports = {
       try {
         samlStrategy.logout(req, (err) => {
           if (err) {
-            sails.config.customLogger.log('error', `Error logging out from SAML: ${err.message}`);
+            sails.config.customLogger.log('error', `Error logging out from SAML: ${err.message}`, null, 'server-action');
             return performLogout();
           }
-          sails.config.customLogger.log('info', 'SAML logged out successfully.');
+          sails.config.customLogger.log('info', 'SAML logged out successfully.', null, 'server-action');
           performLogout();
         });
       } catch (error) {
-        sails.config.customLogger.log('error', `Error logging out from SAML: ${error.message}`);
+        sails.config.customLogger.log('error', `Error logging out from SAML: ${error.message}`, null, 'server-action');
         performLogout();
       }
     } else {
@@ -451,18 +451,18 @@ module.exports = {
 
   async getCurrentUser(req, res) {
     if (!req.user && !req.headers['x-access-token'] && !req.query.token) {
-      sails.config.customLogger.log('warn', 'getCurrentUser: No token or user provided.');
+      sails.config.customLogger.log('warn', 'getCurrentUser: No token or user provided.', null, 'message');
       return res.notFound();
     }
     if (req.headers['x-access-token'] || req.query.token) {
       const tokenValue = req.headers['x-access-token'] || req.query.token;
       jwt.verify(tokenValue, sails.config.globals.APP_SECRET, async (err, decoded) => {
         if (err) {
-          sails.config.customLogger.log('error', `JWT verification error in getCurrentUser: ${err.message}`);
+          sails.config.customLogger.log('error', `JWT verification error in getCurrentUser: ${err?.message || err}`, null, 'server-action');
           return res.status(401).json({ error: 'Unauthorized' });
         }
         if (decoded.singleFactor) {
-          sails.config.customLogger.log('warn', 'getCurrentUser: Token indicates single factor, unauthorized.');
+          sails.config.customLogger.log('warn', 'Token indicates single factor, unauthorized.', null, 'message');
           return res.status(401).json({ error: 'Unauthorized' });
         }
         const version = validator.escape(req.query._version || '');
@@ -473,22 +473,22 @@ module.exports = {
               email: decoded.email,
               role: { in: ['doctor', 'admin'] },
             }).set({ doctorClientVersion: version });
-            sails.config.customLogger.log('info', `Updated doctorClientVersion for user ${decoded.id} to ${version}.`);
+            sails.config.customLogger.log('info', `Updated doctorClientVersion for user ${decoded.id} to ${version}.`, null, 'server-action');
           } else {
             await User.updateOne({
               id: decoded.id,
               email: decoded.email,
               role: { in: ['doctor', 'admin'] },
             }).set({ doctorClientVersion: 'invalid' });
-            sails.config.customLogger.log('info', `Set doctorClientVersion to invalid for user ${decoded.id}.`);
+            sails.config.customLogger.log('info', `Set doctorClientVersion to invalid for user ${decoded.id}.`, null, 'server-action');
           }
           const user = await User.findOne({ id: decoded.id });
           if (!user) {
-            sails.config.customLogger.log('error', 'getCurrentUser: No user found for valid token.');
+            sails.config.customLogger.log('error', 'No user found for valid token.', null, 'message');
             return res.status(500).json({ message: 'UNKNOWN ERROR' });
           }
           if (user.role === 'doctor' && !user.doctorClientVersion) {
-            sails.config.customLogger.log('warn', `getCurrentUser: Doctor user ${user.id} has no valid client version.`);
+            sails.config.customLogger.log('warn', `Doctor user ${user.id} has no valid client version.`, null, 'message');
             return res.status(401).json({ error: 'Unauthorized App version needs to be updated' });
           }
           const { token, refreshToken } = TokenService.generateToken(user);
@@ -497,17 +497,17 @@ module.exports = {
           if (!req.user) {
             req.logIn(user, function(err) {
               if (err) {
-                sails.config.customLogger.log('error', `Error logging in user ${user.id} in getCurrentUser: ${err.message}`);
+                sails.config.customLogger.log('error', `Error logging in user ${user.id} in getCurrentUser: ${err?.message}`, null, 'server-action');
                 return res.status(500).send();
               }
-              sails.config.customLogger.log('info', `User ${user.id} logged in via token in getCurrentUser.`);
+              sails.config.customLogger.log('info', `User ${user.id} logged in via token in getCurrentUser.`, null, 'message');
               res.json({ user });
             });
           } else {
             res.json({ user });
           }
         } catch (error) {
-          sails.config.customLogger.log('error', `Error in getCurrentUser: ${error.message}`);
+          sails.config.customLogger.log('error', `Error in getCurrentUser: ${error.message}`, null, 'server-action');
           res.status(500).json({ message: 'UNKNOWN ERROR' });
         }
       });
@@ -516,7 +516,7 @@ module.exports = {
       const { token, refreshToken } = TokenService.generateToken(user);
       user.token = token;
       user.refreshToken = refreshToken;
-      sails.config.customLogger.log('info', `getCurrentUser: Returning current user ${user.id}.`);
+      sails.config.customLogger.log('info', `getCurrentUser: Returning current user ${user.id}.`, null, 'user-action');
       return res.json({ user });
     }
   },
@@ -527,12 +527,12 @@ module.exports = {
       (process.env.LOGIN_METHOD !== 'saml' &&
         process.env.LOGIN_METHOD !== 'both')
     ) {
-      sails.config.customLogger.log('warn', 'SAML login is disabled.');
+      sails.config.customLogger.log('warn', 'SAML login is disabled.', null, 'message');
       return res.status(500).json({ message: 'SAML login is disabled' });
     }
     passport.authenticate('saml', { failureRedirect: '/app/login' })(req, res, (err) => {
       if (err) {
-        sails.config.customLogger.log('error', `Error with SAML: ${err?.message || err}`);
+        sails.config.customLogger.log('error', `Error with SAML: ${err?.message || err}`, null, 'server-action');
         return res.view('pages/error', { error: err });
       }
     });
@@ -544,29 +544,29 @@ module.exports = {
       (process.env.LOGIN_METHOD !== 'saml' &&
         process.env.LOGIN_METHOD !== 'both')
     ) {
-      sails.config.customLogger.log('warn', 'SAML login is disabled.');
+      sails.config.customLogger.log('warn', 'SAML login is disabled.', null, 'message');
       return res.status(500).json({ message: 'SAML login is disabled' });
     }
     bodyParser.urlencoded({ extended: false })(req, res, () => {
       passport.authenticate('saml', async (err, user, info = {}) => {
         if (err) {
-          sails.config.customLogger.log('error', `Error authenticating: ${err?.message || err}`);
+          sails.config.customLogger.log('error', `Error authenticating: ${err?.message || err}`, null, 'server-action');
           return res.view('pages/error', { error: err });
         }
         if (!user) {
-          sails.config.customLogger.log('warn', 'SAML authentication did not return a user.');
+          sails.config.customLogger.log('warn', 'SAML authentication did not return a user.', null, 'message');
           return res.json({ message: info.message, user });
         }
         try {
           await User.updateOne({ id: user.id }).set({ lastLoginType: 'saml' });
-          sails.config.customLogger.log('info', `User ${user.id} lastLoginType set to 'saml'.`);
+          sails.config.customLogger.log('info', `User ${user.id} lastLoginType set to 'saml'.`, null, 'server-action');
         } catch (error) {
-          sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`);
+          sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`, null, 'server-action');
         }
         return res.redirect(`/app?tk=${user.token}`);
       })(req, res, (err) => {
         if (err) {
-          sails.config.customLogger.log('error', `Error in SAML callback authentication: ${err.message || err}`);
+          sails.config.customLogger.log('error', `Error in SAML callback authentication: ${err.message || err}`, null, 'server-action');
           return res.view('pages/error', { error: err });
         }
         res.redirect('/app/login');
@@ -577,18 +577,18 @@ module.exports = {
   loginOpenId(req, res, next) {
     const role = req.query.role;
     if (role === sails.config.globals.ROLE_DOCTOR) {
-      sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for doctor.');
+      sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for doctor.', null, 'message');
       return passport.authenticate('openidconnect_doctor')(req, res, next);
     }
     if (role === sails.config.globals.ROLE_ADMIN) {
-      sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for admin.');
+      sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for admin.', null, 'message');
       return passport.authenticate('openidconnect_admin')(req, res, next);
     }
     if (role === sails.config.globals.ROLE_NURSE) {
-      sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for nurse.');
+      sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for nurse.', null, 'message');
       return passport.authenticate('openidconnect_nurse')(req, res, next);
     }
-    sails.config.customLogger.log('warn', 'loginOpenId: No valid role specified.');
+    sails.config.customLogger.log('warn', 'loginOpenId: No valid role specified.', null, 'message');
     return res.status(400).json({ message: 'Invalid role for OpenID Connect authentication.' });
   },
 
@@ -599,26 +599,26 @@ module.exports = {
           'openidconnect_admin',
           async (err, user, info = {}) => {
             if (err) {
-              sails.config.customLogger.log('error', `Error authenticating for admin: ${err?.message || err}`);
+              sails.config.customLogger.log('error', `Error authenticating for admin: ${err?.message || err}`, null, 'server-action');
               return res.view('pages/error', { error: err });
             }
             if (!user) {
-              sails.config.customLogger.log('warn', 'Admin authentication did not return a user.');
+              sails.config.customLogger.log('warn', 'Admin authentication did not return a user.', null, 'message');
               return res.status(403).json({ message: info.message, user });
             }
             if (user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
-                sails.config.customLogger.log('info', `Admin user ${user.id} authenticated; redirecting to development URL.`);
+                sails.config.customLogger.log('info', `Admin user ${user.id} authenticated; redirecting to development URL.`, null, 'server-action');
                 return res.redirect(`${process.env['ADMIN_URL']}/login?tk=${user.token}`);
               } else {
-                sails.config.customLogger.log('info', `Admin user ${user.id} authenticated; redirecting to production URL.`);
+                sails.config.customLogger.log('info', `Admin user ${user.id} authenticated; redirecting to production URL.`, null, 'server-action');
                 return res.redirect(`/login?tk=${user.token}`);
               }
             }
           }
         )(req, res, (err) => {
           if (err) {
-            sails.config.customLogger.log('error', `Error in admin callback authentication: ${err?.message || err}`);
+            sails.config.customLogger.log('error', `Error in admin callback authentication: ${err?.message || err}`, null, 'server-action');
             return res.view('pages/error', { error: err });
           }
         });
@@ -628,26 +628,26 @@ module.exports = {
           'openidconnect_nurse',
           async (err, user, info = {}) => {
             if (err) {
-              sails.config.customLogger.log('error', `Error authenticating for nurse: ${err?.message || err}`);
+              sails.config.customLogger.log('error', `Error authenticating for nurse: ${err?.message || err}`, null, 'server-action');
               return res.view('pages/error', { error: err });
             }
             if (!user) {
-              sails.config.customLogger.log('warn', 'Nurse authentication did not return a user.');
+              sails.config.customLogger.log('warn', 'Nurse authentication did not return a user.', null, 'message');
               return res.status(403).json({ message: info.message, user });
             }
             if (user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
-                sails.config.customLogger.log('info', `Nurse user ${user.id} authenticated; redirecting to development URL.`);
+                sails.config.customLogger.log('info', `Nurse user ${user.id} authenticated; redirecting to development URL.`, null, 'server-action');
                 return res.redirect(`${process.env['PUBLIC_URL']}/requester?tk=${user.token}`);
               } else {
-                sails.config.customLogger.log('info', `Nurse user ${user.id} authenticated; redirecting to production URL.`);
+                sails.config.customLogger.log('info', `Nurse user ${user.id} authenticated; redirecting to production URL.`, null, 'server-action');
                 return res.redirect(`/requester?tk=${user.token}`);
               }
             }
           }
         )(req, res, (err) => {
           if (err) {
-            sails.config.customLogger.log('error', `Error in nurse callback authentication: ${err?.message || err}`);
+            sails.config.customLogger.log('error', `Error in nurse callback authentication: ${err?.message || err}`, null, 'server-action');
             return res.view('pages/error', { error: err });
           }
         });
@@ -657,32 +657,32 @@ module.exports = {
           'openidconnect_doctor',
           async (err, user, info = {}) => {
             if (err) {
-              sails.config.customLogger.log('error', `Error authenticating for doctor: ${err?.message || err}`);
+              sails.config.customLogger.log('error', `Error authenticating for doctor: ${err?.message || err}`, null, 'server-action');
               return res.view('pages/error', { error: err });
             }
             if (!user) {
-              sails.config.customLogger.log('warn', 'Doctor authentication did not return a user.');
+              sails.config.customLogger.log('warn', 'Doctor authentication did not return a user.', null, 'message');
               return res.json({ message: info.message, user });
             }
             try {
               await User.updateOne({ id: user.id }).set({ lastLoginType: 'openidconnect' });
-              sails.config.customLogger.log('info', `User ${user.id} lastLoginType updated to 'openidconnect'.`);
+              sails.config.customLogger.log('info', `User ${user.id} lastLoginType updated to 'openidconnect'.`, null, 'server-action');
             } catch (error) {
-              sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`);
+              sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`, null, 'server-action');
             }
             if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
-                sails.config.customLogger.log('info', `Doctor user ${user.id} authenticated; redirecting to development URL.`);
+                sails.config.customLogger.log('info', `Doctor user ${user.id} authenticated; redirecting to development URL.`, null, 'server-action');
                 return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
               } else {
-                sails.config.customLogger.log('info', `Doctor user ${user.id} authenticated; redirecting to production URL.`);
+                sails.config.customLogger.log('info', `Doctor user ${user.id} authenticated; redirecting to production URL.`, null, 'server-action');
                 return res.redirect(`/app?tk=${user.token}`);
               }
             }
           }
         )(req, res, (err) => {
           if (err) {
-            sails.config.customLogger.log('error', `Error in doctor callback authentication: ${err?.message || err}`);
+            sails.config.customLogger.log('error', `Error in doctor callback authentication: ${err?.message || err}`, null, 'server-action');
             return res.view('pages/error', { error: err });
           }
         });
@@ -707,7 +707,7 @@ module.exports = {
       ? sails.config.globals.i18nPatientAppLanguages.split(',')
       : [];
 
-    sails.config.customLogger.log('info', `getConfig called from IP: ${req.ip}`);
+    sails.config.customLogger.log('info', `getConfig called from IP: ${req.ip}`, null, 'user-action');
 
     res.json({
       method: process.env.LOGIN_METHOD ? process.env.LOGIN_METHOD : 'both',
@@ -727,7 +727,7 @@ module.exports = {
       matomoId: sails.config.globals.MATOMO_ID,
       extraMimeTypes: !!sails.config.globals.EXTRA_MIME_TYPES,
       doctorTermsVersion: sails.config.globals.DOCTOR_TERMS_VERSION,
-      defaultPatientLocale: process.env.DEFAULT_PATIENT_LOCALE,
+      defaultPatientLocale: sails.config.globals.DEFAULT_PATIENT_LOCALE,
       metadata: process.env.DISPLAY_META
         ? process.env.DISPLAY_META.split(',')
         : '', //! sending metadata to the front in config
@@ -746,7 +746,7 @@ module.exports = {
   externalAuth(req, res) {
     const { token } = req.query;
     if (!token) {
-      sails.config.customLogger.log('warn', 'externalAuth: Missing token in query.');
+      sails.config.customLogger.log('warn', 'externalAuth: Missing token in query.', null, 'message');
       return res.badRequest();
     }
     jwt.verify(
@@ -754,11 +754,11 @@ module.exports = {
       process.env.SHARED_EXTERNAL_AUTH_SECRET,
       async (err, decoded) => {
         if (err) {
-          sails.config.customLogger.log('error', `externalAuth: JWT verification error: ${err.message || err}`);
+          sails.config.customLogger.log('error', `externalAuth: JWT verification error: ${err?.message || err}`, null, 'server-action');
           return res.status(401).json({ error: 'Unauthorized' });
         }
         if (!decoded.timestamp) {
-          sails.config.customLogger.log('warn', 'externalAuth: Token missing timestamp.');
+          sails.config.customLogger.log('warn', 'externalAuth: Token missing timestamp.', null, 'message');
           return res.status(401).json({ error: 'Timestamp is required' });
         }
         try {
@@ -766,15 +766,15 @@ module.exports = {
           const tokenTimestamp = new Date(decoded.timestamp * 1000);
           const FIVE_MIN = 5 * 60 * 1000;
           if (now - tokenTimestamp > FIVE_MIN) {
-            sails.config.customLogger.log('warn', 'externalAuth: Token timestamp is older than 5 minutes.');
+            sails.config.customLogger.log('warn', 'externalAuth: Token timestamp is older than 5 minutes.', null, 'message');
             return res.status(401).json({ error: 'Timestamp is older than 5 minutes' });
           }
         } catch (error) {
-          sails.config.customLogger.log('error', `externalAuth: Error processing token timestamp: ${error.message}`);
+          sails.config.customLogger.log('error', `externalAuth: Error processing token timestamp: ${error.message}`, null, 'server-action');
           return res.status(500).json({ error: 'Unexpected error' });
         }
         if (!decoded.email) {
-          sails.config.customLogger.log('warn', 'externalAuth: Token missing email.');
+          sails.config.customLogger.log('warn', 'externalAuth: Token missing email.', null, 'message');
           return res.status(401).json({ error: 'Email is required' });
         }
         try {
@@ -789,18 +789,18 @@ module.exports = {
               preferredLanguage: decoded.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE,
               role: 'doctor',
             }).fetch();
-            sails.config.customLogger.log('info', `externalAuth: Created new doctor user with id ${user.id}.`);
+            sails.config.customLogger.log('info', `externalAuth: Created new doctor user with id ${user.id}.`, null, 'server-action');
           } else {
-            sails.config.customLogger.log('info', `externalAuth: Found existing doctor user with id ${user.id}.`);
+            sails.config.customLogger.log('info', `externalAuth: Found existing doctor user with id ${user.id}.`, null, 'message');
           }
           const { token: newToken } = TokenService.generateToken(user);
           const returnUrl = validator.escape(req.query.returnUrl);
-          sails.config.customLogger.log('info', `externalAuth: User ${user.id} authenticated successfully.`);
+          sails.config.customLogger.log('info', `externalAuth: User ${user.id} authenticated successfully.`, null, 'server-action');
           return res.redirect(
             `${process.env.DOCTOR_URL}/app?tk=${newToken}${returnUrl ? `&returnUrl=${returnUrl}` : ''}`
           );
         } catch (error) {
-          sails.config.customLogger.log('error', `externalAuth: Error processing external authentication: ${error.message}`);
+          sails.config.customLogger.log('error', `externalAuth: Error processing external authentication: ${error.message}`, null, 'server-action');
           return res.status(500).json({ error: 'Unexpected error' });
         }
       }

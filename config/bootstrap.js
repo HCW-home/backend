@@ -70,9 +70,9 @@ module.exports.bootstrap = async function() {
     }
   }
 
-  sails.config.customLogger.log('info',"Starting template synchronization...");
+  sails.config.customLogger.log('verbose',"Starting template synchronization...");
   await syncTemplates();
-  sails.config.customLogger.log('info', "Template synchronization completed.");
+  sails.config.customLogger.log('verbose', "Template synchronization completed.");
 
 
   // check and delete expired files

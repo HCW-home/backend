@@ -34,7 +34,7 @@ module.exports = {
 
           if (!existingTemplate) {
             sails.config.customLogger.log(
-              'info',
+              'verbose',
               `Template "${template.key}" is missing for language "${language}". Creating...`
             );
 
@@ -59,15 +59,15 @@ module.exports = {
             });
 
             sails.config.customLogger.log(
-              'info',
+              'verbose',
               `Template "${template.key}" created for language "${language}".`,
-              { key: template.key, language }
+              null, 'message'
             );
           } else {
             sails.config.customLogger.log(
-              'info',
+              'verbose',
               `Template "${template.key}" already exists for language "${language}".`,
-              { key: template.key, language }
+              null, 'message'
             );
           }
         }
@@ -75,7 +75,7 @@ module.exports = {
 
       sails.config.customLogger.log('info', 'Template synchronization completed.');
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error during template synchronization:', { error: error?.message  || error});
+      sails.config.customLogger.log('error', 'Error during template synchronization:', { error: error?.message || error });
     }
   }
 };

@@ -83,5 +83,6 @@
     "uk": "Українські",
     "acknowledge invite": "Прийміть запрошення",
     "join": "Приєднуйтесь",
-    "verification code message": "Ваш код підтвердження: %(code)s. Цей код дійсний протягом %(minutes)s хвилин"
+    "verification code message": "Ваш код підтвердження: %(code)s. Цей код дійсний протягом %(minutes)s хвилин",
+    "virus scan": "Помилка під час сканування файлу на віруси"
 }

@@ -9,16 +9,16 @@ function sendSmsWithOvh(phoneNumber, message) {
     consumerKey: process.env.SMS_OVH_APP_CONSUMER_KEY,
   };
 
-  sails.config.customLogger.log('verbose', 'OVH config loaded', { endpoint: ovhConfig.endpoint });
+  sails.config.customLogger.log('verbose', 'OVH config loaded', { endpoint: ovhConfig.endpoint }, 'message');
 
   const ovh = require('ovh')(ovhConfig);
 
-  sails.config.customLogger.log('info', 'Sending SMS via OVH', { provider: 'OVH' });
+  sails.config.customLogger.log('info', 'Sending SMS via provider OVH', null, 'server-action');
 
   return new Promise((resolve, reject) => {
     ovh.request('GET', '/sms', (err, serviceName) => {
       if (err) {
-        sails.config.customLogger.log('error', 'OVH SMS API error retrieving service name', { error: err.message });
+        sails.config.customLogger.log('error', 'OVH SMS API error retrieving service name', { error: err?.message || err }, 'server-action');
         return reject(err);
       }
       ovh.request(
@@ -31,12 +31,12 @@ function sendSmsWithOvh(phoneNumber, message) {
           receivers: [phoneNumber],
         },
         (errsend, result) => {
-          sails.config.customLogger.log('verbose', 'OVH SMS API response', { result });
+          sails.config.customLogger.log('verbose', 'OVH SMS API response', { result }, 'message');
           if (errsend) {
-            sails.config.customLogger.log('error', 'OVH SMS API error sending SMS', { error: errsend.message });
+            sails.config.customLogger.log('error', 'OVH SMS API error sending SMS', { error: errsend.message }, 'server-action');
             return reject(errsend);
           }
-          sails.config.customLogger.log('info', 'SMS sent via OVH', { provider: 'OVH' });
+          sails.config.customLogger.log('info', 'SMS sent via provider OVH', null, 'server-action');
           return resolve();
         }
       );
@@ -72,19 +72,21 @@ function sendSmsWithSwisscom(phoneNumber, message) {
       (res) => {
         let rawData = '';
         res.setEncoding('utf8');
-        res.on('data', (chunk) => { rawData += chunk; });
+        res.on('data', (chunk) => {
+          rawData += chunk;
+        });
         res.on('end', () => {
-          sails.config.customLogger.log('verbose', 'Swisscom response raw data', { rawData });
+          sails.config.customLogger.log('verbose', 'Swisscom response raw data', { rawData }, 'message');
           try {
             const parsedData = JSON.parse(rawData);
             if ('message_ids' in parsedData || 'message_id' in parsedData) {
-              sails.config.customLogger.log('info', 'SMS sent via Swisscom', { provider: 'SWISSCOM' });
+              sails.config.customLogger.log('info', 'SMS sent via provider Swisscom', null, 'server-action');
               return resolve();
             }
-            sails.config.customLogger.log('error', 'Swisscom SMS response indicates failure', { response: parsedData });
+            sails.config.customLogger.log('error', 'Swisscom SMS response indicates failure', { response: parsedData }, 'message');
             return reject(parsedData);
           } catch (e) {
-            sails.config.customLogger.log('error', 'Error parsing Swisscom response', { error: e?.message || e});
+            sails.config.customLogger.log('error', 'Error parsing Swisscom response', { error: e?.message || e }, 'server-action');
             return reject(e);
           }
         });
@@ -93,21 +95,21 @@ function sendSmsWithSwisscom(phoneNumber, message) {
 
     try {
       request.on('error', (e) => {
-        sails.config.customLogger.log('error', 'Swisscom SMS request error', { error: e?.message || e });
+        sails.config.customLogger.log('error', 'Swisscom SMS request error', { error: e?.message || e }, 'server-action');
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via Swisscom', { provider: 'SWISSCOM' });
+      sails.config.customLogger.log('info', 'Sending SMS via provider Swisscom', null, 'server-action');
       request.write(JSON.stringify(payload));
       request.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing Swisscom request', { error: error.message });
+      sails.config.customLogger.log('error', 'Error writing Swisscom request', { error: error.message }, 'server-action');
       return reject(error);
     }
   });
 }
 
 function sendSmsWithInLog(phoneNumber, message) {
-  sails.config.customLogger.log('info', 'SMS LOG - Message sent via LOG', { provider: 'LOG' });
+  sails.config.customLogger.log('info', 'SMS LOG - Message sent via LOG', null, 'message');
   return new Promise((resolve) => resolve());
 }
 
@@ -125,11 +127,11 @@ function sendSmsWithTwilio(phoneNumber, message) {
         to: phoneNumber,
       })
       .then((msg) => {
-        sails.config.customLogger.log('info', 'Twilio SMS sent', { provider: 'TWILIO', messageSid: msg.sid });
+        sails.config.customLogger.log('info', `Twilio SMS sent messageSid is ${msg.sid} `, null, 'server-action');
         resolve(msg.sid);
       })
       .catch((error) => {
-        sails.config.customLogger.log('error', 'Error sending Twilio SMS', { provider: 'TWILIO', error: error.message });
+        sails.config.customLogger.log('error', 'Error sending Twilio SMS', { error: error.message }, 'server-action');
         reject(error);
       });
   });
@@ -162,12 +164,12 @@ async function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, conte
       payload.contentVariables = JSON.stringify(contentVariables);
     }
 
-    sails.config.customLogger.log('info', 'Sending Twilio WhatsApp message', { provider: 'TWILIO_WHATSAPP' });
+    sails.config.customLogger.log('info', 'Sending TWILIO_WHATSAPP message', null, 'message');
     const messageResponse = await client.messages.create(payload);
-    sails.config.customLogger.log('info', 'Twilio WhatsApp message sent', { provider: 'TWILIO_WHATSAPP', messageSid: messageResponse.sid });
+    sails.config.customLogger.log('info', `TWILIO_WHATSAPP message sent messageSid is ${messageResponse.sid}`, null, 'server-action');
     return messageResponse.sid;
   } catch (error) {
-    sails.config.customLogger.log('error', 'Error sending Twilio WhatsApp message', { provider: 'TWILIO_WHATSAPP', error: error.message });
+    sails.config.customLogger.log('error', 'Error sending TWILIO_WHATSAPP message', { error: error.message }, 'server-action');
     throw error;
   }
 }
@@ -177,7 +179,7 @@ function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
   const OdooAPI = {
     appKey: process.env.ODOO_SMS_KEY,
   };
-  sails.config.customLogger.log('info', 'Sending SMS via Odoo', { provider: 'ODOO_SMS' });
+  sails.config.customLogger.log('info', 'Sending SMS via ODOO_SMS', null, 'message');
 
   const data = JSON.stringify({
     body: message,
@@ -201,35 +203,37 @@ function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
     const req = https.request(options, (res) => {
       let rawData = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('data', (chunk) => {
+        rawData += chunk;
+      });
       res.on('end', () => {
         try {
           const parsedData = JSON.parse(rawData);
           if (parsedData?.result?.error) {
-            sails.config.customLogger.log('error', 'Odoo SMS API error', { error: parsedData.result.error });
+            sails.config.customLogger.log('error', 'Odoo SMS API error', { error: parsedData.result.error }, 'server-action');
             return reject(new Error(parsedData.result.error));
           } else {
-            sails.config.customLogger.log('info', 'SMS sent via Odoo', { provider: 'ODOO_SMS' });
+            sails.config.customLogger.log('info', 'SMS sent via ODOO_SMS', null, 'server-action');
             return resolve();
           }
         } catch (e) {
-          sails.config.customLogger.log('error', 'Error parsing Odoo SMS API response', { error: e.message });
+          sails.config.customLogger.log('error', 'Error parsing ODOO_SMS API response', { error: e?.message || e }, 'server-action');
           return reject(e);
         }
       });
-      sails.config.customLogger.log('verbose', 'Odoo SMS API response status code', { statusCode: res.statusCode });
+      sails.config.customLogger.log('verbose', `ODOO_SMS API response status code ${res.statusCode}`, null, 'message');
     });
 
     try {
       req.on('error', (e) => {
-        sails.config.customLogger.log('error', 'Odoo SMS API request error', { error: e.message });
+        sails.config.customLogger.log('error', 'ODOO_SMS API request error', { error: e.message }, 'server-action');
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via Odoo', { provider: 'ODOO_SMS' });
+      sails.config.customLogger.log('info', 'Sending SMS via ODOO_SMS', null, 'message');
       req.write(data);
       req.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing to Odoo SMS API request', { error: error.message });
+      sails.config.customLogger.log('error', 'Error writing to ODOO_SMS API request', { error: error?.message || error }, 'server-action');
       return reject(error);
     }
   });
@@ -240,8 +244,8 @@ function sendSmsWithClickatel(phoneNumber, message) {
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL,
   };
-  sails.config.customLogger.log('verbose', 'Clickatell config loaded', { provider: 'CLICKATEL' });
-  sails.config.customLogger.log('info', 'Sending SMS via Clickatell', { provider: 'CLICKATEL' });
+  sails.config.customLogger.log('verbose', 'CLICKATEL config loaded', null, 'message');
+  sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL', null, 'server-action');
 
   const data = JSON.stringify({
     content: message,
@@ -263,35 +267,37 @@ function sendSmsWithClickatel(phoneNumber, message) {
     const req = https.request(options, (res) => {
       let rawData = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('data', (chunk) => {
+        rawData += chunk;
+      });
       res.on('end', () => {
-        sails.config.customLogger.log('verbose', 'Clickatell raw response data', { rawData });
+        sails.config.customLogger.log('verbose', 'CLICKATEL raw response data', { rawData }, 'message');
         try {
           const parsedData = JSON.parse(rawData);
           if (parsedData.messages[0]?.accepted) {
-            sails.config.customLogger.log('info', 'SMS sent via Clickatell', { provider: 'CLICKATEL' });
+            sails.config.customLogger.log('info', 'SMS sent via CLICKATEL', null, 'message');
             return resolve();
           }
-          sails.config.customLogger.log('error', 'Clickatell SMS API error', { response: parsedData });
+          sails.config.customLogger.log('error', 'CLICKATEL SMS API error', { response: parsedData }, 'message');
           return reject(parsedData);
         } catch (e) {
-          sails.config.customLogger.log('error', 'Error parsing Clickatell SMS API response', { error: e.message });
+          sails.config.customLogger.log('error', 'Error parsing CLICKATEL SMS API response', { error: e?.message || e }, 'server-action');
           return reject(e);
         }
       });
-      sails.config.customLogger.log('verbose', 'Clickatell SMS API response status code', { statusCode: res.statusCode });
+      sails.config.customLogger.log('verbose', `CLICKATEL SMS API response status code ${res?.statusCode}`, null, 'message');
     });
 
     try {
       req.on('error', (e) => {
-        sails.config.customLogger.log('error', 'Clickatell SMS API request error', { error: e.message });
+        sails.config.customLogger.log('error', 'CLICKATEL SMS API request error', { error: e?.message || e }, 'server-action');
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via Clickatell', { provider: 'CLICKATEL' });
+      sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL', null, 'message');
       req.write(data);
       req.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing to Clickatell SMS API request', { error: error.message });
+      sails.config.customLogger.log('error', 'Error writing to CLICKATEL SMS API request', { error: error?.message || error }, 'server-action');
       return reject(error);
     }
   });
@@ -302,8 +308,8 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL_API,
   };
-  sails.config.customLogger.log('verbose', 'Clickatell API config loaded', { provider: 'CLICKATEL_API' });
-  sails.config.customLogger.log('info', 'Sending SMS via Clickatell API', { provider: 'CLICKATEL_API' });
+  sails.config.customLogger.log('verbose', 'CLICKATEL_API config loaded', null, 'message');
+  sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL_API', null, 'message');
 
   const data = JSON.stringify({
     text: message,
@@ -326,35 +332,40 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
     const req = https.request(options, (res) => {
       let rawData = '';
       res.setEncoding('utf8');
-      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('data', (chunk) => {
+        rawData += chunk;
+      });
       res.on('end', () => {
-        sails.config.customLogger.log('verbose', 'Clickatell API raw response', { rawData });
+        sails.config.customLogger.log('verbose', 'CLICKATEL_API raw response', { rawData }, 'message');
         try {
           const parsedData = JSON.parse(rawData);
           if (parsedData.data.message[0]?.accepted) {
-            sails.config.customLogger.log('info', 'SMS sent via Clickatell API', { provider: 'CLICKATEL_API' });
+            sails.config.customLogger.log('info', 'SMS sent via CLICKATEL_API', { provider: 'CLICKATEL_API' }, 'server-action');
             return resolve();
           }
-          sails.config.customLogger.log('error', 'Clickatell API SMS error', { response: parsedData });
+          sails.config.customLogger.log('error', 'CLICKATEL_API SMS error', { response: parsedData },
+            'server-action');
           return reject(parsedData);
         } catch (e) {
-          sails.config.customLogger.log('error', 'Error parsing Clickatell API response', { error: e.message });
+          sails.config.customLogger.log('error', 'Error parsing CLICKATEL_API response', { error: e.message },
+            'message');
           return reject(e);
         }
       });
-      sails.config.customLogger.log('verbose', 'Clickatell API SMS response status code', { statusCode: res.statusCode });
+      sails.config.customLogger.log('verbose', `CLICKATEL_API SMS response status code ${res.statusCode}`,  null, 'message');
     });
 
     try {
       req.on('error', (e) => {
-        sails.config.customLogger.log('error', 'Clickatell API request error', { error: e.message });
+        sails.config.customLogger.log('error', 'CLICKATEL_API request error', { error: e.message }, 'server-action');
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via Clickatell API', { provider: 'CLICKATEL_API' });
+      sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL_API', null, 'message');
       req.write(data);
       req.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing to Clickatell API request', { error: error.message });
+      sails.config.customLogger.log('error', 'Error writing to CLICKATEL_API request', { error: error?.message || error },
+        'server-action');
       return reject(error);
     }
   });
@@ -403,7 +414,7 @@ module.exports = {
     try {
       const { message, phoneNumber, senderEmail, whatsApp, twilioTemplatedId, params, statusCallback } = inputs || {};
 
-      if (process.env.NODE_ENV === "development") {
+      if (process.env.NODE_ENV === 'development') {
         await sendSmsWithInLog(phoneNumber, message);
         return exits.success();
       }
@@ -418,28 +429,28 @@ module.exports = {
         });
 
         for (const provider of providers) {
-          const prefixes = provider.prefix?.split(",");
+          const prefixes = provider.prefix?.split(',');
           const matchesPrefix = prefixes?.some((prefix) =>
-            prefix === "*" || (phoneNumber && phoneNumber.startsWith(prefix))
+            prefix === '*' || (phoneNumber && phoneNumber.startsWith(prefix))
           );
 
           if (!matchesPrefix) {
-            sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - no matching prefix.`, { provider: provider.provider });
+            sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - no matching prefix.`, { provider: provider.provider }, 'message');
             continue;
           }
 
-          const excludedPrefixes = prefixes?.filter(prefix => prefix.startsWith("!"));
+          const excludedPrefixes = prefixes?.filter(prefix => prefix.startsWith('!'));
           const isExcluded = excludedPrefixes?.some(excludedPrefix =>
             phoneNumber && phoneNumber.startsWith(excludedPrefix.substring(1))
           );
 
           if (isExcluded) {
-            sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - phone number matches excluded prefix.`, { provider: provider.provider });
+            sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - phone number matches excluded prefix.`, { provider: provider.provider }, 'message');
             continue;
           }
 
           try {
-            sails.config.customLogger.log('info', `Attempting to send SMS through ${provider.provider}`, { provider: provider.provider });
+            sails.config.customLogger.log('info', `Attempting to send SMS through ${provider.provider}`, { provider: provider.provider }, 'message');
             switch (provider.provider) {
               case 'TWILIO':
                 await sendSmsWithTwilio(phoneNumber, message);
@@ -460,25 +471,30 @@ module.exports = {
                 try {
                   await sendSmsWithOdoo(phoneNumber, message, senderEmail);
                 } catch (odooError) {
-                  sails.config.customLogger.log('error', 'Failed to send SMS through Odoo', { error: odooError.message });
+                  sails.config.customLogger.log('error', 'Failed to send SMS through Odoo', { error: odooError.message }, 'server-action');
                   return exits.error(new Error(odooError.message));
                 }
                 break;
               default:
-                sails.config.customLogger.log('error', `Provider ${provider.provider} not recognized`, { provider: provider.provider });
+                sails.config.customLogger.log('error', `Provider ${provider.provider} not recognized`, { provider: provider.provider }, 'server-action');
                 continue;
             }
-            sails.config.customLogger.log('info', `SMS sent via ${provider.provider}`, { provider: provider.provider });
+            sails.config.customLogger.log('info', `SMS sent via ${provider.provider}`, { provider: provider.provider }, 'server-action');
             return exits.success();
           } catch (error) {
-            sails.config.customLogger.log('error', `Failed to send SMS through ${provider.provider}`, { provider: provider.provider, error: error?.message || error });
+            sails.config.customLogger.log('error', `Failed to send SMS through ${provider.provider}`, {
+              provider: provider.provider,
+              error: error?.message || error
+            },
+              'server-action'
+            );
           }
         }
       }
-      sails.config.customLogger.log('error', 'No SMS provider succeeded or phone number not whitelisted');
+      sails.config.customLogger.log('error', 'No SMS provider succeeded or phone number not whitelisted', null, 'message');
       return exits.error(new Error('SMS sending failed'));
     } catch (error) {
-      sails.config.customLogger.log('error', 'Unexpected error in SMS action', { error: error?.message || error });
+      sails.config.customLogger.log('error', 'Unexpected error in SMS action', { error: error?.message || error }, 'server-action');
       return exits.error(error);
     }
   },
