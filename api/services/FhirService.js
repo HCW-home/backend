@@ -180,7 +180,7 @@ module.exports = {
       role: {in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN]}
     });
 
-    if (!foundedDoctorWithSameEmail) {
+    if (!foundedDoctorWithSameEmail.length) {
       throw new Error('Doctor not found');
     }
 
@@ -188,6 +188,7 @@ module.exports = {
       firstName: name?.given?.[0],
       lastName: name?.family,
       email: emailDoctor,
+      doctor: foundedDoctorWithSameEmail[0].id,
     };
   },
 
@@ -205,7 +206,7 @@ module.exports = {
     }
   },
 
-  serializeAppointmentToInvite: function ({firstName, lastName, email, appointmentData, metadata}) {
+  serializeAppointmentToInvite: function ({firstName, lastName, email, appointmentData, metadata, doctor}) {
     return {
       firstName: firstName || 'Unknown',
       lastName: lastName || 'Unknown',
@@ -214,6 +215,8 @@ module.exports = {
       fhirData: appointmentData,
       type: 'PATIENT',
       metadata: metadata || null,
+      doctor,
+      status: 'accepted',
     }
   },
 

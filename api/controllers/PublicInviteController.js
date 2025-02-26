@@ -52,7 +52,7 @@ module.exports = {
     try {
       const appointmentData = req.body;
 
-      const {firstName, lastName, email} = await FhirService.validateAppointmentData(appointmentData);
+      const {firstName, lastName, email, doctor} = await FhirService.validateAppointmentData(appointmentData);
 
       const metadata = FhirService.createAppointmentMetadata(appointmentData)
       const inviteData = FhirService.serializeAppointmentToInvite({
@@ -60,8 +60,10 @@ module.exports = {
         lastName,
         email,
         appointmentData,
-        metadata
+        metadata,
+        doctor
       });
+      console.log('inviteData', inviteData)
 
       const newInvite = await PublicInvite.create(inviteData).fetch();
 
