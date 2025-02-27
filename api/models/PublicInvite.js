@@ -188,7 +188,6 @@ module.exports = {
       type: 'json',
       required: false,
     },
-
   },
 
   async beforeCreate(obj, proceed) {

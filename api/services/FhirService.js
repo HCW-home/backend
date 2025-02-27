@@ -73,9 +73,9 @@ module.exports = {
       throw new Error('Field "cancellationDate" is not allowed');
     }
 
-    /** note: must return error if defined **/
+    /** note: must return error if defined more than one **/
     if (appointmentData?.note?.length > 1) {
-      throw new Error('Field "note" is not allowed');
+      throw new Error('Allowed only 1 "note"');
     }
 
     /** reason: must return error if defined **/
@@ -170,6 +170,8 @@ module.exports = {
     if (!hasEmailOrSms) {
       throw new Error('Patient telecom must include at least email or SMS');
     }
+    const patientTelecomEmail = foundedPatientActor?.telecom?.find((contact) => contact?.system === 'email');
+    const patientTelecomSms = foundedPatientActor?.telecom?.find((contact) => contact?.system === 'sms');
 
     /** Practitioner **/
     const foundedDoctorEmailObject = foundedDoctorActor?.telecom?.find((contact) => contact.system === 'email');
@@ -187,12 +189,13 @@ module.exports = {
     return {
       firstName: name?.given?.[0],
       lastName: name?.family,
-      email: emailDoctor,
+      emailAddress: patientTelecomEmail?.value,
+      phoneNumber: patientTelecomSms?.value,
       doctor: foundedDoctorWithSameEmail[0].id,
     };
   },
 
-  serializeAppointmentPatientToUser: async function ({firstName, lastName, email, username, inviteToken}) {
+  serializeAppointmentPatientToUser: async function ({firstName, lastName, email, phoneNumber, username, inviteToken}) {
     return {
       username: username,
       firstName: firstName,
@@ -201,21 +204,31 @@ module.exports = {
       password: '',
       temporaryAccount: true,
       email: email,
+      phoneNumber: phoneNumber,
       inviteToken: inviteToken,
       direct: "",
     }
   },
 
-  serializeAppointmentToInvite: function ({firstName, lastName, email, appointmentData, metadata, doctor}) {
+  serializeAppointmentToInvite: function ({
+                                            firstName,
+                                            lastName,
+                                            appointmentData,
+                                            metadata,
+                                            doctor,
+                                            emailAddress,
+                                            phoneNumber
+                                          }) {
     return {
       firstName: firstName || 'Unknown',
       lastName: lastName || 'Unknown',
-      emailAddress: email || 'example@example.com',
       scheduledFor: new Date(appointmentData.start).getTime() || undefined,
       fhirData: appointmentData,
       type: 'PATIENT',
       metadata: metadata || null,
       doctor,
+      emailAddress,
+      phoneNumber,
     }
   },
 
@@ -225,6 +238,10 @@ module.exports = {
     }
 
     const metadata = {}
+
+    if (appointmentData?.note?.[0]?.text) {
+      metadata.note = appointmentData.note[0].text;
+    }
 
     if (appointmentData?.minutesDuration) {
       metadata.minutesDuration = appointmentData.minutesDuration;

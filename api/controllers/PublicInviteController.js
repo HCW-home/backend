@@ -14,7 +14,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
       );
 
       if (isExcluded) {
-        sails.config.customLogger.log('info',`Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+        sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
         continue;
       }
 
@@ -24,7 +24,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
           language: whatsappConfig?.language,
           approvalStatus: 'approved',
           key: whatsappConfig?.type,
-          sid: { '!=': null },
+          sid: {'!=': null},
         });
 
         if (provider.provider.includes('WHATSAPP') && whatsappTemplate) {
@@ -51,19 +51,24 @@ module.exports = {
   async createFhirAppointment(req, res) {
     try {
       const appointmentData = req.body;
-
-      const {firstName, lastName, email, doctor} = await FhirService.validateAppointmentData(appointmentData);
+      const {
+        firstName,
+        lastName,
+        doctor,
+        emailAddress,
+        phoneNumber
+      } = await FhirService.validateAppointmentData(appointmentData);
 
       const metadata = FhirService.createAppointmentMetadata(appointmentData)
       const inviteData = FhirService.serializeAppointmentToInvite({
         firstName,
         lastName,
-        email,
         appointmentData,
         metadata,
-        doctor
+        doctor,
+        emailAddress,
+        phoneNumber,
       });
-      console.log('inviteData', inviteData)
 
       const newInvite = await PublicInvite.create(inviteData).fetch();
 
@@ -71,7 +76,8 @@ module.exports = {
       const userData = await FhirService.serializeAppointmentPatientToUser({
         firstName: firstName,
         lastName: lastName,
-        email: email,
+        email: emailAddress,
+        phoneNumber: phoneNumber,
         username: newInvite.id,
         inviteToken: newInvite.id,
       })
@@ -105,12 +111,114 @@ module.exports = {
         inviteToken: inviteToken,
       });
 
+      const patient = await User.findOne({
+        inviteToken: publicInvite.id,
+      });
+
+      const doctor = await User.findOne({
+        id: publicInvite.doctor,
+        role: {in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN]}
+      });
 
       if (!publicInvite) {
         return res.status(404).json({error: 'Appointment not found'});
       }
 
-      return res.status(200).json(publicInvite);
+      const appointmentPatient = {
+        id: patient.id,
+        resourceType: "Patient",
+        telecom: [
+          {
+            "rank": 1,
+            "system": "email",
+            "value": patient.email,
+          },
+          {
+            "rank": 2,
+            "system": "sms",
+            "value": patient.phoneNumber,
+          }
+        ],
+        name: [
+          {
+            use: "usual",
+            family: patient.lastName,
+            given: [
+              patient.firstName
+            ]
+          },
+        ],
+      }
+
+      const appointmentDoctor = {
+        id: doctor.id,
+        resourceType: "Practitioner",
+        telecom: [
+          {
+            rank: 1,
+            system: "email",
+            value: doctor.email,
+          }
+        ],
+      }
+
+      const appointment = {
+        resourceType: "Appointment",
+        status: publicInvite.status,
+        description: "15-minute consultation",
+        participant: [
+          {
+            status: publicInvite.status,
+            actor: {
+              reference: appointmentPatient,
+              display: `${publicInvite.firstName} ${publicInvite.lastName}`
+            }
+          },
+          {
+            status: "ACCEPTED",
+            actor: {
+              reference: appointmentDoctor,
+              display: `${doctor.firstName} ${doctor.lastName}`
+            }
+          }
+        ]
+      }
+
+      if (publicInvite.scheduledFor) {
+        appointment.start = new Date(publicInvite.scheduledFor).toISOString()
+      }
+
+      if (publicInvite?.metadata?.note) {
+        appointment.note = [{text: publicInvite?.metadata?.note}]
+      }
+
+      if (publicInvite?.metadata?.minutesDuration) {
+        appointment.minutesDuration = publicInvite?.metadata?.minutesDuration
+      }
+
+      if (publicInvite?.metadata?.end) {
+        appointment.end = publicInvite?.metadata?.end;
+      }
+
+      if (publicInvite?.metadata?.description) {
+        appointment.description = publicInvite?.metadata?.description;
+      }
+
+      if (publicInvite?.metadata?.reason) {
+        appointment.reason = [{
+          reference: {
+            display: publicInvite?.metadata?.reason
+          }
+        }]
+      }
+
+      if (publicInvite?.metadata?.identifier) {
+        appointment.identifier = [{
+          value: publicInvite?.metadata?.identifier
+        }]
+      }
+
+      return res.status(200).json(appointment);
     } catch (error) {
       return res.status(500).json({error: 'An error occurred', details: error.message});
     }
