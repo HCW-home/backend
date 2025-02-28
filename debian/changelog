@@ -1,3 +1,12 @@
+hcw-athome-backend (0.5.43) UNRELEASED; urgency=medium
+
+  * add more logs for consultation controller
+  * add more verbose logs
+  * add more verbose logs
+  * handle scheduledFor and createdAt in expiration logic for invites
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 28 Feb 2025 15:30:41 +0000
+
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
   [ Gor Grigoryan ]
