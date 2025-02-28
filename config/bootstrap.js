@@ -70,9 +70,9 @@ module.exports.bootstrap = async function() {
     }
   }
 
-  sails.config.customLogger.log('verbose',"Starting template synchronization...");
+  sails.config.customLogger.log('verbose',"Starting template synchronization...", null, 'message');
   await syncTemplates();
-  sails.config.customLogger.log('verbose', "Template synchronization completed.");
+  sails.config.customLogger.log('verbose', "Template synchronization completed.", null, 'message');
 
 
   // check and delete expired files
@@ -90,7 +90,7 @@ module.exports.bootstrap = async function() {
           fs.unlink(`${sails.config.globals.attachmentsDir}/${filePath}`, err => {
 
             if (err) {
-              sails.config.customLogger.log('error','Error deleting file ', err);
+              sails.config.customLogger.log('error','Error deleting file ', err, 'server-action');
             }
 
           });
