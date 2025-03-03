@@ -8,10 +8,10 @@ module.exports = {
 
     Model.count(criteria).exec((error, count) => {
       if (error) {
-        sails.config.customLogger.log('error', 'Error in count action', { error: error?.message || error }, 'server-action');
+        sails.config.customLogger.log('error', 'Error in count action', { error: error?.message || error }, 'server-action', request.user?.id);
         return response.negotiate(error);
       } else {
-        sails.config.customLogger.log('info', 'Count result', { count }, 'message');
+        sails.config.customLogger.log('info', `Count result ${count}`, null, 'message', request.user?.id);
         return response.ok({ count });
       }
     });
