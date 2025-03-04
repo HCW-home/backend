@@ -21,7 +21,7 @@ function createParamsFromJson(args) {
   const templateConfig = TwilioWhatsappConfigLanguage?.[type];
 
   if (!templateConfig) {
-    sails.config.customLogger.log('warn',`No template configuration found for type: ${type}`);
+    sails.config.customLogger.log('warn',`No template configuration found for type: ${type}`, null, 'message', null);
     return {};
   }
 

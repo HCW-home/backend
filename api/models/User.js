@@ -117,16 +117,16 @@ module.exports = {
     return new Promise((resolve, reject) => {
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
-          sails.config.customLogger.log('error', 'Error generating salt', { error: err?.message || err }, 'server-action');
+          sails.config.customLogger.log('error', 'Error generating salt', { error: err?.message || err }, 'server-action', null);
           return reject(err);
         }
-        sails.config.customLogger.log('verbose', 'Salt generated successfully', null, 'message');
+        sails.config.customLogger.log('verbose', 'Salt generated successfully', null, 'message', null);
         bcrypt.hash(clearPassword, salt, (err, hash) => {
           if (err) {
-            sails.config.customLogger.log('error', 'Error encrypting password', { error: err?.message || err }, 'server-action');
+            sails.config.customLogger.log('error', 'Error encrypting password', { error: err?.message || err }, 'server-action', null);
             return reject(err);
           }
-          sails.config.customLogger.log('info', 'Password encrypted successfully', null, 'message');
+          sails.config.customLogger.log('info', 'Password encrypted successfully', null, 'message',null);
           resolve(hash);
         });
       });
@@ -138,36 +138,36 @@ module.exports = {
   },
 
   async beforeCreate(user, cb) {
-    sails.config.customLogger.log('verbose', 'User beforeCreate hook triggered', { userId: user.id || 'new user' }, 'message');
+    sails.config.customLogger.log('verbose', 'User beforeCreate hook triggered', { userId: user.id || 'new user' }, 'message', null);
     try {
       if (!user.password) {
-        sails.config.customLogger.log('info', 'User beforeCreate: No password provided, skipping password hashing', null, 'message');
+        sails.config.customLogger.log('info', 'User beforeCreate: No password provided, skipping password hashing', null, 'message', null);
         return cb();
       }
       const existing = await User.findOne({ email: user.email });
       if (existing) {
-        sails.config.customLogger.log('error', 'User beforeCreate: Email already used', null, 'message');
+        sails.config.customLogger.log('error', 'User beforeCreate: Email already used', null, 'message', null);
         return cb({
           message: 'Email already used'
         });
       }
       bcrypt.genSalt(10, (err, salt) => {
         if (err) {
-          sails.config.customLogger.log('error', 'User beforeCreate: Error generating salt', { error: err?.message || err }, 'server-action');
+          sails.config.customLogger.log('error', 'User beforeCreate: Error generating salt', { error: err?.message || err }, 'server-action', null);
           return cb(err);
         }
         bcrypt.hash(user.password, salt, (err, hash) => {
           if (err) {
-            sails.config.customLogger.log('error', 'User beforeCreate: Error hashing password', { error: err?.message || err }, 'server-action');
+            sails.config.customLogger.log('error', 'User beforeCreate: Error hashing password', { error: err?.message || err }, 'server-action', null);
             return cb(err);
           }
           user.password = hash;
-          sails.config.customLogger.log('info', 'User beforeCreate: Password hashed successfully', null, 'message');
+          sails.config.customLogger.log('info', 'User beforeCreate: Password hashed successfully', null, 'message', null);
           return cb();
         });
       });
     } catch (error) {
-      sails.config.customLogger.log('error', 'User beforeCreate: Unexpected error', { error: error.message }, 'server-action');
+      sails.config.customLogger.log('error', 'User beforeCreate: Unexpected error', { error: error.message }, 'server-action', null);
       return cb(error);
     }
   },
@@ -176,19 +176,19 @@ module.exports = {
     try {
       if (valuesToSet.email) {
         if (valuesToSet.password) {
-          sails.config.customLogger.log('verbose', 'User beforeUpdate: Password update detected, hashing password', null, 'message');
+          sails.config.customLogger.log('verbose', 'User beforeUpdate: Password update detected, hashing password', null, 'message', null);
           bcrypt.genSalt(10, (err, salt) => {
             if (err) {
-              sails.config.customLogger.log('error', 'User beforeUpdate: Error generating salt for password update', { error: err?.message || err}, 'server-action');
+              sails.config.customLogger.log('error', 'User beforeUpdate: Error generating salt for password update', { error: err?.message || err}, 'server-action', null);
               return proceed(err);
             }
             bcrypt.hash(valuesToSet.password, salt, (err, hash) => {
               if (err) {
-                sails.config.customLogger.log('error', 'User beforeUpdate: Error hashing updated password', { error: err?.message || err }, 'server-action');
+                sails.config.customLogger.log('error', 'User beforeUpdate: Error hashing updated password', { error: err?.message || err }, 'server-action', null);
                 return proceed(err);
               }
               valuesToSet.password = hash;
-              sails.config.customLogger.log('info', 'User beforeUpdate: Password updated successfully', null, 'message');
+              sails.config.customLogger.log('info', 'User beforeUpdate: Password updated successfully', null, 'message', null);
               checkDuplicateEmail();
             });
           });
@@ -199,7 +199,7 @@ module.exports = {
         async function checkDuplicateEmail() {
           const currentUser = valuesToSet.id ? await User.findOne({ id: valuesToSet.id }) : null;
           if (currentUser && currentUser.email === valuesToSet.email) {
-            sails.config.customLogger.log('verbose', 'User beforeUpdate: Email unchanged', null, 'message');
+            sails.config.customLogger.log('verbose', 'User beforeUpdate: Email unchanged', null, 'message', null);
             return proceed();
           }
           const existingUsers = await User.find({
@@ -207,21 +207,21 @@ module.exports = {
             id: { '!=': valuesToSet.id }
           });
           if (existingUsers.length > 0) {
-            sails.config.customLogger.log('error', 'User beforeUpdate: Duplicate email found', null, 'message');
+            sails.config.customLogger.log('error', 'User beforeUpdate: Duplicate email found', null, 'message', null);
             const err = new Error('Email have already been used');
             err.name = 'DUPLICATE_EMAIL';
             err.code = 400;
             return proceed(err);
           }
-          sails.config.customLogger.log('verbose', 'User beforeUpdate: Email validation passed', null, 'message');
+          sails.config.customLogger.log('verbose', 'User beforeUpdate: Email validation passed', null, 'message', null);
           return proceed();
         }
       } else {
-        sails.config.customLogger.log('verbose', 'User beforeUpdate: No email update detected, proceeding', null, 'message');
+        sails.config.customLogger.log('verbose', 'User beforeUpdate: No email update detected, proceeding', null, 'message', null);
         proceed();
       }
     } catch (e) {
-      sails.config.customLogger.log('error', 'User beforeUpdate: Unexpected error', { error: e?.message }, 'server-action');
+      sails.config.customLogger.log('error', 'User beforeUpdate: Unexpected error', { error: e?.message }, 'server-action', null);
       return proceed(e);
     }
   }

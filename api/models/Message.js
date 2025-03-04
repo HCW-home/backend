@@ -64,10 +64,7 @@ module.exports = {
   },
 
   async endCall(message, consultation, reason) {
-    sails.config.customLogger.log('info', 'End call triggered', {
-      consultationId: consultation.id,
-      messageId: message.id
-    }, 'server-action');
+    sails.config.customLogger.log('info', `End call triggered consultationId ${consultation.id} messageId ${message.id}`, null, 'server-action');
     await Message.updateOne({
       id: message.id,
       consultation: consultation.id,
@@ -79,10 +76,7 @@ module.exports = {
     const consultationParticipants = await Consultation.getConsultationParticipants(consultation);
 
     consultationParticipants.forEach((participant) => {
-      sails.config.customLogger.log('info', 'Broadcasting endCall event', {
-        participantId: participant,
-        consultationId: consultation.id
-      }, 'server-action');
+      sails.config.customLogger.log('info', `Broadcasting endCall event participantId ${participant} consultationId ${consultation.id}`, null, 'server-action');
       sails.sockets.broadcast(participant, 'endCall', {
         data: {
           reason,
@@ -103,7 +97,7 @@ module.exports = {
           role: user.role,
           id: user.id,
         };
-        sails.config.customLogger.log('info', `Message beforeCreate: Added user details for MongoID: ${user.id}`, 'message');
+        sails.config.customLogger.log('info', `Message beforeCreate: Added user details for MongoID: ${user.id}`, null,'message');
       }
       return proceed();
     } catch (error) {
@@ -133,23 +127,23 @@ module.exports = {
       id: user.id,
     };
 
-    sails.config.customLogger.log('info', 'Broadcasting newMessage event', { roomNames }, 'server-action');
+    sails.config.customLogger.log('info', `Broadcasting newMessage event to roomNames ${roomNames}`, null, 'server-action');
     sails.sockets.broadcast(roomNames, 'newMessage', {
       data: { ...message, fromUserDetail },
     });
 
     if (message.type === 'audioCall' || message.type === 'videoCall') {
-      sails.config.customLogger.log('info', 'Broadcasting newMessage event for call type', { userId: message.from }, 'server-action');
+      sails.config.customLogger.log('info', `Broadcasting newMessage event for call type userId ${message.from}`, null, 'server-action');
       sails.sockets.broadcast(message.from, 'newMessage', { data: message });
 
-      sails.config.customLogger.log('info', 'Scheduling RINGING_TIMEOUT helper', { messageId: message.id }, 'server-action');
+      sails.config.customLogger.log('info', `Scheduling RINGING_TIMEOUT helper messageId ${message.id}`, null, 'server-action');
       await sails.helpers.schedule.with({
         name: 'RINGING_TIMEOUT',
         data: { message, consultation },
         time: new Date(Date.now() + RINGING_TIMEOUT),
       });
 
-      sails.config.customLogger.log('info', 'Scheduling DURATION_TIMEOUT helper', { messageId: message.id }, 'server-action');
+      sails.config.customLogger.log('info', `Scheduling DURATION_TIMEOUT helper messageId ${message.id}`, null, 'server-action');
       await sails.helpers.schedule.with({
         name: 'DURATION_TIMEOUT',
         data: { message },
@@ -169,7 +163,7 @@ module.exports = {
         !consultation.flagPatientOnline &&
         !consultation.flagPatientNotified
       ) {
-        sails.config.customLogger.log('info', 'Updating public invite status to SENT', { inviteToken: consultation.invitationToken }, 'server-action');
+        sails.config.customLogger.log('info', `Updating public invite status to SENT inviteToken ${consultation.invitationToken}`, null, 'server-action');
         await PublicInvite.updateOne({
           inviteToken: consultation.invitationToken,
         }).set({ status: 'SENT' });
@@ -181,7 +175,7 @@ module.exports = {
           toUser.email &&
           toUser.role === sails.config.globals.ROLE_NURSE
         ) {
-          sails.config.customLogger.log('info', 'Sending email notification to nurse', { email: toUser.email }, 'server-action');
+          sails.config.customLogger.log('info', `Sending email notification to nurse ${toUser.email}`, null, 'server-action');
           await sails.helpers.email.with({
             to: toUser.email,
             subject: sails._t(locale, 'notification for offline action subject', { branding: process.env.BRANDING }),
@@ -192,7 +186,7 @@ module.exports = {
             flagPatientNotified: true,
           });
         } else if (publicInvite.emailAddress) {
-          sails.config.customLogger.log('info', 'Sending email notification to patient', { email: publicInvite.emailAddress }, 'server-action');
+          sails.config.customLogger.log('info', `Sending email notification to patient ${publicInvite.emailAddress}`, null, 'server-action');
           await sails.helpers.email.with({
             to: publicInvite.emailAddress,
             subject: sails._t(locale, 'notification for offline action subject', { branding: process.env.BRANDING }),
@@ -208,7 +202,7 @@ module.exports = {
           toUser.phoneNumber &&
           toUser.role === sails.config.globals.ROLE_NURSE
         ) {
-          sails.config.customLogger.log('info', 'Sending SMS notification to nurse', { phoneNumber: toUser.phoneNumber }, 'server-action');
+          sails.config.customLogger.log('info', `Sending SMS notification to nurse ${toUser.phoneNumber}`, null, 'server-action');
           await sails.helpers.sms.with({
             phoneNumber: toUser.phoneNumber,
             message: sails._t(locale, 'notification for offline action text for nurse'),
@@ -241,7 +235,7 @@ module.exports = {
               if (template && template.sid) {
                 const twilioTemplatedId = template.sid;
                 const params = {};
-                sails.config.customLogger.log('info', 'Sending WhatsApp SMS to doctor', { phoneNumber: toUser.notifPhoneNumber }, 'server-action');
+                sails.config.customLogger.log('info', `Sending WhatsApp SMS to doctor ${toUser.notifPhoneNumber}`, null, 'server-action');
                 await sails.helpers.sms.with({
                   phoneNumber: toUser?.notifPhoneNumber,
                   message: sails._t(doctorLang, 'notification for offline action text for doctor'),
@@ -255,7 +249,7 @@ module.exports = {
               }
             }
           } else {
-            sails.config.customLogger.log('info', 'Sending SMS notification to doctor', { phoneNumber: toUser.notifPhoneNumber }, 'server-action');
+            sails.config.customLogger.log('info', `Sending SMS notification to doctor ${toUser.notifPhoneNumber}`, null, 'server-action');
             await sails.helpers.sms.with({
               phoneNumber: toUser?.notifPhoneNumber,
               message: sails._t(doctorLang, 'notification for offline action text for doctor'),
@@ -266,7 +260,7 @@ module.exports = {
             flagDoctorNotified: true,
           });
         } else if (toUser?.email) {
-          sails.config.customLogger.log('info', 'Sending email notification to doctor', { email: toUser.email }, 'server-action');
+          sails.config.customLogger.log('info', `Sending email notification to doctor ${toUser.email}`, null, 'server-action');
           await sails.helpers.email.with({
             to: toUser.email,
             subject: sails._t(doctorLang, 'notification for offline action subject', { branding: process.env.BRANDING }),

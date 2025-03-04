@@ -7,7 +7,7 @@ module.exports = function (req, res) {
     try {
       inviteId = JSON.parse(req.query.where).invite;
     } catch (err) {
-      sails.config.customLogger.log('error', 'Invalid where parameter for invite ID', { error: err?.message || err});
+      sails.config.customLogger.log('error', 'Invalid where parameter for invite ID', { error: err?.message || err}, 'message', req.user?.id);
       return res.badRequest('invalid where parameter');
     }
   }
