@@ -4,8 +4,11 @@ hcw-athome-backend (0.5.43) UNRELEASED; urgency=medium
   * add more verbose logs
   * add more verbose logs
   * handle scheduledFor and createdAt in expiration logic for invites
+  * add user id in logs for  consultation and auth controller
+  * add user id in logs for helpers and controllers
+  * add user id in logs for models and policies
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 28 Feb 2025 15:30:41 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 05 Mar 2025 11:55:55 +0000
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
