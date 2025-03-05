@@ -339,7 +339,7 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
         sails.config.customLogger.log('verbose', `CLICKATEL_API raw response ${rawData}`, null, 'message', null);
         try {
           const parsedData = JSON.parse(rawData);
-          if (parsedData.data.message[0]?.accepted) {
+          if (parsedData.data?.message?.[0]?.accepted || parsedData.data?.messages?.[0]?.accepted) {
             sails.config.customLogger.log('info', 'SMS sent via CLICKATEL_API', null, 'server-action', null);
             return resolve();
           }
