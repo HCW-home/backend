@@ -274,7 +274,7 @@ function sendSmsWithClickatel(phoneNumber, message) {
         sails.config.customLogger.log('verbose', `CLICKATEL raw response data ${rawData}`, null, 'message', null);
         try {
           const parsedData = JSON.parse(rawData);
-          if (parsedData.messages[0]?.accepted) {
+          if (parsedData?.messages?.[0]?.accepted) {
             sails.config.customLogger.log('info', 'SMS sent via CLICKATEL', null, 'message', null);
             return resolve();
           }
