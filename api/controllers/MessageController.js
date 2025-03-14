@@ -6,18 +6,29 @@
  */
 
 module.exports = {
-  // set all messages belonging to req.params.consultation
   async readMessages(req, res) {
-    const msgs = await Message.update({
-      consultation: req.params.consultation,
-      or: [{ to: req.user.id }, { to: null }],
-      read: false,
-    }).set({
-      read: true,
-    });
+    const consultationId = req.params.consultation;
 
-    res.status(200);
-    res.json({ message: "success", msgs });
+    if (
+      typeof consultationId !== 'string' ||
+      consultationId.trim().length === 0
+    ) {
+      return res.badRequest({ error: 'Invalid consultation ID.' });
+    }
+
+    try {
+      const msgs = await Message.update({
+        consultation: consultationId,
+        or: [{ to: req.user.id }, { to: null }],
+        read: false,
+      }).set({
+        read: true,
+      });
+
+      return res.status(200).json({ message: 'success', msgs });
+    } catch (err) {
+      return res.serverError(err.message);
+    }
   },
 
   /**
@@ -30,29 +41,27 @@ module.exports = {
    *
    */
   async create(req, res) {
-    // Only text and consultation are allowed in the post
-    const msgBody = _.pick(req.body, ["text", "consultation", "to"]);
+    const msgBody = {
+      text: typeof req.body.text === 'string' && req.body.text.length
+        ? req.body.text.trim()
+        : null,
+      consultation: req.body.consultation,
+      to: req.body.to || null,
+      type: 'text',
+      from: req.user.id,
+    };
 
-    // Message sent are only textual and "from" is the current authenticated user
-    msgBody.type = "text";
-    msgBody.from = req.user.id;
-
-    // Handle errors in the posted data
-    const errors = {};
-    if (!msgBody.text) {
-      errors["text"] = "Should not be blank";
+    try {
+      const msg = await Message.create(msgBody).fetch();
+      return res.status(200).json(msg);
+    } catch (err) {
+      if (err.name === 'UsageError') {
+        return res.badRequest({
+          error: 'Validation failed',
+          details: err.message,
+        });
+      }
+      return res.serverError(err.message);
     }
-
-    if (Object.keys(errors).length) {
-      res.status(400);
-      return res.json(errors);
-    }
-
-    // Create the message in the database
-    const msg = await Message.create(msgBody).fetch();
-
-    // Send back the new message in the api response
-    res.status(200);
-    res.json(msg);
-  },
+  }
 };

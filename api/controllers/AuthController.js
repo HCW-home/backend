@@ -193,7 +193,7 @@ module.exports = {
     const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
     if (headersErrors) {
       sails.config.customLogger.log('warn', 'Invalid headers in loginLocal.', null, 'message', null);
-      return res.status(400).json({ success: false, message: headersErrors.details });
+      return res.status(400).json({ success: false, message: 'Invalid request headers' });
     }
     const locale = headers.locale || i18n.defaultLocale;
     const isLoginLocalAllowed = await canLoginLocal(req);
@@ -283,7 +283,7 @@ module.exports = {
       sails.config.customLogger.log('warn', 'Invalid headers in loginSms.', null, 'message', null);
       return res.status(400).json({
         success: false,
-        message: headersErrors.details,
+        message: 'Invalid request headers',
       });
     }
     const locale = headers.locale || i18n.defaultLocale;
@@ -335,7 +335,7 @@ module.exports = {
     const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
     if (headersErrors) {
       sails.config.customLogger.log('warn', 'Invalid headers in login2FA.', null, 'message', null);
-      return res.status(400).json({ success: false, message: headersErrors.details });
+      return res.status(400).json({ success: false, message: 'Invalid request headers' });
     }
     const locale = headers.locale || i18n.defaultLocale;
     passport.authenticate('2FA', (err, user, info = {}) => {

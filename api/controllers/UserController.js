@@ -2,8 +2,14 @@ const validator = require("validator");
 const sanitize = require('mongo-sanitize');
 
 module.exports = {
-  ip(req, res) {
-    res.json({ ip: sanitize(req.ip) });
+  ip: async function (req, res) {
+    const ip = req.ip;
+    if (typeof ip !== 'string' || ip.length > 100) {
+      return res.badRequest({ error: 'Invalid IP address.' });
+    }
+
+    const escapedIp = await sails.helpers.escapeString(ip);
+    return res.json({ ip: escapedIp });
   },
 
   async addDoctorToQueue(req, res) {
@@ -51,16 +57,51 @@ module.exports = {
   },
 
   async getDoctorQueues(req, res) {
-    const user = await User.findOne({ id: req.params.user }).populate(
-      "allowedQueues"
-    );
+    const userId = req.params.user;
 
-    return res.status(200).json(user.allowedQueues);
+    if (
+      typeof userId !== 'string' ||
+      userId.trim().length === 0 ||
+      userId.length > 64
+    ) {
+      return res.badRequest({ error: 'Invalid user ID.' });
+    }
+
+    try {
+      const user = await User.findOne({ id: userId }).populate('allowedQueues');
+
+      if (!user) {
+        return res.notFound({ error: 'User not found.' });
+      }
+
+      return res.status(200).json(user.allowedQueues);
+    } catch (err) {
+      return res.serverError(err.message);
+    }
   },
 
   async getUser(req, res) {
-    const user = await User.findOne({ id: req.params.user });
-    return res.status(200).json(user);
+    const userId = req.params.user;
+
+    if (
+      typeof userId !== 'string' ||
+      userId.trim().length === 0 ||
+      userId.length > 64
+    ) {
+      return res.badRequest({ error: 'Invalid user ID.' });
+    }
+
+    try {
+      const user = await User.findOne({ id: userId });
+
+      if (!user) {
+        return res.notFound({ error: 'User not found.' });
+      }
+
+      return res.status(200).json(user);
+    } catch (err) {
+      return res.serverError(err.message);
+    }
   },
 
   registerNurse: async function (req, res) {

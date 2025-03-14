@@ -11,6 +11,8 @@ module.exports = {
     },
     text: {
       type: 'string',
+      maxLength: 100000,
+      allowNull: true
     },
     consultation: {
       model: 'consultation',
