@@ -5,6 +5,7 @@
  * @help        :: See https://sailsjs.com/docs/concepts/actions
  */
 
+const { escapeHtml } = require('../utils/helpers');
 module.exports = {
   async readMessages(req, res) {
     const consultationId = req.params.consultation;
@@ -41,12 +42,22 @@ module.exports = {
    *
    */
   async create(req, res) {
+    const text = typeof req.body.text === 'string' && req.body.text.length
+      ? escapeHtml(req.body.text.trim())
+      : null;
+
+    const consultation = typeof req.body.consultation === 'string'
+      ? escapeHtml(req.body.consultation)
+      : null;
+
+    const to = typeof req.body.to === 'string'
+      ? escapeHtml(req.body.to)
+      : null;
+
     const msgBody = {
-      text: typeof req.body.text === 'string' && req.body.text.length
-        ? req.body.text.trim()
-        : null,
-      consultation: req.body.consultation,
-      to: req.body.to || null,
+      text,
+      consultation,
+      to,
       type: 'text',
       from: req.user.id,
     };

@@ -1,6 +1,5 @@
 module.exports = {
-  friendlyName: 'Escape string',
-  description: 'Safely escape a string for HTML output.',
+  friendlyName: 'Escape HTML',
   inputs: {
     str: {
       type: 'string',

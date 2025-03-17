@@ -122,7 +122,7 @@ module.exports = {
       sails.config.customLogger.log('warn', 'Invite data validation failed', null, 'message', req.user.id);
       return res.status(400).json({
         success: false,
-        error: error.details,
+        error: 'Error in creating invite',
       });
     }
     sails.config.customLogger.log('silly', 'Create invite payload', { body: req.body }, 'message', req.user.id);
@@ -140,7 +140,7 @@ module.exports = {
       sails.config.customLogger.log('warn', 'Header validation failed', null, 'message', req.user.id);
       return res.status(400).json({
         success: false,
-        error: headersErrors.details,
+        error: 'Header validation failed',
       });
     }
 

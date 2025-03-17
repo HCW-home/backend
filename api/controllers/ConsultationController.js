@@ -6,6 +6,7 @@ const fileType = require('file-type');
 
 const validator = require('validator');
 const sanitize = require('mongo-sanitize');
+const { escapeHtml } = require('../utils/helpers');
 
 const db = Consultation.getDatastore().manager;
 
@@ -993,11 +994,12 @@ module.exports = {
   },
 
   async getConsultationFromToken(req, res) {
-    const tokenString = req.query.token;
+    let tokenString = req.query.token;
     if (!tokenString) {
       sails.config.customLogger.log('warn', 'Token missing in getConsultationFromToken', null, 'message', req.user?.id);
       return res.status(400).json({ message: 'invalidUrl' });
     }
+    tokenString = escapeHtml(tokenString.trim());
     try {
       const token = await Token.findOne({ token: tokenString });
       if (!token) {

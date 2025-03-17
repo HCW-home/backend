@@ -1,5 +1,6 @@
 const validator = require("validator");
 const sanitize = require('mongo-sanitize');
+const { escapeHtml } = require('../utils/helpers');
 
 module.exports = {
   ip: async function (req, res) {
@@ -8,7 +9,7 @@ module.exports = {
       return res.badRequest({ error: 'Invalid IP address.' });
     }
 
-    const escapedIp = await sails.helpers.escapeString(ip);
+    const escapedIp = await sails.helpers.escapeHtmlString(ip);
     return res.json({ ip: escapedIp });
   },
 
@@ -208,11 +209,13 @@ module.exports = {
       role: { in: roles },
     };
 
-    if (query && query.trim() !== '') {
+    const sanitizedQuery = query && typeof query === 'string' ? escapeHtml(query.trim()) : null;
+
+    if (sanitizedQuery) {
       whereClause.or = [
-        { firstName: { contains: query } },
-        { lastName: { contains: query } },
-        { email: { contains: query } },
+        { firstName: { contains: sanitizedQuery } },
+        { lastName: { contains: sanitizedQuery } },
+        { email: { contains: sanitizedQuery } },
       ];
     }
 

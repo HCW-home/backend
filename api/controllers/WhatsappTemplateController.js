@@ -44,7 +44,7 @@ module.exports = {
 
       sails.config.customLogger.log('info', `Template with id ${id} submitted for approval successfully`, null, 'server-action', req.user?.id);
 
-      return res.ok({
+      return res.status(200).json({
         message: 'Template submitted for approval successfully',
         twilioResponse,
       });
@@ -103,7 +103,7 @@ module.exports = {
         errors.push({ id, error: 'Failed to submit template', details: error });
       }
     }
-    return res.ok({
+    return res.status(200).json({
       message: 'Bulk submission process completed',
       results,
       errors,
@@ -157,7 +157,7 @@ module.exports = {
         return res.notFound({ error: 'Failed to delete template from the database.' });
       }
       sails.config.customLogger.log('info', `Template with id ${id} deleted successfully`, null, 'server-action', req.user?.id);
-      return res.ok({ message: 'Template deleted successfully', deletedTemplate });
+      return res.status(200).json({ message: 'Template deleted successfully', deletedTemplate });
     } catch (error) {
       sails.config.customLogger.log('error', `Failed to delete template with id ${id}`, { error: error?.message || error }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Failed to delete template', details: error });
@@ -212,7 +212,7 @@ module.exports = {
         return res.serverError({ error: 'Failed to update the template body' });
       }
       sails.config.customLogger.log('info', `Template with id ${id} body updated successfully`, null, 'server-action', req.user?.id);
-      return res.ok({
+      return res.status(200).json({
         message: 'Template body updated successfully',
         updatedTemplate,
       });
