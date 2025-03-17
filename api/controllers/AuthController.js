@@ -58,7 +58,7 @@ module.exports = {
 
       if (!invite) {
         sails.config.customLogger.log('warn', 'Login invite attempted with an invalid token.', null, 'message', null);
-        return res.status(401).send({ error: 'Invalid invite token' });
+        return res.status(401).json({ error: 'Invalid invite token' });
       }
 
       const isExpert = invite.expertToken === req.body.inviteToken;
@@ -66,7 +66,7 @@ module.exports = {
       passport.authenticate('invite', async (err, user) => {
         if (err || !user) {
           sails.config.customLogger.log('warn', `Failed invitation authentication. ${err?.message || err}`, null, 'server-action', null);
-          return res.status(401).send({ err });
+          return res.status(401).json({ err });
         }
 
         sails.config.customLogger.log('info', `Invitation login: user ${user.id} authenticated successfully.`, null, 'message', user.id);
@@ -794,10 +794,20 @@ module.exports = {
             sails.config.customLogger.log('info', `externalAuth: Found existing doctor user with id ${user.id}.`, null, 'message', user.id);
           }
           const { token: newToken } = TokenService.generateToken(user);
-          const returnUrl = validator.escape(req.query.returnUrl);
+          const rawReturnUrl = req.query.returnUrl;
+
+          const isSafeReturnUrl =
+            typeof rawReturnUrl === 'string' &&
+            rawReturnUrl.startsWith('/') &&
+            !rawReturnUrl.startsWith('//') &&
+            !rawReturnUrl.includes('http');
+
+          const returnUrl = isSafeReturnUrl ? rawReturnUrl : null;
+
           sails.config.customLogger.log('info', `externalAuth: User ${user.id} authenticated successfully.`, null, 'server-action', user.id);
+
           return res.redirect(
-            `${process.env.DOCTOR_URL}/app?tk=${newToken}${returnUrl ? `&returnUrl=${returnUrl}` : ''}`
+            `${process.env.DOCTOR_URL}/app?tk=${newToken}${returnUrl ? `&returnUrl=${encodeURIComponent(returnUrl)}` : ''}`
           );
         } catch (error) {
           sails.config.customLogger.log('error', `externalAuth: Error processing external authentication: ${error.message}`, null, 'server-action', null);

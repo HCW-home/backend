@@ -3,6 +3,7 @@ const fs = require('fs');
 const json2csv = require('@json2csv/plainjs');
 const uuid = require('uuid');
 const fileType = require('file-type');
+const path = require('path');
 
 const validator = require('validator');
 const sanitize = require('mongo-sanitize');
@@ -887,7 +888,22 @@ module.exports = {
     if (!msg.mimeType.startsWith('audio')) {
       res.setHeader('Content-disposition', `attachment; filename=${msg.fileName}`);
     }
-    const filePath = `${sails.config.globals.attachmentsDir}/${msg.filePath}`;
+    const baseDir = sails.config.globals.attachmentsDir;
+
+    const inputPath = msg.filePath;
+    const resolvedPath = path.resolve(baseDir, inputPath);
+
+    if (!resolvedPath.startsWith(baseDir)) {
+      sails.config.customLogger.log('warn', `Path traversal attempt blocked: ${resolvedPath}`, null, 'message', req.user?.id);
+      return res.forbidden({ message: 'Invalid file path' });
+    }
+
+    if (!fs.existsSync(resolvedPath)) {
+      sails.config.customLogger.log('warn', `File not found in ${resolvedPath}`, null, 'message', req.user?.id);
+      return res.notFound();
+    }
+
+    const filePath = resolvedPath;
     if (!fs.existsSync(filePath)) {
       sails.config.customLogger.log('warn', `File not found in ${filePath}`, null, 'message', req.user?.id);
       return res.notFound();
