@@ -309,8 +309,8 @@ module.exports = {
       }
 
       if (req.body.invitationToken) {
+        const sanitizedToken = escapeHtml(req.body.invitationToken);
         if (!invite) {
-          const sanitizedToken = escapeHtml(req.body.invitationToken);
           invite = await PublicInvite.findOne({
             or: [
               { inviteToken: sanitizedToken },
@@ -320,7 +320,7 @@ module.exports = {
         }
 
         const existingConsultation = await Consultation.findOne({
-          invitationToken: req.body.invitationToken,
+          invitationToken: sanitizedToken,
         });
         if (existingConsultation) {
           sails.config.customLogger.log('verbose', `Existing consultation found with invitationToken ${req.body.invitationToken} consultationId ${existingConsultation.id}`, null, 'message', user.id);

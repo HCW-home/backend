@@ -4,7 +4,6 @@ const Joi = require('joi');
 
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
-const sanitize = require('mongo-sanitize');
 const { escapeHtml } = require('../utils/helpers');
 
 const headersSchema = Joi.object({
@@ -932,10 +931,11 @@ module.exports = {
    */
   async resend(req, res) {
     try {
-      sails.config.customLogger.log('info', `Resend invite process started inviteId ${req.params.invite}`, null, 'server-action', req.user?.id);
+      const inviteId = escapeHtml(req.params.invite);
+      sails.config.customLogger.log('info', `Resend invite process started inviteId ${inviteId}`, null, 'server-action', req.user?.id);
 
       const patientInvite = await PublicInvite.findOne({
-        id: sanitize(req.params.invite),
+        id: inviteId,
       })
         .populate('guestInvite')
         .populate('translatorInvite')
@@ -943,7 +943,7 @@ module.exports = {
         .populate('doctor');
 
       if (!patientInvite) {
-        sails.config.customLogger.log('warn', `Patient invite not found inviteId ${req.params.invite}`, null, 'message', req.user?.id);
+        sails.config.customLogger.log('warn', `Patient invite not found inviteId ${inviteId}`, null, 'message', req.user?.id);
         return res.notFound();
       }
 
@@ -959,7 +959,7 @@ module.exports = {
       }
 
       await PublicInvite.sendPatientInvite(patientInvite, true);
-      await PublicInvite.updateOne({ id: req.params.invite }).set({
+      await PublicInvite.updateOne({ id: inviteId }).set({
         status: 'SENT',
       });
       sails.config.customLogger.log('info', `Patient invite resent inviteId ${patientInvite.id}`, null, 'server-action', req.user?.id);
@@ -1046,7 +1046,7 @@ module.exports = {
    */
   async findByConsultation(req, res) {
     try {
-      const consultationId = sanitize(req.params.consultation);
+      const consultationId = escapeHtml(req.params.consultation);
       const consultation = await Consultation.findOne({ id: consultationId });
       if (!consultation) {
         sails.config.customLogger.log('warn', `Consultation not found consultationId ${consultationId}`, null, 'message', req.user?.id);

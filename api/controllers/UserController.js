@@ -82,7 +82,7 @@ module.exports = {
   },
 
   async getUser(req, res) {
-    const userId = req.params.user;
+    const userId = escapeHtml(req.params.user);
 
     if (
       typeof userId !== 'string' ||
