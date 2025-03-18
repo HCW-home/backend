@@ -6,7 +6,6 @@ const fileType = require('file-type');
 const path = require('path');
 
 const validator = require('validator');
-const sanitize = require('mongo-sanitize');
 const { escapeHtml } = require('../utils/helpers');
 
 const db = Consultation.getDatastore().manager;
@@ -289,7 +288,7 @@ module.exports = {
         }
 
         const subInvite = await PublicInvite.findOne({
-          inviteToken: sanitize(req.body.invitationToken),
+          inviteToken: escapeHtml(req.body.invitationToken),
         });
         if (!subInvite) {
           sails.config.customLogger.log('warn', `Sub-invite not found token ${req.body.invitationToken}`, null, 'message', user.id);
@@ -311,7 +310,7 @@ module.exports = {
 
       if (req.body.invitationToken) {
         if (!invite) {
-          const sanitizedToken = sanitize(req.body.invitationToken);
+          const sanitizedToken = escapeHtml(req.body.invitationToken);
           invite = await PublicInvite.findOne({
             or: [
               { inviteToken: sanitizedToken },
@@ -998,7 +997,7 @@ module.exports = {
           }
         }
         call.token = await sails.helpers.getMediasoupToken.with({
-          roomId: sanitize(req.params.consultation),
+          roomId: escapeHtml(req.params.consultation),
           peerId: req.user.id,
           server: mediasoupServer,
         });

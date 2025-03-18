@@ -5,6 +5,7 @@ const Joi = require('joi');
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
 const sanitize = require('mongo-sanitize');
+const { escapeHtml } = require('../utils/helpers');
 
 const headersSchema = Joi.object({
   locale: Joi.string().optional(),
@@ -536,8 +537,9 @@ module.exports = {
   },
 
   async update(req, res) {
+    const id = escapeHtml(req.params.id)
     let invite = await PublicInvite.findOne({
-      id: req.params.id,
+      id: id,
       type: 'PATIENT',
     })
       .populate('guestInvite')
@@ -546,7 +548,7 @@ module.exports = {
       .populate('doctor');
 
     if (!invite) {
-      sails.config.customLogger.log('warn', `Invite  with id ${req.params.id} not found requested from user ${req.user.id}`, null, 'message', req.user.id);
+      sails.config.customLogger.log('warn', `Invite  with id ${id} not found requested from user ${req.user.id}`, null, 'message', req.user.id);
       return res.notFound();
     }
 

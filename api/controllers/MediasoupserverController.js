@@ -1,3 +1,4 @@
+const { escapeHtml } = require('../utils/helpers');
 module.exports = {
   create: async function (req, res) {
     try {
@@ -20,7 +21,7 @@ module.exports = {
 
   update: async function (req, res) {
     try {
-      const serverId = req.params.id;
+      const serverId = escapeHtml(req.params.id);
       const {
         url,
         username,

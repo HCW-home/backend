@@ -4,7 +4,7 @@ const { escapeHtml } = require('../utils/helpers');
 
 module.exports = {
   ip: async function (req, res) {
-    const ip = req.ip;
+    const ip = escapeHtml(req.ip);
     if (typeof ip !== 'string' || ip.length > 100) {
       return res.badRequest({ error: 'Invalid IP address.' });
     }
@@ -58,7 +58,7 @@ module.exports = {
   },
 
   async getDoctorQueues(req, res) {
-    const userId = req.params.user;
+    const userId = escapeHtml(req.params.user);
 
     if (
       typeof userId !== 'string' ||

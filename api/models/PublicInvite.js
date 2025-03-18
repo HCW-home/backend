@@ -59,14 +59,13 @@ const testingUrl = `${process.env.PUBLIC_URL}/acknowledge-invite`;
 
 async function generateToken() {
   const buffer = await new Promise((resolve, reject) => {
-    crypto.randomBytes(256, (ex, buffer) => {
-      if (ex) {
-        reject('error generating token');
-      }
-      resolve(buffer);
+    crypto.randomBytes(32, (err, buf) => {
+      if (err) return reject(new Error('Error generating token'));
+      resolve(buf);
     });
   });
-  return crypto.createHash('sha1').update(buffer).digest('hex');
+
+  return buffer.toString('hex');
 }
 
 module.exports = {

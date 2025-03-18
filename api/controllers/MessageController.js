@@ -8,7 +8,7 @@
 const { escapeHtml } = require('../utils/helpers');
 module.exports = {
   async readMessages(req, res) {
-    const consultationId = req.params.consultation;
+    const consultationId = escapeHtml(req.params.consultation);
 
     if (
       typeof consultationId !== 'string' ||
