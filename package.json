@@ -11,7 +11,7 @@
     "@sailshq/lodash": "3.10.5",
     "@sailshq/socket.io-redis": "^6.1.2",
     "activedirectory": "^0.7.2",
-    "axios": "^1.7.7",
+    "axios": "^1.8.3",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "buffer": "^6.0.3",
@@ -38,15 +38,14 @@
     "passport-trusted-header": "^1.1.0",
     "sails": "1.5",
     "sails-hook-orm": "^4.0.3",
-    "sails-hook-sockets": "^3.0.0",
+    "sails-hook-sockets": "^3.0.1",
     "sails-mongo": "^2.1.1",
     "sails-pagination-middleware": "^0.0.2",
     "skipper": "^0.9.4",
     "skipper-disk": "^0.5.12",
     "twilio": "^5.0.4",
     "uuid": "^9.0.1",
-    "validator": "^13.11.0",
-    "yarn": "^1.22.19"
+    "validator": "^13.11.0"
   },
   "devDependencies": {
     "patch-package": "^8.0.0"
