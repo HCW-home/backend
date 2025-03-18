@@ -452,7 +452,10 @@ module.exports = {
   async getCurrentUser(req, res) {
     if (!req.user && !req.headers['x-access-token'] && !req.query.token) {
       sails.config.customLogger.log('warn', 'getCurrentUser: No token or user provided.', null, 'message', null);
-      return res.notFound();
+      return res.status(404).json({
+        success: false,
+        message: 'Not Found: No token or user provided.'
+      });
     }
     if (req.headers['x-access-token'] || req.query.token) {
       const tokenValue = req.headers['x-access-token'] || req.query.token;

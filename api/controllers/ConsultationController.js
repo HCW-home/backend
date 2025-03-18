@@ -887,6 +887,12 @@ module.exports = {
     if (!msg.mimeType.startsWith('audio')) {
       res.setHeader('Content-disposition', `attachment; filename=${msg.fileName}`);
     }
+
+    if (!msg.filePath || msg.filePath.includes('..') || path.isAbsolute(msg.filePath)) {
+      sails.config.customLogger.log('warn', `Unsafe file path: ${msg.filePath}`, null, 'message', req.user?.id);
+      return res.forbidden({ message: 'Invalid file path' });
+    }
+
     const baseDir = sails.config.globals.attachmentsDir;
 
     const inputPath = msg.filePath;
