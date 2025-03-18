@@ -752,18 +752,18 @@ module.exports = {
         inviteData.guestPhoneNumber = guestPhoneNumber;
       }
 
-      invite = await PublicInvite.updateOne({ id: invite.id }).set(inviteData);
+      await PublicInvite.updateOne({ id: escapeHtml(invite.id) }).set(inviteData);
       invite = await PublicInvite.findOne({ id: invite.id })
         .populate('guestInvite')
         .populate('translatorInvite')
         .populate('translatorRequestInvite')
         .populate('doctor');
 
-      sails.config.customLogger.log('info', `Invite updated  inviteId ${invite.id}`, null, 'server-action', req.user.id);
+      sails.config.customLogger.log('info', `Invite updated  inviteId ${escapeHtml(invite.id)}`, null, 'server-action', req.user.id);
 
       if (cancelGuestInvite) {
         await PublicInvite.cancelGuestInvite(invite);
-        sails.config.customLogger.log('info', `Guest invite cancelled inviteId ${invite.id}`, null, 'server-action', req.user.id);
+        sails.config.customLogger.log('info', `Guest invite cancelled inviteId ${escapeHtml(invite.id)}`, null, 'server-action', req.user.id);
       } else if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
         const guestInviteData = {
           patientInvite: invite.id,

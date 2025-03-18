@@ -1,5 +1,6 @@
 const validator = require('validator');
 const sanitize = require('mongo-sanitize');
+const { escapeHtml } = require('../utils/helpers');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -51,7 +52,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
 module.exports = {
 
   async update(req, res) {
-    const inviteId = sanitize(req.params.id);
+    const inviteId = escapeHtml(req.params.id);
 
     const invite = await PublicInvite.findOne({id:inviteId});
 

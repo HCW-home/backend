@@ -226,7 +226,7 @@ module.exports = {
         limit: pageSize,
       });
 
-      const total = await User.count(whereClause);
+      const total = Number(await User.count(whereClause)) || 0;
 
       return res.json({ data: users, total });
     } catch (error) {
