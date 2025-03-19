@@ -1,51 +1,9 @@
 const db = PublicInvite.getDatastore().manager;
 const { ObjectId } = require('mongodb');
-const Joi = require('joi');
 
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
 const { escapeHtml } = require('../utils/helpers');
-
-const headersSchema = Joi.object({
-  locale: Joi.string().optional(),
-}).unknown(true);
-
-const inviteDataSchema = Joi.object({
-  phoneNumber: Joi.string().min(8).max(15).allow('').optional()
-    .messages({
-      'string.min': 'Phone number should be at least 8 digits',
-      'string.max': 'Phone number should not exceed 15 digits',
-    }),
-  emailAddress: Joi.string().email().allow('').optional()
-    .messages({
-      'string.email': 'Email address must be a valid email',
-    }),
-  gender: Joi.string().valid('male', 'female')
-    .messages({
-      'any.only': 'Gender must be one of male, female, or other',
-    }),
-  firstName: Joi.string().min(1).max(40)
-    .messages({
-      'string.min': 'First name must be at least 1 character long',
-      'string.max': 'First name must be less than 40 characters',
-    }),
-  lastName: Joi.string().min(1).max(100)
-    .messages({
-      'string.min': 'Last name must be at least 1 character long',
-      'string.max': 'Last name must be less than 100 characters',
-    }),
-  invitedBy: Joi.string().allow('').optional(),
-  scheduledFor: Joi.date().optional().allow('')
-    .messages({
-      'date.base': 'ScheduledFor must be a valid date',
-    }),
-  language: Joi.string().optional().allow(''),
-  type: Joi.string().optional().allow(''),
-  birthDate: Joi.date().optional().allow(''),
-  patientTZ: Joi.string().optional().allow(''),
-  metadata: Joi.any().optional(),
-}).unknown(true);
-
 
 function validateInviteRequest(invite) {
   const errors = [];
@@ -117,14 +75,9 @@ module.exports = {
     let invite = null;
     sails.config.customLogger.log('info', `Create invite started by ${req.user.id}`, null, 'user-action', req.user.id);
 
-    const { error, value } = inviteDataSchema.validate(req.body, { abortEarly: false });
-    if (error) {
-      sails.config.customLogger.log('warn', 'Invite data validation failed', null, 'message', req.user.id);
-      return res.status(400).json({
-        success: false,
-        error: 'Error in creating invite',
-      });
-    }
+    const value = req.body;
+    const headers = req.headers;
+
     sails.config.customLogger.log('silly', 'Create invite payload', { body: req.body }, 'message', req.user.id);
 
     const currentUserPublic = {
@@ -135,17 +88,7 @@ module.exports = {
       role: req.user.role,
     };
 
-    const { error: headersErrors, value: headers } = headersSchema.validate(req.headers, { abortEarly: false });
-    if (headersErrors) {
-      sails.config.customLogger.log('warn', 'Header validation failed', null, 'message', req.user.id);
-      return res.status(400).json({
-        success: false,
-        error: 'Header validation failed',
-      });
-    }
-
-    const locale = headers.locale || i18n.defaultLocale;
-
+    const locale = escapeHtml(headers.locale) || i18n.defaultLocale;
     if (req.body.isPatientInvite && !req.body.sendLinkManually) {
       const errors = validateInviteRequest(req.body);
       if (errors.length) {
