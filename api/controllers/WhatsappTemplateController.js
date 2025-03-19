@@ -3,14 +3,14 @@ const { escapeHtml } = require('../utils/helpers');
 module.exports = {
 
   async submitTemplate(req, res) {
-    const { id } = req.body;
+    const id = escapeHtml(req.body.id);
 
     if (!id) {
       return res.badRequest({ error: 'Template ID is required' });
     }
 
     try {
-      const template = await WhatsappTemplate.findOne({ id: id });
+      const template = await WhatsappTemplate.findOne({ id });
 
       if (!template) {
         sails.config.customLogger.log('warn', `Template with id ${id} not found`, null, 'message', req.user?.id);
@@ -50,13 +50,13 @@ module.exports = {
         twilioResponse,
       });
     } catch (error) {
-      sails.config.customLogger.log('error', `Failed to submit template with id ${id}`, {details: error}, 'server-action', req.user?.id);
+      sails.config.customLogger.log('error', `Failed to submit template with id ${id}`, { details: error }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Failed to submit template', details: error });
     }
   },
 
   async bulkSubmitTemplates(req, res) {
-    const ids = escapeHtml(req.body.ids)
+    const ids = escapeHtml(req.body.ids);
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return res.badRequest({ error: 'Template IDs are required and must be an array' });
     }
@@ -121,10 +121,10 @@ module.exports = {
         filters.approvalStatus = approvalStatus;
       }
       const templates = await WhatsappTemplate.find(filters).sort('key ASC');
-      sails.config.customLogger.log('info', `Templates fetched successfully with filters ${filters}`, null , 'message', req.user?.id);
+      sails.config.customLogger.log('info', `Templates fetched successfully with filters ${filters}`, null, 'message', req.user?.id);
       return res.json(templates);
     } catch (error) {
-      sails.config.customLogger.log('error', 'Failed to fetch templates', { error: error?.message || error}, 'server-action', req.user?.id);
+      sails.config.customLogger.log('error', 'Failed to fetch templates', { error: error?.message || error }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Failed to fetch templates', details: error });
     }
   },
