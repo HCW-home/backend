@@ -1,5 +1,4 @@
 const validator = require("validator");
-const sanitize = require('mongo-sanitize');
 const { escapeHtml } = require('../utils/helpers');
 
 module.exports = {

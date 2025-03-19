@@ -9,15 +9,7 @@ const passportCustom = require("passport-custom");
 
 const CustomStrategy = passportCustom.Strategy;
 
-const ActiveDirectory = require("activedirectory");
 const validator = require('validator');
-const config = {
-  url: process.env.AD_URIS,
-  baseDN: process.env.AD_BASE,
-  username: process.env.AD_USER,
-  password: process.env.AD_PASSWORD,
-};
-const ad = new ActiveDirectory(config);
 
 function getUserDetails(user) {
   return {
