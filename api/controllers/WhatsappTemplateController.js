@@ -1,4 +1,5 @@
 const { syncTemplates } = require('../services/SyncTwilioTemplates');
+const { escapeHtml } = require('../utils/helpers');
 module.exports = {
 
   async submitTemplate(req, res) {
@@ -55,7 +56,7 @@ module.exports = {
   },
 
   async bulkSubmitTemplates(req, res) {
-    const { ids } = req.body;
+    const ids = escapeHtml(req.body.ids)
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return res.badRequest({ error: 'Template IDs are required and must be an array' });
     }
@@ -96,7 +97,6 @@ module.exports = {
         results.push({
           id,
           message: 'Template submitted for approval successfully',
-          twilioResponse,
         });
       } catch (error) {
         sails.config.customLogger.log('error', `Failed to submit template with id ${id}`, { error: error?.message || error }, 'server-action', req.user?.id);
@@ -130,12 +130,12 @@ module.exports = {
   },
 
   async deleteTemplate(req, res) {
-    const { id } = req.body;
+    const id = escapeHtml(req.body.id);
     if (!id) {
       return res.badRequest({ error: 'Template ID is required' });
     }
     try {
-      const template = await WhatsappTemplate.findOne({ id: id });
+      const template = await WhatsappTemplate.findOne({ id });
       if (!template) {
         sails.config.customLogger.log('warn', `Template with id ${id} not found in the database`, null, 'message', req.user?.id);
         return res.notFound({ error: 'Template not found in the database' });
@@ -165,7 +165,7 @@ module.exports = {
   },
 
   async refreshStatus(req, res) {
-    const { id } = req.body;
+    const id = escapeHtml(req.body.id);
     if (!id) {
       return res.badRequest({ error: 'Template ID is required' });
     }
@@ -206,7 +206,7 @@ module.exports = {
         sails.config.customLogger.log('warn', `Attempt to update a non-draft template with id ${id} currentStatus ${template.approvalStatus}`, null, 'message', req.user?.id);
         return res.badRequest({ error: 'Only DRAFT templates can be updated' });
       }
-      const updatedTemplate = await WhatsappTemplate.updateOne({ id: id }).set({ body });
+      const updatedTemplate = await WhatsappTemplate.updateOne({ id }).set({ body });
       if (!updatedTemplate) {
         sails.config.customLogger.log('error', `Failed to update the template body for id ${id}`, null, 'server-action', req.user?.id);
         return res.serverError({ error: 'Failed to update the template body' });
@@ -214,7 +214,6 @@ module.exports = {
       sails.config.customLogger.log('info', `Template with id ${id} body updated successfully`, null, 'server-action', req.user?.id);
       return res.status(200).json({
         message: 'Template body updated successfully',
-        updatedTemplate,
       });
     } catch (error) {
       sails.config.customLogger.log('error', `Failed to update the template body for id ${id}`, { error: error?.message || error }, 'server-action', req.user?.id);
