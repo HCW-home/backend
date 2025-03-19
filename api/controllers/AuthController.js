@@ -566,6 +566,9 @@ module.exports = {
         } catch (error) {
           sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`, null, 'server-action', user?.id);
         }
+        res.setHeader('Content-Security-Policy',
+          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; frame-ancestors 'none';"
+        );
         return res.redirect(`/app?tk=${user.token}`);
       })(req, res, (err) => {
         if (err) {

@@ -284,7 +284,7 @@ module.exports = {
       if (user.role === 'guest' || user.role === 'translator') {
         if (!req.body.invitationToken) {
           sails.config.customLogger.log('info', `No invitationToken provided for guest/translator userId ${user.id}`, null, 'message', user.id);
-          return res.status(200).send(null);
+          res.status(200).json({ message: 'OK' });
         }
 
         const subInvite = await PublicInvite.findOne({
@@ -478,45 +478,46 @@ module.exports = {
   },
 
   async closeConsultation(req, res) {
+    const consultationId = escapeHtml(req.params.consultation);
     try {
       const { user } = req;
-      const consultation = await Consultation.findOne({ id: req.params.consultation });
+      const consultation = await Consultation.findOne({ id: consultationId });
       if (!consultation || consultation.status !== 'active') {
-        sails.config.customLogger.log('warn', `Consultation ${req.params.consultation} not found or not active for closure`, null, 'message', user?.id);
-        const anonymousConsultation = await AnonymousConsultation.find({ consultationId: req.params.consultation });
+        sails.config.customLogger.log('warn', `Consultation ${consultationId} not found or not active for closure`, null, 'message', user?.id);
+        const anonymousConsultation = await AnonymousConsultation.find({ consultationId: consultationId });
         if (anonymousConsultation) {
-          sails.config.customLogger.log('info', `Returning anonymous consultation data consultationId ${req.params.consultation}`, null, 'server-action', user?.id);
+          sails.config.customLogger.log('info', `Returning anonymous consultation data consultationId ${consultationId}`, null, 'server-action', user?.id);
           return res.status(200).json(anonymousConsultation);
         } else {
-          sails.config.customLogger.log('warn', `Anonymous consultation with id ${req.params.consultation} not found`, null, 'message', user?.id);
+          sails.config.customLogger.log('warn', `Anonymous consultation with id ${consultationId} not found`, null, 'message', user?.id);
           return res.notFound();
         }
       }
 
       const selector = {
-        consultation: req.params.consultation,
+        consultation: consultationId,
         type: { in: ['videoCall', 'audioCall'] },
         status: { in: ['ringing', 'ongoing'] },
       };
 
-      sails.config.customLogger.log('info', `Searching for ongoing calls for ${req.params.consultation}`, null, 'message', user?.id);
+      sails.config.customLogger.log('info', `Searching for ongoing calls for ${consultationId}`, null, 'message', user?.id);
       const [call] = await Message.find({
         where: selector,
         sort: [{ createdAt: 'DESC' }],
       }).limit(1);
 
       if (call) {
-        sails.config.customLogger.log('info', `Ongoing call found, ending call callId ${call.id} consultationId ${req.params.consultation}`, null, 'server-action', user?.id);
+        sails.config.customLogger.log('info', `Ongoing call found, ending call callId ${call.id} consultationId ${consultationId}`, null, 'server-action', user?.id);
         await Message.endCall(call, consultation, 'CONSULTATION_CLOSED');
       } else {
-        sails.config.customLogger.log('info', `No ongoing call found for consultation ${req.params.consultation}`, null, 'server-action', user?.id);
+        sails.config.customLogger.log('info', `No ongoing call found for consultation ${consultationId}`, null, 'server-action', user?.id);
       }
 
       await Consultation.closeConsultation(consultation);
       sails.config.customLogger.log('info', `Consultation ${consultation.id} closed successfully`, null, 'server-action', user?.id);
       return res.status(200).json(consultation);
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error closing consultation', { consultationId: req.params.consultation, error: error?.message || error }, 'server-action', req.user?.id);
+      sails.config.customLogger.log('error', 'Error closing consultation', { consultationId: consultationId, error: error?.message || error }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Error closing consultation', details: error.message });
     }
   },
@@ -882,7 +883,7 @@ module.exports = {
   },
 
   async attachment(req, res) {
-    const attachment = validator.escape(req.params.attachment).trim();
+    const attachment = escapeHtml(req.params.attachment);
     const msg = await Message.findOne({ id: attachment });
     if (!msg.mimeType.startsWith('audio')) {
       res.setHeader('Content-disposition', `attachment; filename=${msg.fileName}`);
