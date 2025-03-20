@@ -581,8 +581,8 @@ module.exports = {
     if (doctorEmail) {
       const doctorResults = await User.find({
         or: [
-          { role: sails.config.globals.ROLE_DOCTOR, email: req.body.doctorEmail },
-          { role: sails.config.globals.ROLE_ADMIN, email: req.body.doctorEmail }
+          { role: sails.config.globals.ROLE_DOCTOR, email: escapeHtml(doctorEmail) },
+          { role: sails.config.globals.ROLE_ADMIN, email: escapeHtml(doctorEmail) }
         ]
       });
       doctor = doctorResults.length > 0 ? doctorResults[0] : null;
@@ -600,7 +600,7 @@ module.exports = {
         sails.config.customLogger.log('warn', 'Doctor not found', null, 'message', req.user.id);
         return res.status(400).json({
           success: false,
-          error: `Doctor with email ${doctorEmail} not found`,
+          error: `Doctor with email ${escapeHtml(doctorEmail)} not found`,
         });
       }
     } else if (req.user.role === 'doctor') {
@@ -614,10 +614,10 @@ module.exports = {
       });
     }
     if (queue && !queueObj) {
-      sails.config.customLogger.log('warn', `Queue not found ${queue}`, null, `message`, req.user.id);
+      sails.config.customLogger.log('warn', `Queue not found ${escapeHtml(queue)}`, null, `message`, req.user.id);
       return res.status(400).json({
         success: false,
-        error: `Queue ${queue} doesn't exist`,
+        error: `Queue ${escapeHtml(queue)} doesn't exist`,
       });
     }
 
@@ -630,19 +630,19 @@ module.exports = {
         ],
       });
       if (!translationOrganizationObj) {
-        sails.config.customLogger.log('warn', `Translation organization not found ${translationOrganization}`, null, `message`, req.user.id);
+        sails.config.customLogger.log('warn', `Translation organization not found ${escapeHtml(translationOrganization)}`, null, `message`, req.user.id);
         return res.status(400).json({
           success: false,
-          error: `translationOrganization ${translationOrganization} doesn't exist`,
+          error: `translationOrganization ${escapeHtml(translationOrganization)} doesn't exist`,
         });
       }
       if (
         (translationOrganizationObj.languages || []).indexOf(language) === -1
       ) {
-        sails.config.customLogger.log('warn', `Patient language not available in translation organization ${language}`, null, `message`, req.user.id);
+        sails.config.customLogger.log('warn', `Patient language not available in translation organization ${escapeHtml(language)}`, null, `message`, req.user.id);
         return res.status(400).json({
           success: false,
-          error: `patientLanguage ${language} doesn't exist`,
+          error: `patientLanguage ${escapeHtml(language)} doesn't exist`,
         });
       }
     }
@@ -653,15 +653,15 @@ module.exports = {
 
     try {
       let inviteData = {
-        phoneNumber,
-        emailAddress,
-        gender,
-        firstName,
-        lastName,
-        patientLanguage: language,
-        IMADTeam,
-        birthDate,
-        patientTZ,
+        phoneNumber: escapeHtml(phoneNumber),
+        emailAddress: escapeHtml(emailAddress),
+        gender: escapeHtml(gender),
+        firstName: escapeHtml(firstName),
+        lastName: escapeHtml(lastName),
+        patientLanguage: escapeHtml(language),
+        IMADTeam:escapeHtml(IMADTeam),
+        birthDate: escapeHtml(birthDate),
+        patientTZ: escapeHtml(patientTZ),
         metadata
       };
       inviteData = JSON.parse(JSON.stringify(inviteData));
@@ -945,7 +945,7 @@ module.exports = {
         }
       }
 
-      patientInvite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${patientInvite.inviteToken}`;
+      patientInvite.patientURL = `${process.env.PUBLIC_URL}/inv/?invite=${encodeURIComponent(patientInvite.inviteToken)}`;
       sails.config.customLogger.log('info', `Resend invite process completed inviteId ${patientInvite.id}`, null, 'server-action', req.user?.id);
 
       return res.json({
