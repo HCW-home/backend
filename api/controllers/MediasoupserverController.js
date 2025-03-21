@@ -42,7 +42,7 @@ module.exports = {
 
       if (!server) return res.notFound('Server not found.');
 
-      return res.ok(server);
+      return res.ok({ message: "Server updated successfully." });
     } catch (err) {
       if (err.name === 'UsageError') {
         return res.badRequest('Validation error: ' + err.message);
