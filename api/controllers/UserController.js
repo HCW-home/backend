@@ -130,7 +130,7 @@ module.exports = {
         return res.badRequest({ error: "Email already in use." });
       }
 
-      const newUser = await User.create({
+      await User.create({
         email,
         firstName,
         lastName,
@@ -142,7 +142,7 @@ module.exports = {
         status: "not-approved",
       }).fetch();
 
-      return res.ok(newUser);
+      return res.ok({ message: "Nurse registered successfully." });
     } catch (error) {
       return res.serverError(error);
     }
