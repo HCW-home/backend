@@ -297,8 +297,11 @@ module.exports = {
       if (value.guestMessageService) {
         inviteData.guestMessageService = value.guestMessageService;
       }
-      if (value.experts && value.experts.length > 0) {
-        inviteData.experts = value.experts;
+      if (value.experts && Array.isArray(value.experts) && value.experts.length > 0) {
+        inviteData.experts = value.experts.map((expert) => ({
+          expertContact: escapeHtml(expert.expertContact),
+          messageService: escapeHtml(expert.messageService),
+        }));
       }
 
       invite = await PublicInvite.create(inviteData).fetch();
