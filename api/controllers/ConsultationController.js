@@ -277,7 +277,14 @@ module.exports = {
 
   async create(req, res) {
     try {
-      const consultationJson = req.body;
+      const consultationJson = {
+        queue: escapeHtml(req.body.queue),
+        gender: escapeHtml(req.body.gender),
+        IMADTeam: escapeHtml(req.body.IMADTeam),
+        invitationToken: escapeHtml(req.body.invitationToken),
+        status: escapeHtml(req.body.status),
+        owner: escapeHtml(req.body.owner),
+      };
       const { user } = req;
       let invite;
 
