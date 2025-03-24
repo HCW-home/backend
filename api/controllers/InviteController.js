@@ -256,37 +256,37 @@ module.exports = {
 
     try {
       const inviteData = {
-        phoneNumber: value.phoneNumber,
-        emailAddress: value.emailAddress,
-        gender: value.gender,
-        firstName: value.firstName,
-        lastName: value.lastName,
-        invitedBy: req.user.id,
+        phoneNumber: escapeHtml(value.phoneNumber),
+        emailAddress: escapeHtml(value.emailAddress),
+        gender: escapeHtml(value.gender),
+        firstName: escapeHtml(value.firstName),
+        lastName: escapeHtml(value.lastName),
+        invitedBy: escapeHtml(req.user.id),
         scheduledFor: value.scheduledFor ? new Date(value.scheduledFor) : undefined,
         patientLanguage: escapeHtml(value.language),
         type: 'PATIENT',
-        birthDate: value.birthDate,
+        birthDate: escapeHtml(value.birthDate),
         patientTZ: tz,
         metadata: value.metadata,
       };
       if (doctor) {
-        inviteData.doctor = doctor.id;
-        inviteData.doctorData = { email: doctor.email };
+        inviteData.doctor = escapeHtml(doctor.id);
+        inviteData.doctorData = { email: escapeHtml(doctor.email) };
       }
       if (queue) {
-        inviteData.queue = queue.id;
+        inviteData.queue = escapeHtml(queue.id);
       }
       if (translationOrganization) {
-        inviteData.translationOrganization = translationOrganization.id;
+        inviteData.translationOrganization = escapeHtml(translationOrganization.id);
       }
       if (value.guestEmailAddress) {
-        inviteData.guestEmailAddress = value.guestEmailAddress;
+        inviteData.guestEmailAddress = escapeHtml(value.guestEmailAddress);
       }
       if (value.guestPhoneNumber) {
-        inviteData.guestPhoneNumber = value.guestPhoneNumber;
+        inviteData.guestPhoneNumber = escapeHtml(value.guestPhoneNumber);
       }
       if (value.messageService) {
-        inviteData.messageService = value.messageService;
+        inviteData.messageService = escapeHtml(value.messageService);
       }
       if (value.emailAddress) {
         inviteData.messageService = '3';
@@ -295,7 +295,7 @@ module.exports = {
         inviteData.messageService = '4';
       }
       if (value.guestMessageService) {
-        inviteData.guestMessageService = value.guestMessageService;
+        inviteData.guestMessageService = escapeHtml(value.guestMessageService);
       }
       if (value.experts && Array.isArray(value.experts) && value.experts.length > 0) {
         inviteData.experts = value.experts.map((expert) => ({
