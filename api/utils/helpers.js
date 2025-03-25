@@ -21,7 +21,7 @@ function createParamsFromJson(args) {
   const templateConfig = TwilioWhatsappConfigLanguage?.[type];
 
   if (!templateConfig) {
-    sails.config.customLogger.log('warn',`No template configuration found for type: ${type}`, null, 'message', null);
+    sails.config.customLogger.log('warn', `No template configuration found for type: ${type}`, null, 'message', null);
     return {};
   }
 
@@ -78,13 +78,21 @@ function parseTime(value, defaultValue) {
 
 function escapeHtml(str) {
   if (typeof str !== 'string') return str;
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .replace(/\//g, '&#x2F;');
+  const tagPattern = /<\/?[a-z][\s\S]*?>/i;
+
+  if (!tagPattern.test(str)) {
+    return str;
+  }
+
+  const escapeMap = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&#x27;',
+  };
+
+  return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
 }
 
 module.exports = {
@@ -92,4 +100,4 @@ module.exports = {
   escapeHtml,
   importFileIfExists,
   createParamsFromJson,
-}
+};
