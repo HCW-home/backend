@@ -41,7 +41,7 @@
     "sails-pagination-middleware": "^0.0.2",
     "skipper": "^0.9.4",
     "skipper-disk": "^0.5.12",
-    "twilio": "^5.0.4",
+    "twilio": "^5.5.1",
     "uuid": "^11.1.0",
     "validator": "^13.11.0"
   },

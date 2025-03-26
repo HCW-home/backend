@@ -33,7 +33,7 @@ module.exports = {
 
       const response = await axios.post(
         endpoint,
-        { name, category },
+        { name, category, allow_category_change: false },
         {
           headers: {
             'Content-Type': 'application/json',
