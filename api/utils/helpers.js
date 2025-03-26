@@ -95,9 +95,25 @@ function escapeHtml(str) {
   return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
 }
 
+function sanitizeMetadata(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(sanitizeMetadata);
+  } else if (typeof obj === 'object' && obj !== null) {
+    return Object.entries(obj).reduce((acc, [key, value]) => {
+      acc[escapeHtml(key)] = sanitizeMetadata(value);
+      return acc;
+    }, {});
+  } else if (typeof obj === 'string') {
+    return escapeHtml(obj);
+  } else {
+    return obj;
+  }
+}
+
 module.exports = {
   parseTime,
   escapeHtml,
+  sanitizeMetadata,
   importFileIfExists,
   createParamsFromJson,
 };

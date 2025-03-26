@@ -3,7 +3,7 @@ const { ObjectId } = require('mongodb');
 
 const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
-const { escapeHtml } = require('../utils/helpers');
+const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
 
 function validateInviteRequest(invite) {
   const errors = [];
@@ -267,7 +267,7 @@ module.exports = {
         type: 'PATIENT',
         birthDate: escapeHtml(value.birthDate),
         patientTZ: tz,
-        metadata: value.metadata,
+        metadata: sanitizeMetadata(value.metadata),
       };
       if (doctor) {
         inviteData.doctor = escapeHtml(doctor.id);
