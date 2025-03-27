@@ -713,6 +713,10 @@ module.exports = {
       ? sails.config.globals.i18nPatientAppLanguages.split(',')
       : [];
 
+    const enableFieldsFormDoctor = sails.config.globals.enableFieldsFormDoctor
+      ? sails.config.globals.enableFieldsFormDoctor.split(',')
+      : [];
+
     sails.config.customLogger.log('info', `getConfig called from IP: ${req.ip}`, null, 'user-action', req?.user?.id);
 
     res.json({
@@ -745,7 +749,8 @@ module.exports = {
         : '',
       hideCallerName: sails.config.globals.hideCallerName,
       doctorLanguages,
-      patientLanguages
+      patientLanguages,
+      enableFieldsFormDoctor
     });
   },
 

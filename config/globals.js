@@ -80,6 +80,7 @@ module.exports.globals = {
 
   i18nDoctorAppLanguages: process.env.I18N_DOCTOR_APP_LANGUAGES || '',
   i18nPatientAppLanguages: process.env.I18N_PATIENT_APP_LANGUAGES || '',
+  enableFieldsFormDoctor: process.env.ENABLED_FIELDS_FORM_DOCTOR || '',
 
   attachmentsDir:
     process.env.ATTACHMENTS_DIR || "/var/lib/hug-home/attachments",

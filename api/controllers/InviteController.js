@@ -5,24 +5,36 @@ const moment = require('moment-timezone');
 const { i18n } = require('../../config/i18n');
 const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
 
+const DEFAULT_REQUIRED_FIELDS = ['firstName', 'lastName', 'gender'];
+
 function validateInviteRequest(invite) {
   const errors = [];
+
+  const enableFieldsFormDoctor = sails.config.globals.enableFieldsFormDoctor
+    ? sails.config.globals.enableFieldsFormDoctor.split(',').map(f => f.trim())
+    : [];
+
+  const enabledFields = enableFieldsFormDoctor.length
+    ? enableFieldsFormDoctor
+    : DEFAULT_REQUIRED_FIELDS;
+
   if (!invite.phoneNumber && !invite.emailAddress) {
     errors.push({ message: 'emailAddress or phoneNumber are required' });
   }
 
-  if (!invite.gender) {
-    errors.push({ message: 'gender is required' });
-  }
-  if (invite.gender) {
-    if (!['male', 'female'].includes(invite.gender)) {
+  if (enabledFields.includes('gender')) {
+    if (!invite.gender) {
+      errors.push({ message: 'gender is required' });
+    } else if (!['male', 'female'].includes(invite.gender)) {
       errors.push({ message: 'gender must be either male or female' });
     }
   }
-  if (!invite.firstName) {
+
+  if (enabledFields.includes('firstName') && !invite.firstName) {
     errors.push({ message: 'firstName is required' });
   }
-  if (!invite.lastName) {
+
+  if (enabledFields.includes('lastName') && !invite.lastName) {
     errors.push({ message: 'lastName is required' });
   }
 
