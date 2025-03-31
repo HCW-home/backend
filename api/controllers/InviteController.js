@@ -274,7 +274,7 @@ module.exports = {
         firstName: escapeHtml(value.firstName),
         lastName: escapeHtml(value.lastName),
         invitedBy: escapeHtml(req.user.id),
-        scheduledFor: value.scheduledFor ? new Date(value.scheduledFor) : undefined,
+        scheduledFor: value.scheduledFor ? escapeHtml(new Date(value.scheduledFor)) : undefined,
         patientLanguage: escapeHtml(value.language),
         type: 'PATIENT',
         birthDate: escapeHtml(value.birthDate),
