@@ -19,8 +19,8 @@ module.exports = {
 
         if (this.logFormat === 'splunk') {
           formattedMessage = category
-            ? `${timestamp};${level};${category};${userId || ''};${message}`
-            : `${timestamp};${level};${userId || ''};${message}`;
+            ? `${timestamp};${level};${category};${userId || '-'};${message}`
+            : `${timestamp};${level};${userId || '-'};${message}`;
         } else {
           formattedMessage = message;
         }

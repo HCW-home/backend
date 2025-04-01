@@ -661,7 +661,13 @@ module.exports = {
             _id: consultation._id,
           },
         });
-        sails.config.customLogger.log('info', `Broadcast online status change to participant ${participantId} for consultation ${consultation._id}`, null, 'server-action', null);
+        sails.config.customLogger.log(
+          'info',
+          `Broadcast online status change to participant ${participantId} for consultation ${consultation._id}, user is now ${isOnline ? 'online' : 'offline'}`,
+          null,
+          'server-action',
+          null
+        );
       }
     }
   },

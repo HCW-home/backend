@@ -749,7 +749,7 @@ module.exports = {
       await Message.endCall(message, consultation, 'MEMBERS_LEFT');
       sails.sockets.broadcast(consultation.acceptedBy, 'rejectCall', { data: { consultation, message } });
       sails.sockets.broadcast(consultation.owner, 'rejectCall', { data: { consultation, message } });
-      sails.config.customLogger.log('info', `Call rejection broadcast consultationId ${consultation.id} messageId ${message.id}`, null, 'serer-action', req.user?.id);
+      sails.config.customLogger.log('info', `Call rejection broadcast consultationId ${consultation.id} messageId ${message.id}`, null, 'server-action', req.user?.id);
       return res.json({ status: 200 });
     } catch (error) {
       sails.config.customLogger.log('error', 'Error in rejectCall', { error: error?.message || error }, 'server-action', req.user?.id);
