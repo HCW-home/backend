@@ -1,6 +1,4 @@
 const validator = require('validator');
-const sanitize = require('mongo-sanitize');
-const { escapeHtml } = require('../utils/helpers');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -50,35 +48,6 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
 
 
 module.exports = {
-
-  async update(req, res) {
-    const inviteId = escapeHtml(req.params.id);
-
-    const invite = await PublicInvite.findOne({id:inviteId});
-
-    if(!invite) {
-      return res.notFound();
-    }
-
-    try {
-      const sanitizedBody  = sanitize(req.body);
-      const updatedInvite = await PublicInvite.updateOne({id:inviteId}).set(sanitizedBody);
-
-
-      // TODO: update respective guest and translator invites
-      if(invite.type === 'PATIENT'){
-        await PublicInvite.sendPatientInvite(invite)
-        if(invite.scheduledFor){
-          await PublicInvite.setPatientOrGuestInviteReminders(invite)
-        }
-      }
-      res.json(updatedInvite)
-
-    } catch (error) {
-      res.serverError(error.message);
-    }
-
-  },
 
   checkPrefix: async function (req, res) {
     const type = req.param('type');
