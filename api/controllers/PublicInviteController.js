@@ -1,5 +1,4 @@
 const validator = require('validator');
-const sanitize = require('mongo-sanitize');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -14,7 +13,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
       );
 
       if (isExcluded) {
-        sails.config.customLogger.log('info', `Skipping provider ${provider.provider} - phone number matches excluded prefix.`);
+        sails.config.customLogger.log('info',`Skipping provider ${provider.provider} - phone number matches excluded prefix.`, null, 'message', null);
         continue;
       }
 
@@ -24,7 +23,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
           language: whatsappConfig?.language,
           approvalStatus: 'approved',
           key: whatsappConfig?.type,
-          sid: {'!=': null},
+          sid: { '!=': null },
         });
 
         if (provider.provider.includes('WHATSAPP') && whatsappTemplate) {
@@ -37,15 +36,16 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   }
 
   if (canSendSMS && canSendWhatsApp) {
-    return {code: 1, message: "You have to choose Whatsapp or SMS for sending this invite."};
+    return { code: 1, message: "You have to choose Whatsapp or SMS for sending this invite." };
   } else if (!canSendSMS && canSendWhatsApp) {
-    return {code: 2, message: "Invite will be send by WhatsApp."};
+    return { code: 2, message: "Invite will be send by WhatsApp." };
   } else if (canSendSMS && !canSendWhatsApp) {
-    return {code: 3, message: "Invite will be send by SMS."};
+    return { code: 3, message: "Invite will be send by SMS." };
   } else {
-    return {code: 0, message: "This phone number is not permitted to be used on this platform."};
+    return { code: 0, message: "This phone number is not permitted to be used on this platform." };
   }
 }
+
 
 module.exports = {
   async createFhirAppointment(req, res) {
@@ -274,41 +274,12 @@ module.exports = {
     }
   },
 
-  async update(req, res) {
-    const inviteId = sanitize(req.params.id);
-
-    const invite = await PublicInvite.findOne({id: inviteId});
-
-    if (!invite) {
-      return res.notFound();
-    }
-
-    try {
-      const sanitizedBody = sanitize(req.body);
-      const updatedInvite = await PublicInvite.updateOne({id: inviteId}).set(sanitizedBody);
-
-
-      // TODO: update respective guest and translator invites
-      if (invite.type === 'PATIENT') {
-        await PublicInvite.sendPatientInvite(invite)
-        if (invite.scheduledFor) {
-          await PublicInvite.setPatientOrGuestInviteReminders(invite)
-        }
-      }
-      res.json(updatedInvite)
-
-    } catch (error) {
-      res.serverError(error.message);
-    }
-
-  },
-
   checkPrefix: async function (req, res) {
     const type = req.param('type');
     const language = req.param('language');
     const phoneNumber = validator.escape(req.param('phoneNumber')).trim();
     if (!phoneNumber) {
-      return res.badRequest({message: 'Phone number is required.'});
+      return res.badRequest({ message: 'Phone number is required.' });
     }
 
     const providers = await SmsProvider.find({});

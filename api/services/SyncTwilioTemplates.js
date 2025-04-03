@@ -1,4 +1,5 @@
 const TemplatesConfig = require('../../config/templates');
+const { attributes: req } = require('../models/Token');
 
 function convertPlaceholders(template) {
   if (!template) {
@@ -35,7 +36,10 @@ module.exports = {
           if (!existingTemplate) {
             sails.config.customLogger.log(
               'verbose',
-              `Template "${template.key}" is missing for language "${language}". Creating...`
+              `Template "${template.key}" is missing for language "${language}". Creating...`,
+              null,
+              'message',
+              null
             );
 
             const translatedActions = (template.actions || []).map((action) => ({
@@ -61,21 +65,21 @@ module.exports = {
             sails.config.customLogger.log(
               'verbose',
               `Template "${template.key}" created for language "${language}".`,
-              null, 'message'
+              null, 'message', null
             );
           } else {
             sails.config.customLogger.log(
               'verbose',
               `Template "${template.key}" already exists for language "${language}".`,
-              null, 'message'
+              null, 'message', null
             );
           }
         }
       }
 
-      sails.config.customLogger.log('info', 'Template synchronization completed.');
+      sails.config.customLogger.log('verbose', 'Template synchronization completed.', null, 'message', null);
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error during template synchronization:', { error: error?.message || error });
+      sails.config.customLogger.log('error', 'Error during template synchronization:', { error: error?.message || error }, 'server-action', null);
     }
   }
 };

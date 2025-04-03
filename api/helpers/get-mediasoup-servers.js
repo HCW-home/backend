@@ -22,7 +22,7 @@ module.exports = {
       server.active === true || !server.hasOwnProperty('active')
     );
 
-    sails.config.customLogger.log('verbose',  'servers', servers, 'server-action');
+    sails.config.customLogger.log('verbose',  `servers ${servers}`, null, 'server-action', null);
 
     try {
       const serversStatues = await Promise.all(servers.map(async server => {
@@ -30,7 +30,7 @@ module.exports = {
           await timeoutPromise(FETCH_TIMEOUT, getRoomsCount(server));
           return server;
         } catch (error) {
-          sails.config.customLogger.log('error', `Server ${server.url} is Not reachable`, error, 'server-action');
+          sails.config.customLogger.log('error', `Server ${server.url} is Not reachable`, error, 'server-action', null);
           return Promise.resolve({ reachable: false });
         }
       }));
@@ -39,14 +39,15 @@ module.exports = {
         return (server.activeSessions < server.maxNumberOfSessions) && server.reachable;
       });
 
-      sails.config.customLogger.log('verbose', `AVAILABLE SERVERS:: ${JSON.stringify(availableServers)}`, null,'message');
+      sails.config.customLogger.log('verbose', `AVAILABLE SERVERS:: ${JSON.stringify(availableServers)}`, null,'message', null);
 
       if (!availableServers.length) {
         sails.config.customLogger.log(
           'info',
           'NO AVAILABLE SERVER USING FALLBACK ' + fallbackMediasoup.url,
           null,
-          'server-action'
+          'server-action',
+          null
         );
         return exits.success([fallbackMediasoup]);
       }
@@ -58,6 +59,7 @@ module.exports = {
         'Error with getting Mediasoup server',
         error,
         'server-action',
+        null
       );
     }
   }

@@ -7,7 +7,7 @@ module.exports = function (req, res) {
     try {
       consultationId = JSON.parse(req.query.where).consultation;
     } catch (err) {
-      sails.config.customLogger.log('error', 'Invalid where parameter for consultation ID', { error: err?.message || err });
+      sails.config.customLogger.log('error', 'Invalid where parameter for consultation ID', { error: err?.message || err }, 'message', req.user?.id);
       return res.badRequest('invalid where parameter');
     }
   }

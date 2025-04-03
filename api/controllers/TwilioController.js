@@ -11,16 +11,13 @@ module.exports = {
           status: messageStatus.toUpperCase(),
         });
       }
-      sails.config.customLogger.log('info', 'Twilio status callback processed', {
-        messageSid,
-        messageStatus,
-      }, 'server-action');
+      sails.config.customLogger.log('info', `Twilio status callback processed messageSid ${messageSid} messageStatus ${messageStatus}`, null, 'server-action', null);
 
       return res.ok();
     } catch (error) {
       sails.config.customLogger.log('error', 'Error handling Twilio status callback', {
         error: error?.message,
-      }, 'server-action');
+      }, 'server-action', null);
       return res.serverError();
     }
   }

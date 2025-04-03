@@ -25,7 +25,7 @@ const inviteJobs = {
           key: type,
           approvalStatus: 'approved'
         });
-        sails.config.customLogger.log('verbose', 'WhatsApp template fetched for first reminder', { template });
+        sails.config.customLogger.log('verbose', `WhatsApp template fetched for first reminder template ${template}`, null, 'message');
         if (template && template.sid) {
           const twilioTemplatedId = template.sid;
           const params = reminderData.firstReminderParams;
@@ -41,13 +41,13 @@ const inviteJobs = {
             });
             if (whatsappMessageSid) {
               await PublicInvite.updateOne({ id: invite.id }).set({ whatsappMessageSid });
-              sails.config.customLogger.log('info', 'First WhatsApp reminder SMS sent', { inviteId: invite.id });
+              sails.config.customLogger.log('info', `First WhatsApp reminder SMS sent inviteId ${invite.id}`, null, 'server-action');
             }
           } else {
-            sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template id is missing' });
+            sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template id is missing' }, 'message');
           }
         } else {
-          sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template is not approved' });
+          sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template is not approved' }, 'message');
         }
       }
     } else {
@@ -57,7 +57,7 @@ const inviteJobs = {
         senderEmail: invite?.doctor?.email,
         whatsApp: false,
       });
-      sails.config.customLogger.log('info', 'First reminder SMS sent (non-WhatsApp)', { inviteId: invite.id });
+      sails.config.customLogger.log('info', `First reminder SMS sent (non-WhatsApp) inviteId ${invite.id}`, null, 'server-action');
     }
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
@@ -73,7 +73,7 @@ const inviteJobs = {
           key: type,
           approvalStatus: 'approved'
         });
-        sails.config.customLogger.log('verbose', 'WhatsApp template fetched for second reminder', { template });
+        sails.config.customLogger.log('verbose', `WhatsApp template fetched for second reminder template ${template}`, null, 'message');
         if (template && template.sid) {
           const twilioTemplatedId = template.sid;
           const params = reminderData.secondReminderParams;
@@ -89,13 +89,13 @@ const inviteJobs = {
             });
             if (whatsappMessageSid) {
               await PublicInvite.updateOne({ id: invite.id }).set({ whatsappMessageSid });
-              sails.config.customLogger.log('info', 'Second WhatsApp reminder SMS sent', { inviteId: invite.id });
+              sails.config.customLogger.log('info', `Second WhatsApp reminder SMS sent inviteId ${invite.id}`, null, 'server-action');
             }
           } else {
-            sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template id is missing' });
+            sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template id is missing' }, 'message');
           }
         } else {
-          sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template is not approved' });
+          sails.config.customLogger.log('error', 'ERROR SENDING WhatsApp SMS', { message: 'Template is not approved' }, 'message');
         }
       }
     } else {
@@ -108,7 +108,7 @@ const inviteJobs = {
       if (invite.type === 'PATIENT') {
         await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
       }
-      sails.config.customLogger.log('info', 'Second reminder SMS sent (non-WhatsApp)', { inviteId: invite.id });
+      sails.config.customLogger.log('info', `Second reminder SMS sent (non-WhatsApp) inviteId ${invite.id}`, null, 'server-action');
     }
   },
   FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
@@ -121,7 +121,7 @@ const inviteJobs = {
       subject: sails._t(locale, 'your consultation link', { url, branding: process.env.BRANDING, doctorName }),
       text: sails.models.publicinvite.getReminderMessage(invite).firstReminderMessage,
     });
-    sails.config.customLogger.log('info', 'First reminder email sent', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `First reminder email sent inviteId ${invite.id}`, null, 'server-action');
   },
   SECOND_INVITE_REMINDER_EMAIL: async (invite) => {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
@@ -136,7 +136,7 @@ const inviteJobs = {
     if (invite.type === 'PATIENT') {
       await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
     }
-    sails.config.customLogger.log('info', 'Second reminder email sent', { inviteId: invite.id });
+    sails.config.customLogger.log('info', `Second reminder email sent inviteId ${invite.id}`, null, 'server-action');
   },
 };
 
@@ -151,7 +151,7 @@ module.exports = {
         }
       }, null, true);
       job.start();
-      sails.config.customLogger.log('info', `Cron job '${name}' scheduled with cron time '${cronTime}'`);
+      sails.config.customLogger.log('info', `Cron job '${name}' scheduled with cron time '${cronTime}'`, null, 'message');
       return job;
     };
 
@@ -165,7 +165,7 @@ module.exports = {
       for (const job of jobs) {
         if (job.createdAt < now - TRANSLATION_REQUEST_TIMEOUT) {
           await sails.models.publicinvite.expireTranslatorRequest(job);
-          sails.config.customLogger.log('info', 'Translator request expired', { inviteId: job.id });
+          sails.config.customLogger.log('info', `Translator request expired inviteId ${job.id}`, null, 'server-action');
         }
       }
     });
@@ -174,7 +174,7 @@ module.exports = {
       const jobs = await sails.models.message.find({ status: 'ringing' });
       for (const job of jobs) {
         await sails.models.message.endCall(job, job.consultation, 'RINGING_TIMEOUT');
-        sails.config.customLogger.log('info', 'Call ended due to RINGING_TIMEOUT', { messageId: job.id });
+        sails.config.customLogger.log('info', `Call ended due to RINGING_TIMEOUT messageId ${job.id}`, null, 'server-action');
       }
     });
 
@@ -182,7 +182,7 @@ module.exports = {
       const jobs = await sails.models.message.find({ status: { '!=': 'ended' } });
       for (const job of jobs) {
         await sails.models.message.endCall(job, job.consultation, 'DURATION_TIMEOUT');
-        sails.config.customLogger.log('info', 'Call ended due to DURATION_TIMEOUT', { messageId: job.id });
+        sails.config.customLogger.log('info', `Call ended due to DURATION_TIMEOUT messageId ${job.id}`, null, 'server-action');
       }
     });
 
@@ -198,7 +198,7 @@ module.exports = {
 
       for (const consultation of consultationsToBeClosed) {
         await sails.models.consultation.closeConsultation(consultation);
-        sails.config.customLogger.log('info', 'Consultation closed due to timeout', { consultationId: consultation.id });
+        sails.config.customLogger.log('info', `Consultation closed due to timeout consultationId ${consultation.id}`, null, 'server-action');
       }
 
       const translatorRequestsToBeRefused = await sails.models.publicinvite.findBy({
@@ -209,7 +209,7 @@ module.exports = {
 
       for (const invite of translatorRequestsToBeRefused) {
         await sails.models.publicinvite.refuseTranslatorRequest(invite);
-        sails.config.customLogger.log('info', 'Translator request refused due to timeout', { inviteId: invite.id });
+        sails.config.customLogger.log('info', `Translator request refused due to timeout inviteId ${invite.id}`, null, 'server-action');
       }
     });
 
@@ -218,21 +218,34 @@ module.exports = {
       onTick: async function() {
         try {
           const now = Date.now();
+
           const invitesToBeRemoved = await sails.models.publicinvite.find({
             where: {
               status: 'SENT',
               type: 'PATIENT',
-              createdAt: { '<': new Date(now - INVITATION_TIMEOUT) },
+              or: [
+                {
+                  scheduledFor: { '>': 0, '<': new Date(now - INVITATION_TIMEOUT) }
+                },
+                {
+                  or: [
+                    { scheduledFor: 0 },
+                    { scheduledFor: null }
+                  ],
+                  createdAt: { '<': new Date(now - INVITATION_TIMEOUT) }
+                }
+              ]
             }
           });
 
+
           for (const invitation of invitesToBeRemoved) {
             await sails.models.publicinvite.destroyOne({ id: invitation.id });
-            sails.config.customLogger.log('info', 'Old invite deleted', { inviteId: invitation.id });
+            sails.config.customLogger.log('info', `Old invite deleted inviteId ${invitation.id}`, null, 'server-action');
           }
 
         } catch (error) {
-          sails.config.customLogger.log('error', 'Error in delete old invites job', { error: error?.message || error });
+          sails.config.customLogger.log('error', 'Error in delete old invites job', { error: error?.message || error }, 'server-action');
         }
       },
       start: true,

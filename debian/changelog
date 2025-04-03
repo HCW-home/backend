@@ -1,4 +1,18 @@
-hcw-athome-backend (0.5.42.3) focal; urgency=medium
+hcw-athome-backend (0.5.46) UNRELEASED; urgency=medium
+
+  * add more logs for consultation controller
+  * add more verbose logs
+  * add more verbose logs
+  * handle scheduledFor and createdAt in expiration logic for invites
+  * add user id in logs for  consultation and auth controller
+  * add user id in logs for helpers and controllers
+  * add user id in logs for models and policies
+  * refs #8173, Unable to send SMS with new ClickATel
+  * update CLICKATEL response property
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 06 Mar 2025 08:45:47 +0000
+
+hcw-athome-backend (0.5.42) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * log fix

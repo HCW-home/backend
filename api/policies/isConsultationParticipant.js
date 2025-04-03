@@ -4,7 +4,7 @@ module.exports = async function (req, res, proceed) {
     try {
       consultationId = JSON.parse(req.query.where).consultation;
     } catch (err) {
-      sails.config.customLogger.log('error', 'Invalid where parameter in consultation middleware', { error: err.message });
+      sails.config.customLogger.log('error', 'Invalid where parameter in consultation middleware', { error: err.message }, 'message', req.user?.id);
       return res.badRequest('invalid where parameter');
     }
   }
@@ -40,12 +40,12 @@ module.exports = async function (req, res, proceed) {
       });
     }
   } catch (err) {
-    sails.config.customLogger.log('error', 'Error checking consultation access', { userId: req.user.id, consultationId, error: err?.message || err });
+    sails.config.customLogger.log('error', 'Error checking consultation access', { consultationId, error: err?.message || err }, 'message', req.user?.id);
     return res.serverError('Server error');
   }
 
   if (!consultation) {
-    sails.config.customLogger.log('warn', 'Forbidden access to consultation', { userId: req.user.id, consultationId });
+    sails.config.customLogger.log('warn', `Forbidden access to consultation ${consultationId}`, null, 'message', req.user?.id);
     return res.forbidden();
   }
 

@@ -11,7 +11,7 @@ module.exports = {
       verbose: 5,
       silly: 6,
     },
-    log: function(level, message, meta, category) {
+    log: function(level, message, meta, category, userId) {
       if (this.levels[level] <= this.levels[this.level]) {
         const timestamp = new Date().toISOString();
 
@@ -19,8 +19,8 @@ module.exports = {
 
         if (this.logFormat === 'splunk') {
           formattedMessage = category
-            ? `${timestamp};${level};${category}: ${message}`
-            : `${timestamp};${level}: ${message}`;
+            ? `${timestamp};${level};${category};${userId || '-'};${message}`
+            : `${timestamp};${level};${userId || '-'};${message}`;
         } else {
           formattedMessage = message;
         }

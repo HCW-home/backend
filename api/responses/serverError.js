@@ -4,7 +4,7 @@ module.exports = function serverError(data, options) {
   const sails = req._sails;
 
   if (data) {
-    sails.log.error('500 Error: ', data);
+    sails.config.customLogger.log('error',`500 Error: ${data}`, 'server-action', req.user?.id);
   }
 
   res.status(500);

@@ -60,6 +60,10 @@
         next();
       }
     },
+    hsts: function (req, res, next) {
+      res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+      return next();
+    },
     order: [
       'paginate',
       'cookieParser',
@@ -72,6 +76,7 @@
       'compress',
       'poweredBy',
       'router',
+      'hsts',
       'www',
       'favicon'
     ],

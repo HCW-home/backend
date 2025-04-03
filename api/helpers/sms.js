@@ -9,11 +9,11 @@ function sendSmsWithOvh(phoneNumber, message) {
     consumerKey: process.env.SMS_OVH_APP_CONSUMER_KEY,
   };
 
-  sails.config.customLogger.log('verbose', 'OVH config loaded', { endpoint: ovhConfig.endpoint }, 'message');
+  sails.config.customLogger.log('verbose', `OVH config loaded endpoint ${ovhConfig.endpoint}`, null, 'message', null);
 
   const ovh = require('ovh')(ovhConfig);
 
-  sails.config.customLogger.log('info', 'Sending SMS via provider OVH', null, 'server-action');
+  sails.config.customLogger.log('info', 'Sending SMS via provider OVH', null, 'server-action', null);
 
   return new Promise((resolve, reject) => {
     ovh.request('GET', '/sms', (err, serviceName) => {
@@ -76,17 +76,17 @@ function sendSmsWithSwisscom(phoneNumber, message) {
           rawData += chunk;
         });
         res.on('end', () => {
-          sails.config.customLogger.log('verbose', 'Swisscom response raw data', { rawData }, 'message');
+          sails.config.customLogger.log('verbose', 'Swisscom response raw data', { rawData }, 'message', null);
           try {
             const parsedData = JSON.parse(rawData);
             if ('message_ids' in parsedData || 'message_id' in parsedData) {
-              sails.config.customLogger.log('info', 'SMS sent via provider Swisscom', null, 'server-action');
+              sails.config.customLogger.log('info', 'SMS sent via provider Swisscom', null, 'server-action', null);
               return resolve();
             }
-            sails.config.customLogger.log('error', 'Swisscom SMS response indicates failure', { response: parsedData }, 'message');
+            sails.config.customLogger.log('error', `Swisscom SMS response indicates failure response ${parsedData}`, null, 'message', null);
             return reject(parsedData);
           } catch (e) {
-            sails.config.customLogger.log('error', 'Error parsing Swisscom response', { error: e?.message || e }, 'server-action');
+            sails.config.customLogger.log('error', 'Error parsing Swisscom response', { error: e?.message || e }, 'server-action', null);
             return reject(e);
           }
         });
@@ -95,21 +95,21 @@ function sendSmsWithSwisscom(phoneNumber, message) {
 
     try {
       request.on('error', (e) => {
-        sails.config.customLogger.log('error', 'Swisscom SMS request error', { error: e?.message || e }, 'server-action');
+        sails.config.customLogger.log('error', 'Swisscom SMS request error', { error: e?.message || e }, 'server-action', null);
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via provider Swisscom', null, 'server-action');
+      sails.config.customLogger.log('info', 'Sending SMS via provider Swisscom', null, 'server-action', null);
       request.write(JSON.stringify(payload));
       request.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing Swisscom request', { error: error.message }, 'server-action');
+      sails.config.customLogger.log('error', 'Error writing Swisscom request', { error: error.message }, 'server-action', null);
       return reject(error);
     }
   });
 }
 
 function sendSmsWithInLog(phoneNumber, message) {
-  sails.config.customLogger.log('info', 'SMS LOG - Message sent via LOG', null, 'message');
+  sails.config.customLogger.log('info', 'SMS LOG - Message sent via LOG', null, 'message', null);
   return new Promise((resolve) => resolve());
 }
 
@@ -127,11 +127,11 @@ function sendSmsWithTwilio(phoneNumber, message) {
         to: phoneNumber,
       })
       .then((msg) => {
-        sails.config.customLogger.log('info', `Twilio SMS sent messageSid is ${msg.sid} `, null, 'server-action');
+        sails.config.customLogger.log('info', `Twilio SMS sent messageSid is ${msg.sid} `, null, 'server-action',null);
         resolve(msg.sid);
       })
       .catch((error) => {
-        sails.config.customLogger.log('error', 'Error sending Twilio SMS', { error: error.message }, 'server-action');
+        sails.config.customLogger.log('error', 'Error sending Twilio SMS', { error: error.message }, 'server-action', null);
         reject(error);
       });
   });
@@ -164,12 +164,12 @@ async function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, conte
       payload.contentVariables = JSON.stringify(contentVariables);
     }
 
-    sails.config.customLogger.log('info', 'Sending TWILIO_WHATSAPP message', null, 'message');
+    sails.config.customLogger.log('info', 'Sending TWILIO_WHATSAPP message', null, 'message', null);
     const messageResponse = await client.messages.create(payload);
-    sails.config.customLogger.log('info', `TWILIO_WHATSAPP message sent messageSid is ${messageResponse.sid}`, null, 'server-action');
+    sails.config.customLogger.log('info', `TWILIO_WHATSAPP message sent messageSid is ${messageResponse.sid}`, null, 'server-action', null);
     return messageResponse.sid;
   } catch (error) {
-    sails.config.customLogger.log('error', 'Error sending TWILIO_WHATSAPP message', { error: error.message }, 'server-action');
+    sails.config.customLogger.log('error', 'Error sending TWILIO_WHATSAPP message', { error: error.message }, 'server-action', null);
     throw error;
   }
 }
@@ -179,7 +179,7 @@ function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
   const OdooAPI = {
     appKey: process.env.ODOO_SMS_KEY,
   };
-  sails.config.customLogger.log('info', 'Sending SMS via ODOO_SMS', null, 'message');
+  sails.config.customLogger.log('info', 'Sending SMS via ODOO_SMS', null, 'message', null);
 
   const data = JSON.stringify({
     body: message,
@@ -210,30 +210,30 @@ function sendSmsWithOdoo(phoneNumber, message, senderEmail) {
         try {
           const parsedData = JSON.parse(rawData);
           if (parsedData?.result?.error) {
-            sails.config.customLogger.log('error', 'Odoo SMS API error', { error: parsedData.result.error }, 'server-action');
+            sails.config.customLogger.log('error', 'Odoo SMS API error', { error: parsedData.result.error }, 'server-action', null);
             return reject(new Error(parsedData.result.error));
           } else {
-            sails.config.customLogger.log('info', 'SMS sent via ODOO_SMS', null, 'server-action');
+            sails.config.customLogger.log('info', 'SMS sent via ODOO_SMS', null, 'server-action', null);
             return resolve();
           }
         } catch (e) {
-          sails.config.customLogger.log('error', 'Error parsing ODOO_SMS API response', { error: e?.message || e }, 'server-action');
+          sails.config.customLogger.log('error', 'Error parsing ODOO_SMS API response', { error: e?.message || e }, 'server-action', null);
           return reject(e);
         }
       });
-      sails.config.customLogger.log('verbose', `ODOO_SMS API response status code ${res.statusCode}`, null, 'message');
+      sails.config.customLogger.log('verbose', `ODOO_SMS API response status code ${res.statusCode}`, null, 'message', null);
     });
 
     try {
       req.on('error', (e) => {
-        sails.config.customLogger.log('error', 'ODOO_SMS API request error', { error: e.message }, 'server-action');
+        sails.config.customLogger.log('error', 'ODOO_SMS API request error', { error: e.message }, 'server-action', null);
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via ODOO_SMS', null, 'message');
+      sails.config.customLogger.log('info', 'Sending SMS via ODOO_SMS', null, 'message', null);
       req.write(data);
       req.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing to ODOO_SMS API request', { error: error?.message || error }, 'server-action');
+      sails.config.customLogger.log('error', 'Error writing to ODOO_SMS API request', { error: error?.message || error }, 'server-action', null);
       return reject(error);
     }
   });
@@ -244,8 +244,8 @@ function sendSmsWithClickatel(phoneNumber, message) {
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL,
   };
-  sails.config.customLogger.log('verbose', 'CLICKATEL config loaded', null, 'message');
-  sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL', null, 'server-action');
+  sails.config.customLogger.log('verbose', 'CLICKATEL config loaded', null, 'message', null);
+  sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL', null, 'server-action', null);
 
   const data = JSON.stringify({
     content: message,
@@ -271,33 +271,33 @@ function sendSmsWithClickatel(phoneNumber, message) {
         rawData += chunk;
       });
       res.on('end', () => {
-        sails.config.customLogger.log('verbose', 'CLICKATEL raw response data', { rawData }, 'message');
+        sails.config.customLogger.log('verbose', `CLICKATEL raw response data ${rawData}`, null, 'message', null);
         try {
           const parsedData = JSON.parse(rawData);
-          if (parsedData.messages[0]?.accepted) {
-            sails.config.customLogger.log('info', 'SMS sent via CLICKATEL', null, 'message');
+          if (parsedData?.messages?.[0]?.accepted) {
+            sails.config.customLogger.log('info', 'SMS sent via CLICKATEL', null, 'message', null);
             return resolve();
           }
-          sails.config.customLogger.log('error', 'CLICKATEL SMS API error', { response: parsedData }, 'message');
+          sails.config.customLogger.log('error', 'CLICKATEL SMS API error', { response: parsedData }, 'message', null);
           return reject(parsedData);
         } catch (e) {
-          sails.config.customLogger.log('error', 'Error parsing CLICKATEL SMS API response', { error: e?.message || e }, 'server-action');
+          sails.config.customLogger.log('error', 'Error parsing CLICKATEL SMS API response', { error: e?.message || e }, 'server-action', null);
           return reject(e);
         }
       });
-      sails.config.customLogger.log('verbose', `CLICKATEL SMS API response status code ${res?.statusCode}`, null, 'message');
+      sails.config.customLogger.log('verbose', `CLICKATEL SMS API response status code ${res?.statusCode}`, null, 'message', null);
     });
 
     try {
       req.on('error', (e) => {
-        sails.config.customLogger.log('error', 'CLICKATEL SMS API request error', { error: e?.message || e }, 'server-action');
+        sails.config.customLogger.log('error', 'CLICKATEL SMS API request error', { error: e?.message || e }, 'server-action', null);
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL', null, 'message');
+      sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL', null, 'message', null);
       req.write(data);
       req.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing to CLICKATEL SMS API request', { error: error?.message || error }, 'server-action');
+      sails.config.customLogger.log('error', 'Error writing to CLICKATEL SMS API request', { error: error?.message || error }, 'server-action', null);
       return reject(error);
     }
   });
@@ -308,8 +308,8 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
   const clickATel = {
     appKey: process.env.SMS_CLICKATEL_API,
   };
-  sails.config.customLogger.log('verbose', 'CLICKATEL_API config loaded', null, 'message');
-  sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL_API', null, 'message');
+  sails.config.customLogger.log('verbose', 'CLICKATEL_API config loaded', null, 'message', null);
+  sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL_API', null, 'message', null);
 
   const data = JSON.stringify({
     text: message,
@@ -336,36 +336,33 @@ function sendSmsWithClickatelAPI(phoneNumber, message) {
         rawData += chunk;
       });
       res.on('end', () => {
-        sails.config.customLogger.log('verbose', 'CLICKATEL_API raw response', { rawData }, 'message');
+        sails.config.customLogger.log('verbose', `CLICKATEL_API raw response ${rawData}`, null, 'message', null);
         try {
           const parsedData = JSON.parse(rawData);
-          if (parsedData.data.message[0]?.accepted) {
-            sails.config.customLogger.log('info', 'SMS sent via CLICKATEL_API', { provider: 'CLICKATEL_API' }, 'server-action');
+          if (parsedData.data?.message?.[0]?.accepted || parsedData.data?.messages?.[0]?.accepted) {
+            sails.config.customLogger.log('info', 'SMS sent via CLICKATEL_API', null, 'server-action', null);
             return resolve();
           }
-          sails.config.customLogger.log('error', 'CLICKATEL_API SMS error', { response: parsedData },
-            'server-action');
+          sails.config.customLogger.log('error', 'CLICKATEL_API SMS error', { response: parsedData }, 'server-action', null);
           return reject(parsedData);
         } catch (e) {
-          sails.config.customLogger.log('error', 'Error parsing CLICKATEL_API response', { error: e.message },
-            'message');
+          sails.config.customLogger.log('error', 'Error parsing CLICKATEL_API response', { error: e.message }, 'message', null);
           return reject(e);
         }
       });
-      sails.config.customLogger.log('verbose', `CLICKATEL_API SMS response status code ${res.statusCode}`,  null, 'message');
+      sails.config.customLogger.log('verbose', `CLICKATEL_API SMS response status code ${res.statusCode}`, null, 'message', null);
     });
 
     try {
       req.on('error', (e) => {
-        sails.config.customLogger.log('error', 'CLICKATEL_API request error', { error: e.message }, 'server-action');
+        sails.config.customLogger.log('error', 'CLICKATEL_API request error', { error: e.message }, 'server-action', null);
         return reject(e);
       });
-      sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL_API', null, 'message');
+      sails.config.customLogger.log('info', 'Sending SMS via CLICKATEL_API', null, 'message', null);
       req.write(data);
       req.end();
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error writing to CLICKATEL_API request', { error: error?.message || error },
-        'server-action');
+      sails.config.customLogger.log('error', 'Error writing to CLICKATEL_API request', { error: error?.message || error }, 'server-action', null);
       return reject(error);
     }
   });

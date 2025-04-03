@@ -1,9 +1,15 @@
 const validator = require("validator");
-const sanitize = require('mongo-sanitize');
+const { escapeHtml } = require('../utils/helpers');
 
 module.exports = {
-  ip(req, res) {
-    res.json({ ip: sanitize(req.ip) });
+  ip: async function (req, res) {
+    const ip = escapeHtml(req.ip);
+    if (typeof ip !== 'string' || ip.length > 100) {
+      return res.badRequest({ error: 'Invalid IP address.' });
+    }
+
+    const escapedIp = await sails.helpers.escapeHtmlString(ip);
+    return res.json({ ip: escapedIp });
   },
 
   async addDoctorToQueue(req, res) {
@@ -51,16 +57,51 @@ module.exports = {
   },
 
   async getDoctorQueues(req, res) {
-    const user = await User.findOne({ id: req.params.user }).populate(
-      "allowedQueues"
-    );
+    const userId = escapeHtml(req.params.user);
 
-    return res.status(200).json(user.allowedQueues);
+    if (
+      typeof userId !== 'string' ||
+      userId.trim().length === 0 ||
+      userId.length > 64
+    ) {
+      return res.badRequest({ error: 'Invalid user ID.' });
+    }
+
+    try {
+      const user = await User.findOne({ id: userId }).populate('allowedQueues');
+
+      if (!user) {
+        return res.notFound({ error: 'User not found.' });
+      }
+
+      return res.status(200).json(user.allowedQueues);
+    } catch (err) {
+      return res.serverError(err.message);
+    }
   },
 
   async getUser(req, res) {
-    const user = await User.findOne({ id: req.params.user });
-    return res.status(200).json(user);
+    const userId = escapeHtml(req.params.user);
+
+    if (
+      typeof userId !== 'string' ||
+      userId.trim().length === 0 ||
+      userId.length > 64
+    ) {
+      return res.badRequest({ error: 'Invalid user ID.' });
+    }
+
+    try {
+      const user = await User.findOne({ id: userId });
+
+      if (!user) {
+        return res.notFound({ error: 'User not found.' });
+      }
+
+      return res.status(200).json(user);
+    } catch (err) {
+      return res.serverError(err.message);
+    }
   },
 
   registerNurse: async function (req, res) {
@@ -89,7 +130,7 @@ module.exports = {
         return res.badRequest({ error: "Email already in use." });
       }
 
-      const newUser = await User.create({
+      await User.create({
         email,
         firstName,
         lastName,
@@ -101,7 +142,7 @@ module.exports = {
         status: "not-approved",
       }).fetch();
 
-      return res.ok(newUser);
+      return res.ok({ message: "Nurse registered successfully." });
     } catch (error) {
       return res.serverError(error);
     }
@@ -167,11 +208,13 @@ module.exports = {
       role: { in: roles },
     };
 
-    if (query && query.trim() !== '') {
+    const sanitizedQuery = query && typeof query === 'string' ? escapeHtml(query.trim()) : null;
+
+    if (sanitizedQuery) {
       whereClause.or = [
-        { firstName: { contains: query } },
-        { lastName: { contains: query } },
-        { email: { contains: query } },
+        { firstName: { contains: sanitizedQuery } },
+        { lastName: { contains: sanitizedQuery } },
+        { email: { contains: sanitizedQuery } },
       ];
     }
 
@@ -182,7 +225,7 @@ module.exports = {
         limit: pageSize,
       });
 
-      const total = await User.count(whereClause);
+      const total = Number(await User.count(whereClause)) || 0;
 
       return res.json({ data: users, total });
     } catch (error) {
