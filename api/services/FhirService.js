@@ -192,6 +192,7 @@ module.exports = {
       emailAddress: patientTelecomEmail?.value,
       phoneNumber: patientTelecomSms?.value,
       doctor: foundedDoctorWithSameEmail[0].id,
+      gender: foundedPatientActor?.gender,
     };
   },
 
@@ -217,7 +218,8 @@ module.exports = {
                                             metadata,
                                             doctor,
                                             emailAddress,
-                                            phoneNumber
+                                            phoneNumber,
+                                            gender,
                                           }) {
     return {
       firstName: firstName || 'Unknown',
@@ -229,6 +231,8 @@ module.exports = {
       doctor,
       emailAddress,
       phoneNumber,
+      gender,
+      isPatientInvite: true
     }
   },
 

@@ -1,4 +1,5 @@
 const validator = require('validator');
+const InviteController = require('./InviteController');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -56,7 +57,8 @@ module.exports = {
         lastName,
         doctor,
         emailAddress,
-        phoneNumber
+        phoneNumber,
+        gender
       } = await FhirService.validateAppointmentData(appointmentData);
 
       const metadata = FhirService.createAppointmentMetadata(appointmentData)
@@ -68,9 +70,32 @@ module.exports = {
         doctor,
         emailAddress,
         phoneNumber,
+        gender
       });
 
-      const newInvite = await PublicInvite.create(inviteData).fetch();
+      const mockReq = {
+        body: inviteData,
+        headers: req.headers,
+        user: req.user,
+      };
+
+      const mockRes = {
+        _data: null,
+        _status: 200,
+        status(code) {
+          this._status = code;
+          return this;
+        },
+        json(data) {
+          this._data = data;
+          return data;
+        },
+        serverError(err) {
+          throw err;
+        }
+      };
+
+      const newInvite = await InviteController.invite(mockReq, mockRes)
 
       /** Patient **/
       const userData = await FhirService.serializeAppointmentPatientToUser({
