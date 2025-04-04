@@ -103,8 +103,8 @@ module.exports = {
         lastName: lastName,
         email: emailAddress,
         phoneNumber: phoneNumber,
-        username: newInvite.id,
-        inviteToken: newInvite.id,
+        username: newInvite.invite?.id,
+        inviteToken: newInvite.invite?.id,
       })
 
       await User.create(userData);
