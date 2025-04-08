@@ -87,6 +87,7 @@ module.exports.globals = {
 
 
   hideCallerName: process.env.HIDE_CALLER_NAME === 'true',
+  HIDE_SCHEDULER_ROLE: process.env.HIDE_SCHEDULER_ROLE === 'true',
 
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,

@@ -748,6 +748,7 @@ module.exports = {
         ? process.env.FORM_REQUESTER_META.split(',')
         : '',
       hideCallerName: sails.config.globals.hideCallerName,
+      hideSchedulerRole: sails.config.globals.HIDE_SCHEDULER_ROLE,
       doctorLanguages,
       patientLanguages,
       enableFieldsFormDoctor
