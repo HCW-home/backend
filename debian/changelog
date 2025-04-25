@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.47) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.48) UNRELEASED; urgency=medium
 
   * add more logs for consultation controller
   * add more verbose logs
