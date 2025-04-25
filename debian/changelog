@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.48) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.49) UNRELEASED; urgency=medium
 
   * add more logs for consultation controller
   * add more verbose logs
@@ -43,8 +43,9 @@ hcw-athome-backend (0.5.48) UNRELEASED; urgency=medium
   * refs #8250, Force patient language in frontend
   * Recreate TTL index to ensure correct expireAfterSeconds value
   * remove delete open consultation cron
+  * fix backend lift
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 25 Apr 2025 08:28:42 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 25 Apr 2025 08:45:58 +0000
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
