@@ -112,6 +112,17 @@ function sanitizeMetadata(obj) {
 
 async function recreateTTLIndex(collection, field, expireAfterSeconds) {
   const indexName = `${field}_1`;
+  const db = Consultation.getDatastore().manager;
+
+  const collections = await db.listCollections().toArray();
+  const collectionName = collection.collectionName;
+  const collectionExists = collections.some(col => col.name === collectionName);
+
+  if (!collectionExists) {
+    sails.config.customLogger.log('error', `Collection '${collectionName}' does not exist. Cannot create TTL index.`);
+    return;
+  }
+
   try {
     await collection.dropIndex(indexName);
     sails.config.customLogger.log('info', `Dropped existing TTL index: ${indexName}`, null, 'server-action');
