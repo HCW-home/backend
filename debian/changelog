@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.49) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.50) UNRELEASED; urgency=medium
 
   * add more logs for consultation controller
   * add more verbose logs
@@ -12,44 +12,7 @@ hcw-athome-backend (0.5.49) UNRELEASED; urgency=medium
   * fix create fhir invite
   * update creating patient when creating fhir invite
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 04 Apr 2025 11:38:00 +0000
-  * update mediasoupserver model, add validation
-  * security fixes for MessageController and AuthController
-  * add escapeHtml helper and used in some places to fix security issues
-  * add more secuity fixes
-  * use escapeHtml instead of mongo-sanitize
-  * use escapeHtml instead of mongo-sanitize in invite controller
-  * update some dependencies(axios,sails-hook-sockets)
-  * fix Absolute Path Traversal warnings
-  * change sanitize with escapeHtml
-  * fix Missing CSP Header warnings
-  * update some dependencies
-  * add hsts to http.js
-  * remove joi validation for create invite
-  * update submit whatsapp template endpoint
-  * update create invite
-  * update create invite endpoint, add escape for some properites
-  * update edit invite endpoint
-  * change response of register nurse to not return created user
-  * validate create consultation endpoint body
-  * update edit mediasoupserver endpoint response
-  * validate experts array in create invite
-  * sanitize body of create invite
-  * update escapeHtml helper
-  * add helper for sanitizing metadata
-  * add allow_category_change when submitting whatsapp template
-  * refs #8221, New setting ENABLED_FIELDS_FORM_DOCTOR
-  * escape Html for scheduledFor in create invite
-  * update log formated message when format is splunk
-  * remove unused method
-  * refs #8245, Hide scheduler role in Admin based on config
-  * refs #8250, Force patient language in frontend
-  * refs #8250, Force patient language in frontend
-  * Recreate TTL index to ensure correct expireAfterSeconds value
-  * remove delete open consultation cron
-  * fix backend lift
-
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 25 Apr 2025 08:45:58 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 29 Apr 2025 14:00:03 +0000
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
