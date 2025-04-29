@@ -2,6 +2,7 @@
 const fs = require('fs');
 const { promisify } = require('util');
 const { syncTemplates } = require('../api/services/SyncTwilioTemplates');
+const { parseTime, recreateTTLIndex } = require('../api/utils/helpers');
 
 const readdirP = promisify(fs.readdir);
 
@@ -14,8 +15,25 @@ module.exports.bootstrap = async function() {
   const messageCollection = db.collection('message');
   const userCollection = db.collection('user');
   const tokenCollection = db.collection('token');
-  await consultationCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 86400 }); // expires after a day
-  await messageCollection.createIndex({ consultationClosedAtISO: 1 }, { expireAfterSeconds: 86400 }); // expires after a day
+
+  const ttlMilliseconds = parseTime(process.env.DELETE_CLOSED_CONSULTATION_AFTER, 86400000);
+  const expireAfterSeconds = Math.floor(ttlMilliseconds / 1000);
+
+  sails.config.customLogger.log('verbose',`TTL set to ${expireAfterSeconds} seconds based on DELETE_CLOSED_CONSULTATION_AFTER`, null, 'message', null);
+
+  await recreateTTLIndex(consultationCollection, 'closedAtISO', expireAfterSeconds);
+  await recreateTTLIndex(messageCollection, 'consultationClosedAtISO', expireAfterSeconds);
+
+  await consultationCollection.createIndex(
+    { closedAtISO: 1 },
+    { expireAfterSeconds }
+  );
+
+  await messageCollection.createIndex(
+    { consultationClosedAtISO: 1 },
+    { expireAfterSeconds }
+  );
+
   await userCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 86400 }); // expires after a day
   // await userCollection.createIndex({ email: 1, role: 1 }, { unique: true });
   await tokenCollection.createIndex({ closedAtISO: 1 }, { expireAfterSeconds: 60 * 60 }); // expires after an hour

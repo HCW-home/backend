@@ -1,13 +1,9 @@
 const { CronJob } = require('cron');
 const { parseTime } = require('../api/utils/helpers');
 
-const DELETE_CLOSED_CONSULTATION_AFTER = process.env.DELETE_CLOSED_CONSULTATION_AFTER;
 const DELETE_UNUSED_INVITE_AFTER = process.env.DELETE_UNUSED_INVITE_AFTER;
-
-const DEFAULT_CONSULTATION_TIMEOUT = 24 * 60 * 60 * 1000; // 1 day
 const DEFAULT_INVITATION_TIMEOUT = 24 * 60 * 60 * 1000; // 1 day
 
-const CONSULTATION_TIMEOUT = parseTime(DELETE_CLOSED_CONSULTATION_AFTER, DEFAULT_CONSULTATION_TIMEOUT);
 const INVITATION_TIMEOUT = parseTime(DELETE_UNUSED_INVITE_AFTER, DEFAULT_INVITATION_TIMEOUT);
 const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
@@ -183,33 +179,6 @@ module.exports = {
       for (const job of jobs) {
         await sails.models.message.endCall(job, job.consultation, 'DURATION_TIMEOUT');
         sails.config.customLogger.log('info', `Call ended due to DURATION_TIMEOUT messageId ${job.id}`, null, 'server-action');
-      }
-    });
-
-    defineJob('delete old consultations', '*/5 * * * *', async () => {
-      const now = Date.now();
-      const consultationsToBeClosed = await sails.models.consultation.findBy({
-        status: { '!=': 'closed' },
-        or: [
-          { acceptedAt: 0, createdAt: { '<': now - CONSULTATION_TIMEOUT } },
-          { acceptedAt: { '!=': 0, '<': now - CONSULTATION_TIMEOUT } }
-        ],
-      });
-
-      for (const consultation of consultationsToBeClosed) {
-        await sails.models.consultation.closeConsultation(consultation);
-        sails.config.customLogger.log('info', `Consultation closed due to timeout consultationId ${consultation.id}`, null, 'server-action');
-      }
-
-      const translatorRequestsToBeRefused = await sails.models.publicinvite.findBy({
-        status: 'SENT',
-        type: 'TRANSLATOR_REQUEST',
-        createdAt: { '<': now - TRANSLATION_REQUEST_TIMEOUT },
-      });
-
-      for (const invite of translatorRequestsToBeRefused) {
-        await sails.models.publicinvite.refuseTranslatorRequest(invite);
-        sails.config.customLogger.log('info', `Translator request refused due to timeout inviteId ${invite.id}`, null, 'server-action');
       }
     });
 

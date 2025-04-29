@@ -122,6 +122,10 @@ module.exports = {
     closedAt: {
       type: 'number',
     },
+    closedAtISO: {
+      type: 'ref',
+      columnType: 'datetime',
+    },
     patientRating: {
       type: 'string',
       required: false,

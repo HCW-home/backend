@@ -1129,6 +1129,7 @@ module.exports = {
       sails.config.customLogger.log('info', `Invite status checked ${publicInvite.id}`, null, 'message', req.user?.id);
       return res.json({
         success: true,
+        patientLanguage: publicInvite.patientLanguage,
         requiresAcknowledgment,
       });
     } catch (error) {
