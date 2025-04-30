@@ -228,6 +228,7 @@ module.exports = {
       phoneNumber: patientTelecomSms?.value,
       doctor: foundedDoctorWithSameEmail[0].id,
       gender: foundedPatientActor?.gender,
+      doctorEmail: emailDoctor,
     };
   },
 
@@ -262,6 +263,7 @@ module.exports = {
                                            emailAddress,
                                            phoneNumber,
                                            gender,
+                                           doctorEmail,
                                          }) {
     return {
       firstName: firstName || 'Unknown',
@@ -274,7 +276,8 @@ module.exports = {
       emailAddress,
       phoneNumber,
       gender,
-      isPatientInvite: true
+      isPatientInvite: true,
+      doctorEmail
     };
   },
 

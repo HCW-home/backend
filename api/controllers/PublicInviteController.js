@@ -51,6 +51,7 @@ async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
 module.exports = {
   async createFhirAppointment(req, res) {
     try {
+
       const appointmentData = req.body;
       const {
         firstName,
@@ -58,8 +59,10 @@ module.exports = {
         doctor,
         emailAddress,
         phoneNumber,
-        gender
+        gender,
+        doctorEmail
       } = await FhirService.validateAppointmentData(appointmentData);
+
 
       const metadata = FhirService.createAppointmentMetadata(appointmentData)
       const inviteData = FhirService.serializeAppointmentToInvite({
@@ -70,7 +73,8 @@ module.exports = {
         doctor,
         emailAddress,
         phoneNumber,
-        gender
+        gender,
+        doctorEmail
       });
 
       const mockReq = {
