@@ -130,122 +130,112 @@ module.exports = {
 
   async getFhirAppointmentByField(req, res) {
     try {
-      const {inviteToken} = req.query;
+      const { inviteToken } = req.query;
 
-      const publicInvite = await PublicInvite.findOne({
-        inviteToken: inviteToken,
-      });
-
-      const patient = await User.findOne({
-        inviteToken: publicInvite.id,
-      });
-
-      const doctor = await User.findOne({
-        id: publicInvite.doctor,
-        role: {in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN]}
-      });
-
+      const publicInvite = await PublicInvite.findOne({ inviteToken });
       if (!publicInvite) {
-        return res.status(404).json({error: 'Appointment not found'});
+        return res.status(404).json({ error: 'Appointment not found' });
       }
 
+      const patient = await User.findOne({ inviteToken: publicInvite.id });
+      const doctor = await User.findOne({
+        id: publicInvite.doctor,
+        role: { in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+      });
+
       const appointmentPatient = {
-        id: patient.id,
         resourceType: "Patient",
-        telecom: [
-          {
-            "rank": 1,
-            "system": "email",
-            "value": patient.email,
-          },
-          {
-            "rank": 2,
-            "system": "sms",
-            "value": patient.phoneNumber,
-          }
-        ],
+        id: patient.id,
         name: [
           {
             use: "usual",
             family: patient.lastName,
-            given: [
-              patient.firstName
-            ]
-          },
-        ],
-      }
-
-      const appointmentDoctor = {
-        id: doctor.id,
-        resourceType: "Practitioner",
-        telecom: [
-          {
-            rank: 1,
-            system: "email",
-            value: doctor.email,
+            given: [patient.firstName]
           }
         ],
-      }
+        telecom: [
+          {
+            system: "email",
+            value: patient.email,
+            use: "work"
+          },
+          {
+            system: "sms",
+            value: patient.phoneNumber,
+            use: "mobile"
+          }
+        ],
+        gender: patient.gender || "unknown"
+      };
+
+      const appointmentDoctor = {
+        resourceType: "Practitioner",
+        id: doctor.id,
+        telecom: [
+          {
+            system: "email",
+            value: doctor.email,
+            use: "work"
+          }
+        ]
+      };
 
       const appointment = {
         resourceType: "Appointment",
-        status: publicInvite.status,
-        description: "15-minute consultation",
+        status: publicInvite.status || "booked",
+        description: publicInvite?.metadata?.description || "",
         participant: [
           {
-            status: publicInvite.status,
+            status: publicInvite.status || "accepted",
             actor: {
-              reference: appointmentPatient,
-              display: `${publicInvite.firstName} ${publicInvite.lastName}`
+              reference: `#${appointmentPatient.id}`
             }
           },
           {
-            status: "ACCEPTED",
+            status: "accepted",
             actor: {
-              reference: appointmentDoctor,
-              display: `${doctor.firstName} ${doctor.lastName}`
+              reference: `#${appointmentDoctor.id}`
             }
           }
-        ]
-      }
+        ],
+        contained: [appointmentPatient, appointmentDoctor]
+      };
 
       if (publicInvite.scheduledFor) {
-        appointment.start = new Date(publicInvite.scheduledFor).toISOString()
-      }
-
-      if (publicInvite?.metadata?.note) {
-        appointment.note = [{text: publicInvite?.metadata?.note}]
-      }
-
-      if (publicInvite?.metadata?.minutesDuration) {
-        appointment.minutesDuration = publicInvite?.metadata?.minutesDuration
+        appointment.start = new Date(publicInvite.scheduledFor).toISOString();
       }
 
       if (publicInvite?.metadata?.end) {
-        appointment.end = publicInvite?.metadata?.end;
+        appointment.end = new Date(publicInvite.metadata.end).toISOString();
       }
 
-      if (publicInvite?.metadata?.description) {
-        appointment.description = publicInvite?.metadata?.description;
+      if (publicInvite?.metadata?.note) {
+        appointment.note = [{ text: publicInvite.metadata.note }];
+      }
+
+      if (publicInvite?.metadata?.minutesDuration) {
+        appointment.minutesDuration = publicInvite.metadata.minutesDuration;
       }
 
       if (publicInvite?.metadata?.reason) {
-        appointment.reason = [{
-          reference: {
-            display: publicInvite?.metadata?.reason
+        appointment.reason = [
+          {
+            text: publicInvite.metadata.reason
           }
-        }]
+        ];
       }
 
       if (publicInvite?.metadata?.identifier) {
-        appointment.identifier = [{
-          value: publicInvite?.metadata?.identifier
-        }]
+        appointment.identifier = [
+          {
+            value: publicInvite.metadata.identifier
+          }
+        ];
       }
 
       return res.status(200).json(appointment);
     } catch (error) {
-      return res.status(500).json({error: 'An error occurred', details: error.message});
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
     }
   },
 

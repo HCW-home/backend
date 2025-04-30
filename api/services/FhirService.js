@@ -1,6 +1,6 @@
 const Fhir = require('fhir').Fhir;
 const fhir = new Fhir();
-const moment = require("moment-timezone");
+const moment = require('moment-timezone');
 const uuid = require('uuid');
 
 const statusMap = {
@@ -13,18 +13,40 @@ const statusMap = {
 
 module.exports = {
 
-  findParticipantsByResourceType: function (data, resourceType) {
-    return data?.filter(participant => participant?.actor?.reference?.resourceType === resourceType);
-  },
-
-
-  findParticipantsExcludingResourceTypes: function (data, resourceTypes) {
-    return data.filter(participant => {
-      return !resourceTypes.includes(participant?.actor?.reference?.resourceType);
+  findParticipantsByResourceType: function(data, containedResources, resourceType) {
+    return data?.filter(participant => {
+      const ref = participant?.actor?.reference;
+      const refId = ref?.startsWith('#') ? ref.slice(1) : null;
+      const matchedResource = containedResources?.find(res => res.id === refId);
+      return matchedResource?.resourceType === resourceType;
     });
   },
 
-  validateAppointmentData: async function (appointmentData) {
+  findContainedResourcesByType(participants, contained, resourceType) {
+    return participants
+      .map(participant => {
+        const refId = participant?.actor?.reference?.startsWith('#')
+          ? participant.actor.reference.slice(1)
+          : null;
+
+        return contained?.find(resource => resource.id === refId && resource.resourceType === resourceType);
+      })
+      .filter(Boolean);
+  },
+
+
+  findParticipantsExcludingResourceTypes: function(participants, contained, resourceTypes) {
+    return participants?.filter(participant => {
+      const refId = participant?.actor?.reference?.startsWith('#')
+        ? participant.actor.reference.slice(1)
+        : null;
+
+      const matchedResource = contained?.find(resource => resource.id === refId);
+      return matchedResource ? !resourceTypes.includes(matchedResource.resourceType) : true;
+    });
+  },
+
+  validateAppointmentData: async function(appointmentData) {
     const validationResult = fhir.validate(appointmentData, {
       errorOnUnexpected: true,
     });
@@ -88,13 +110,25 @@ module.exports = {
       throw new Error('Field "participant" is mandatory and must be a non-empty list');
     }
 
-    const foundedDoctors = this.findParticipantsByResourceType(appointmentData.participant, "Practitioner");
-    const foundedPatients = this.findParticipantsByResourceType(appointmentData.participant, "Patient");
+    const foundedDoctors = this.findContainedResourcesByType(
+      appointmentData.participant,
+      appointmentData.contained,
+      'Practitioner'
+    );
+
+    const foundedPatients = this.findContainedResourcesByType(
+      appointmentData.participant,
+      appointmentData.contained,
+      'Patient'
+    );
+
     const foundedDoctor = foundedDoctors[0];
     const foundedPatient = foundedPatients[0];
-    const foundedDoctorActor = foundedDoctor?.actor?.reference;
-    const foundedPatientActor = foundedPatient?.actor?.reference;
-    const foundedParticipantsExcludingCodes = this.findParticipantsExcludingResourceTypes(appointmentData.participant, ['Patient', 'Practitioner'])
+    const foundedDoctorActor = foundedDoctor;
+    const foundedPatientActor = foundedPatient;
+    const foundedParticipantsExcludingCodes = this.findParticipantsExcludingResourceTypes(appointmentData.participant,
+      appointmentData.contained,
+      ['Patient', 'Practitioner']);
 
     /** Practitioner **/
     if (!foundedDoctors.length) {
@@ -134,15 +168,15 @@ module.exports = {
       throw new Error('Patient must have a name (HumanName)');
     }
 
-    // ✅
-    if (!foundedPatientActor?.identifier?.length) {
-      throw new Error('Missing identifier');
-    }
+    // // // ✅
+    // if (!foundedPatientActor?.identifier?.length) {
+    //   throw new Error('Missing identifier');
+    // }
 
-    // ✅
-    if (foundedPatientActor?.identifier.length > 1) {
-      throw new Error('We not supported many identifiers');
-    }
+    // // ✅
+    // if (foundedPatientActor?.identifier.length > 1) {
+    //   throw new Error('We not supported many identifiers');
+    // }
 
     const name = foundedPatientActor?.name?.find((el) => el?.use === 'usual');
     // ✅
@@ -175,11 +209,11 @@ module.exports = {
 
     /** Practitioner **/
     const foundedDoctorEmailObject = foundedDoctorActor?.telecom?.find((contact) => contact.system === 'email');
-    const emailDoctor = foundedDoctorEmailObject?.value
+    const emailDoctor = foundedDoctorEmailObject?.value;
 
     const foundedDoctorWithSameEmail = await User.find({
       email: emailDoctor,
-      role: {in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN]}
+      role: { in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
     });
 
     if (!foundedDoctorWithSameEmail.length) {
@@ -196,31 +230,38 @@ module.exports = {
     };
   },
 
-  serializeAppointmentPatientToUser: async function ({firstName, lastName, email, phoneNumber, username, inviteToken}) {
+  serializeAppointmentPatientToUser: async function({
+                                                      firstName,
+                                                      lastName,
+                                                      email,
+                                                      phoneNumber,
+                                                      username,
+                                                      inviteToken
+                                                    }) {
     return {
       username: username,
       firstName: firstName,
       lastName: lastName,
-      role: "patient",
+      role: 'patient',
       password: '',
       temporaryAccount: true,
       email: email,
       phoneNumber: phoneNumber,
       inviteToken: inviteToken,
-      direct: "",
-    }
+      direct: '',
+    };
   },
 
-  serializeAppointmentToInvite: function ({
-                                            firstName,
-                                            lastName,
-                                            appointmentData,
-                                            metadata,
-                                            doctor,
-                                            emailAddress,
-                                            phoneNumber,
-                                            gender,
-                                          }) {
+  serializeAppointmentToInvite: function({
+                                           firstName,
+                                           lastName,
+                                           appointmentData,
+                                           metadata,
+                                           doctor,
+                                           emailAddress,
+                                           phoneNumber,
+                                           gender,
+                                         }) {
     return {
       firstName: firstName || 'Unknown',
       lastName: lastName || 'Unknown',
@@ -233,15 +274,15 @@ module.exports = {
       phoneNumber,
       gender,
       isPatientInvite: true
-    }
+    };
   },
 
-  createAppointmentMetadata: function (appointmentData) {
+  createAppointmentMetadata: function(appointmentData) {
     if (!appointmentData) {
-      return null
+      return null;
     }
 
-    const metadata = {}
+    const metadata = {};
 
     if (appointmentData?.note?.[0]?.text) {
       metadata.note = appointmentData.note[0].text;
@@ -256,18 +297,18 @@ module.exports = {
     }
 
     if (appointmentData?.description) {
-      metadata.description = appointmentData.description
+      metadata.description = appointmentData.description;
     }
 
     if (appointmentData?.reason?.length > 0 && appointmentData?.reason[0]?.reference?.display) {
-      metadata.reason = appointmentData.reason[0]?.reference?.display
+      metadata.reason = appointmentData.reason[0]?.reference?.display;
     }
 
     if (appointmentData?.identifier?.length > 0 && appointmentData?.identifier?.[0]?.value) {
-      metadata.identifier = appointmentData?.identifier?.[0]?.value
+      metadata.identifier = appointmentData?.identifier?.[0]?.value;
     }
 
-    return metadata
+    return metadata;
   }
 
 };
