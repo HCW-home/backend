@@ -146,6 +146,7 @@ module.exports.policies = {
     createFhirAppointment: ["isLoggedIn", "canInvite", "isInviteOwner"],
     getFhirAppointmentByField: ["isLoggedIn", "canInvite", "isInviteOwner"],
     getAllFhirAppointments: ["isLoggedIn", "canInvite", "isInviteOwner"],
+    deleteFhirAppointmentByField: ["isLoggedIn", "canInvite", "isInviteOwner"],
   },
   WhatsappTemplateController: {
     "*": false,

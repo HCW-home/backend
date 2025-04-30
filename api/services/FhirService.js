@@ -3,16 +3,31 @@ const fhir = new Fhir();
 const moment = require('moment-timezone');
 const uuid = require('uuid');
 
+
 const statusMap = {
-  SENT: 'pending',
-  ACCEPTED: 'booked',
-  COMPLETE: 'fulfilled',
-  REFUSED: 'cancelled',
-  CANCELED: 'cancelled',
+  PENDING: "proposed",
+  SENT: "pending",
+  ACCEPTED: "booked",
+  ACKNOWLEDGED: "booked",
+  COMPLETE: "fulfilled",
+  REFUSED: "cancelled",
+  CANCELED: "cancelled",
+  SCHEDULED_FOR_INVITE: "booked",
+  SCHEDULED: "booked",
+
+  QUEUED: "pending",
+  SENDING: "pending",
+  FAILED: "cancelled",
+  DELIVERED: "booked",
+  PARTIALLY_DELIVERED: "booked",
+  UNDELIVERED: "cancelled",
+  RECEIVING: "booked",
+  RECEIVED: "booked",
+  READ: "arrived"
 };
 
 module.exports = {
-
+  statusMap,
   findParticipantsByResourceType: function(data, containedResources, resourceType) {
     return data?.filter(participant => {
       const ref = participant?.actor?.reference;

@@ -1,5 +1,6 @@
 const validator = require('validator');
 const InviteController = require('./InviteController');
+const { statusMap } = require('../services/FhirService');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -113,7 +114,16 @@ module.exports = {
 
       await User.create(userData);
 
-      return res.status(201).json(newInvite);
+      const resJson = {
+        id: newInvite.invite?.id,
+        ...appointmentData,
+      }
+
+      await PublicInvite.updateOne({
+        id: newInvite.invite?.id,
+      }).set({ fhirData: appointmentData });
+
+      return res.status(201).json(resJson);
     } catch (error) {
       if (error.message === 'Invalid FHIR data') {
         return res.status(400).json({error: error.message, details: error.details});
@@ -125,20 +135,104 @@ module.exports = {
 
   async getAllFhirAppointments(req, res) {
     try {
-      const invites = await PublicInvite.find();
-      return res.status(200).json(invites);
+      const invites = await PublicInvite.find({
+        where: {
+          fhirData: { '!=': null }
+        }
+      });
+
+      const results = [];
+
+      for (const invite of invites) {
+        const appointment = JSON.parse(JSON.stringify(invite.fhirData));
+
+        const patient = await User.findOne({ inviteToken: invite.id });
+        const doctor = await User.findOne({
+          id: invite.doctor,
+          role: { in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
+        });
+
+        appointment.status = invite.status || appointment.status;
+
+        if (invite.scheduledFor) {
+          appointment.start = new Date(invite.scheduledFor).toISOString();
+        }
+
+        if (invite?.metadata?.end) {
+          appointment.end = new Date(invite.metadata.end).toISOString();
+        }
+
+        if (invite?.metadata?.note) {
+          appointment.note = [{ text: invite.metadata.note }];
+        }
+
+        if (invite?.metadata?.minutesDuration) {
+          appointment.minutesDuration = invite.metadata.minutesDuration;
+        }
+
+        if (invite?.metadata?.reason) {
+          appointment.reason = [{ text: invite.metadata.reason }];
+        }
+
+        if (invite?.metadata?.identifier) {
+          appointment.identifier = [{ value: invite.metadata.identifier }];
+        }
+        appointment.status = statusMap[invite.status] || "";
+
+        if (appointment.contained && Array.isArray(appointment.contained)) {
+          appointment.contained = appointment.contained.map(resource => {
+            if (resource.resourceType === "Patient" && patient) {
+              return {
+                ...resource,
+                name: [{
+                  use: "usual",
+                  family: patient.lastName,
+                  given: [patient.firstName]
+                }],
+                telecom: [
+                  { system: "email", value: patient.email, use: "work" },
+                  { system: "sms", value: patient.phoneNumber, use: "mobile" }
+                ],
+                gender: patient.gender || "unknown"
+              };
+            }
+
+            if (resource.resourceType === "Practitioner" && doctor) {
+              return {
+                ...resource,
+                telecom: [
+                  { system: "email", value: doctor.email, use: "work" }
+                ]
+              };
+            }
+
+            return resource;
+          });
+        }
+
+        results.push(appointment);
+      }
+
+      return res.status(200).json(results);
     } catch (error) {
-      return res.status(500).json({error: 'An error occurred', details: error.message});
+      return res.status(500).json({
+        error: 'An error occurred while retrieving appointments.',
+        details: error.message
+      });
     }
   },
 
   async getFhirAppointmentByField(req, res) {
     try {
-      const { inviteToken } = req.query;
+      const { id } = req.query;
 
-      const publicInvite = await PublicInvite.findOne({ inviteToken });
-      if (!publicInvite) {
-        return res.status(404).json({ error: 'Appointment not found' });
+      if (!id) {
+        return res.status(400).json({ error: 'Id is required' });
+      }
+
+      const publicInvite = await PublicInvite.findOne({ id });
+      if (!publicInvite || !publicInvite.fhirData) {
+        return res.status(404).json({ error: 'Appointment not found or FHIR data missing' });
       }
 
       const patient = await User.findOne({ inviteToken: publicInvite.id });
@@ -147,63 +241,9 @@ module.exports = {
         role: { in: [sails.config.globals.ROLE_DOCTOR, sails.config.globals.ROLE_ADMIN] }
       });
 
-      const appointmentPatient = {
-        resourceType: "Patient",
-        id: patient.id,
-        name: [
-          {
-            use: "usual",
-            family: patient.lastName,
-            given: [patient.firstName]
-          }
-        ],
-        telecom: [
-          {
-            system: "email",
-            value: patient.email,
-            use: "work"
-          },
-          {
-            system: "sms",
-            value: patient.phoneNumber,
-            use: "mobile"
-          }
-        ],
-        gender: patient.gender || "unknown"
-      };
+      const appointment = JSON.parse(JSON.stringify(publicInvite.fhirData));
 
-      const appointmentDoctor = {
-        resourceType: "Practitioner",
-        id: doctor.id,
-        telecom: [
-          {
-            system: "email",
-            value: doctor.email,
-            use: "work"
-          }
-        ]
-      };
-
-      const appointment = {
-        resourceType: "Appointment",
-        status: publicInvite.status || "booked",
-        description: publicInvite?.metadata?.description || "",
-        participant: [
-          {
-            status: publicInvite.status || "accepted",
-            actor: {
-              reference: `#${appointmentPatient.id}`
-            }
-          },
-          {
-            status: "accepted",
-            actor: {
-              reference: `#${appointmentDoctor.id}`
-            }
-          }
-        ],
-        contained: [appointmentPatient, appointmentDoctor]
-      };
+      appointment.status = publicInvite.status || appointment.status;
 
       if (publicInvite.scheduledFor) {
         appointment.start = new Date(publicInvite.scheduledFor).toISOString();
@@ -222,24 +262,53 @@ module.exports = {
       }
 
       if (publicInvite?.metadata?.reason) {
-        appointment.reason = [
-          {
-            text: publicInvite.metadata.reason
-          }
-        ];
+        appointment.reason = [{ text: publicInvite.metadata.reason }];
       }
 
       if (publicInvite?.metadata?.identifier) {
-        appointment.identifier = [
-          {
-            value: publicInvite.metadata.identifier
+        appointment.identifier = [{ value: publicInvite.metadata.identifier }];
+      }
+      const fhirStatus = statusMap[publicInvite.status];
+
+      if (appointment.contained && Array.isArray(appointment.contained)) {
+        appointment.contained = appointment.contained.map(resource => {
+          if (resource.resourceType === "Patient" && patient) {
+            return {
+              ...resource,
+              status: fhirStatus,
+              name: [{
+                use: "usual",
+                family: patient.lastName,
+                given: [patient.firstName]
+              }],
+              telecom: [
+                { system: "email", value: patient.email, use: "work" },
+                { system: "sms", value: patient.phoneNumber, use: "mobile" }
+              ],
+              gender: patient.gender || "unknown"
+            };
           }
-        ];
+
+          if (resource.resourceType === "Practitioner" && doctor) {
+            return {
+              ...resource,
+              telecom: [
+                { system: "email", value: doctor.email, use: "work" }
+              ]
+            };
+          }
+
+          return resource;
+        });
       }
 
       return res.status(200).json(appointment);
+
     } catch (error) {
-      return res.status(500).json({ error: 'An error occurred', details: error.message });
+      return res.status(500).json({
+        error: 'An error occurred while retrieving the appointment.',
+        details: error.message
+      });
     }
   },
 
@@ -276,11 +345,14 @@ module.exports = {
 
   async deleteFhirAppointmentByField(req, res) {
     try {
+      const {id} = req.query;
 
-      const {inviteToken} = req.query;
+      if (!id) {
+        return res.status(404).json({ error: 'Id is required' });
+      }
 
       const deletedInvite = await PublicInvite.destroyOne({
-        inviteToken: inviteToken,
+        id: id,
       });
 
       if (!deletedInvite) {
