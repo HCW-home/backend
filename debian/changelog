@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.51) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.52) UNRELEASED; urgency=medium
 
   * add more logs for consultation controller
   * add more verbose logs
@@ -12,8 +12,9 @@ hcw-athome-backend (0.5.51) UNRELEASED; urgency=medium
   * fix create fhir invite
   * update creating patient when creating fhir invite
   * support contained reference of patient and practitioner
+  * add skipCodeValidation for fhir
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 30 Apr 2025 08:24:27 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 30 Apr 2025 09:29:55 +0000
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
