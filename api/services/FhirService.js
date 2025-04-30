@@ -48,7 +48,8 @@ module.exports = {
 
   validateAppointmentData: async function(appointmentData) {
     const validationResult = fhir.validate(appointmentData, {
-      errorOnUnexpected: true,
+      errorOnUnexpected: false,
+      skipCodeValidation: true,
     });
 
     if (!validationResult.valid) {
