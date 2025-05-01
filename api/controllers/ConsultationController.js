@@ -278,12 +278,15 @@ module.exports = {
   async create(req, res) {
     try {
       const consultationJson = {
+        firstName: escapeHtml(req.body.firstName),
+        lastName: escapeHtml(req.body.lastName),
         queue: escapeHtml(req.body.queue),
         gender: escapeHtml(req.body.gender),
         IMADTeam: escapeHtml(req.body.IMADTeam),
-        invitationToken: escapeHtml(req.body.invitationToken),
+        invitationToken: escapeHtml(req.body.invitationToken || ''),
         status: escapeHtml(req.body.status),
         owner: escapeHtml(req.body.owner),
+        metadata: req.body.metadata,
       };
       const { user } = req;
       let invite;
