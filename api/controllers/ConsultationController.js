@@ -896,7 +896,8 @@ module.exports = {
     const attachment = escapeHtml(req.params.attachment);
     const msg = await Message.findOne({ id: attachment });
     if (!msg.mimeType.startsWith('audio')) {
-      res.setHeader('Content-disposition', `attachment; filename=${msg.fileName}`);
+      const safeFileName = msg.fileName.replace(/[^a-zA-Z0-9-_.]/g, '_');
+      res.setHeader('Content-disposition', `attachment; filename=${safeFileName}`);
     }
 
     if (!msg.filePath || msg.filePath.includes('..') || path.isAbsolute(msg.filePath)) {
