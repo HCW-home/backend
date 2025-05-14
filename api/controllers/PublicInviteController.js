@@ -135,11 +135,26 @@ module.exports = {
 
   async getAllFhirAppointments(req, res) {
     try {
-      const invites = await PublicInvite.find({
-        where: {
-          fhirData: { '!=': null }
+
+      let where = {
+        fhirData: { '!=': null }
+      };
+
+      try {
+        if (req.query.where) {
+          const extraWhere = typeof req.query.where === 'string'
+            ? JSON.parse(req.query.where)
+            : req.query.where;
+
+          where = { ...where, ...extraWhere };
         }
-      });
+      } catch (err) {
+        return res.badRequest({ error: 'Invalid JSON in `where` param' });
+      }
+
+      const invites = await PublicInvite.find({
+        where
+      }).meta({ enableExperimentalDeepTargets: true });
 
       const results = [];
 
