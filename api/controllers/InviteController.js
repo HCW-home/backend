@@ -280,6 +280,7 @@ module.exports = {
         birthDate: escapeHtml(value.birthDate),
         patientTZ: tz,
         metadata: sanitizeMetadata(value.metadata),
+        note: escapeHtml(value.note),
       };
       if (doctor) {
         inviteData.doctor = escapeHtml(doctor.id);

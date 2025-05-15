@@ -61,7 +61,8 @@ module.exports = {
         emailAddress,
         phoneNumber,
         gender,
-        doctorEmail
+        doctorEmail,
+        note
       } = await FhirService.validateAppointmentData(appointmentData);
 
 
@@ -75,7 +76,8 @@ module.exports = {
         emailAddress,
         phoneNumber,
         gender,
-        doctorEmail
+        doctorEmail,
+        note
       });
 
       const mockReq = {
@@ -177,8 +179,8 @@ module.exports = {
           appointment.end = new Date(invite.metadata.end).toISOString();
         }
 
-        if (invite?.metadata?.note) {
-          appointment.note = [{ text: invite.metadata.note }];
+        if (invite?.note) {
+          appointment.note = [{ text: invite.note }];
         }
 
         if (invite?.metadata?.minutesDuration) {
@@ -268,8 +270,8 @@ module.exports = {
         appointment.end = new Date(publicInvite.metadata.end).toISOString();
       }
 
-      if (publicInvite?.metadata?.note) {
-        appointment.note = [{ text: publicInvite.metadata.note }];
+      if (publicInvite?.note) {
+        appointment.note = [{ text: publicInvite.note }];
       }
 
       if (publicInvite?.metadata?.minutesDuration) {

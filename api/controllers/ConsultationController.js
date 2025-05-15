@@ -364,6 +364,7 @@ module.exports = {
           consultationJson.metadata = invite.metadata; // Pass metadata from the invite to the consultation
           consultationJson.IMADTeam = invite.IMADTeam || 'none';
           consultationJson.birthDate = invite.birthDate;
+          consultationJson.note = invite.note;
           consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
         }
       }

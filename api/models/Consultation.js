@@ -159,7 +159,6 @@ module.exports = {
       type: 'boolean',
       required: false,
     },
-
     flagTranslatorOnline: {
       type: 'boolean',
       required: false,
@@ -176,6 +175,9 @@ module.exports = {
     },
     firstCallAt: {
       type: 'number',
+    },
+    note: {
+      type: 'string',
     },
   },
 

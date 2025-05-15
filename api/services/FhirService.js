@@ -236,6 +236,11 @@ module.exports = {
       throw new Error('Doctor not found');
     }
 
+    let note = ''
+    if (appointmentData?.note?.[0]?.text) {
+      note = appointmentData.note[0].text;
+    }
+
     return {
       firstName: name?.given?.[0],
       lastName: name?.family,
@@ -244,6 +249,7 @@ module.exports = {
       doctor: foundedDoctorWithSameEmail[0].id,
       gender: foundedPatientActor?.gender,
       doctorEmail: emailDoctor,
+      note
     };
   },
 
@@ -279,6 +285,7 @@ module.exports = {
                                            phoneNumber,
                                            gender,
                                            doctorEmail,
+                                           note
                                          }) {
     return {
       firstName: firstName || 'Unknown',
@@ -292,7 +299,8 @@ module.exports = {
       phoneNumber,
       gender,
       isPatientInvite: true,
-      doctorEmail
+      doctorEmail,
+      note
     };
   },
 
@@ -302,10 +310,6 @@ module.exports = {
     }
 
     const metadata = {};
-
-    if (appointmentData?.note?.[0]?.text) {
-      metadata.note = appointmentData.note[0].text;
-    }
 
     if (appointmentData?.minutesDuration) {
       metadata.minutesDuration = appointmentData.minutesDuration;
