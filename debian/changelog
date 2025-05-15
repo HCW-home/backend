@@ -16,8 +16,12 @@ hcw-athome-backend (0.5.55) UNRELEASED; urgency=medium
   * fix create fhir invite for scheduler role
   * update post fhir appointment edpoint respone
   * refs #8277, Unable to request consultation as requester
+  * safe file name on Content-disposition header
+  * add ability to query by where in metadata
+  * add note for invite and consultation
+  * add ability to edit consultation note
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 01 May 2025 12:38:17 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 15 May 2025 14:54:48 +0000
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
