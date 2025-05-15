@@ -1067,6 +1067,8 @@ module.exports = {
         ]);
       }
 
+      delete publicinvite.note;
+
       const expertBody = {};
       if (isExpert) {
         expertBody.status = null;

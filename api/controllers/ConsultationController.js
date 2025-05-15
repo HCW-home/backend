@@ -267,6 +267,14 @@ module.exports = {
         }
       }
 
+      if (req.user?.role === sails.config.globals.ROLE_PATIENT) {
+        for (const item of data) {
+          if (item.consultation?.note !== undefined) {
+            delete item.consultation.note;
+          }
+        }
+      }
+
       res.json(data);
     } catch (err) {
       sails.config.customLogger.log('error', 'Error in consultationOverview', { error: err?.message || err }, 'server-action', req.user?.id);
@@ -1128,5 +1136,46 @@ module.exports = {
       sails.config.customLogger.log('error', 'Error in planConsultation', { error: error?.message || error }, 'server-action', req.user?.id);
       return res.status(500).json({ success: false, message: 'Something went wrong' });
     }
+  },
+
+  async updateConsultationNote(req, res) {
+    try {
+      const consultationId = escapeHtml(req.params.consultation);
+      const { note } = req.body;
+
+      const updatedConsultation = await Consultation.updateOne({ id: consultationId }).set({ note });
+
+      if (!updatedConsultation) {
+        sails.config.customLogger.log(
+          'warn',
+          `Consultation with ID ${consultationId} not found`,
+          null,
+          'server-action',
+          req.user?.id
+        );
+        return res.notFound({ error: 'Consultation not found' });
+      }
+
+      sails.config.customLogger.log(
+        'info',
+        `Note updated for consultation ${consultationId}`,
+        updatedConsultation,
+        'server-action',
+        req.user?.id
+      );
+
+      return res.ok({ message: 'Consultation updated successfully' });
+
+    } catch (err) {
+      sails.config.customLogger.log(
+        'error',
+        `Error updating note for consultation ${req.params.consultation}: ${err.message}`,
+        err,
+        'server-action',
+        req.user?.id
+      );
+      return res.serverError({ error: 'Internal server error' });
+    }
   }
+
 };

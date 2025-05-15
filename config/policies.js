@@ -88,6 +88,7 @@ module.exports.policies = {
     acceptCall: ["isLoggedIn", "isConsultationParticipant"],
     patientFeedback: ["isLoggedIn", "isNurseOrPatientOrAdmin"],
     doctorFeedback: ["isLoggedIn", "isConsultationOwner"],
+    updateConsultationNote: ["isLoggedIn", "isConsultationOwner"],
     consultationsCSV: ["isLoggedIn", "isAdmin"],
     testCall: true,
     getCurrentCall: ["isLoggedIn", "isConsultationParticipant"],

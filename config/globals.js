@@ -91,6 +91,8 @@ module.exports.globals = {
 
   FORCE_PATIENT_LANGUAGE: process.env.FORCE_PATIENT_LANGUAGE === 'true',
 
+  SHOW_DOCTOR_PRIVATE_NOTE: process.env.SHOW_DOCTOR_PRIVATE_NOTE === 'true',
+
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,
   WHITELISTED_PREFIXES: {
