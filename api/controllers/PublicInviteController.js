@@ -1,7 +1,7 @@
 const validator = require('validator');
 const InviteController = require('./InviteController');
 const { statusMap } = require('../services/FhirService');
-const { escapeHtml } = require('../utils/helpers');
+const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -102,8 +102,8 @@ module.exports = {
           throw err;
         }
       };
-
-      const newInvite = await InviteController.invite(mockReq, mockRes)
+      const safeMockReq = sanitizeMetadata(mockReq);
+      const newInvite = await InviteController.invite(safeMockReq, mockRes)
 
       /** Patient **/
       const userData = await FhirService.serializeAppointmentPatientToUser({
@@ -126,7 +126,8 @@ module.exports = {
         id: newInvite.invite?.id,
       }).set({ fhirData: appointmentData });
 
-      return res.status(201).json(resJson);
+      const safeJson = sanitizeMetadata(resJson);
+      return res.status(201).json(safeJson);
     } catch (error) {
       if (error.message === 'Invalid FHIR data') {
         return res.status(400).json({error: error.message, details: error.details});
@@ -334,7 +335,8 @@ module.exports = {
   async updateFhirAppointmentByField(req, res) {
     try {
       const field = req.query.field;
-      const value = req.query.value;
+      let { value } = req.query;
+      value = escapeHtml(value);
       const appointmentData = req.body;
 
       if (!field || !value) {
@@ -345,9 +347,11 @@ module.exports = {
 
       const inviteData = FhirService.serializeAppointmentToInvite(appointmentData);
 
+      const safeInviteData = sanitizeMetadata(inviteData);
+
       const updatedInvite = await PublicInvite.updateOne({
         [`fhirData.${field}`]: value,
-      }).set(inviteData);
+      }).set(safeInviteData);
 
       if (!updatedInvite) {
         return res.status(404).json({error: 'Appointment not found'});

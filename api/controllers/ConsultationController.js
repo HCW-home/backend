@@ -6,7 +6,7 @@ const fileType = require('file-type');
 const path = require('path');
 
 const validator = require('validator');
-const { escapeHtml } = require('../utils/helpers');
+const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
 
 const db = Consultation.getDatastore().manager;
 
@@ -294,7 +294,7 @@ module.exports = {
         invitationToken: escapeHtml(req.body.invitationToken || ''),
         status: escapeHtml(req.body.status),
         owner: escapeHtml(req.body.owner),
-        metadata: req.body.metadata,
+        metadata: sanitizeMetadata(req.body.metadata),
       };
       const { user } = req;
       let invite;
