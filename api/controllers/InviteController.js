@@ -1088,7 +1088,9 @@ module.exports = {
 
   async checkInviteStatus(req, res) {
     try {
-      if (!req.params.invitationToken) {
+      const invitationToken = escapeHtml(req.params.invitationToken)
+
+      if (!invitationToken) {
         sails.config.customLogger.log('warn', 'Missing invitationToken parameter invitationToken', null, 'message', req.user?.id);
         return res.status(400).json({
           success: false,
@@ -1096,12 +1098,10 @@ module.exports = {
         });
       }
 
-      const invitationToken = req.params.invitationToken
-
       sails.config.customLogger.log('info', `Checking invite status ${invitationToken}`, null, 'message', req.user?.id);
 
       const publicInvite = await PublicInvite.findOne({
-        or: [{ inviteToken: req.params.invitationToken }],
+        or: [{ inviteToken: invitationToken }],
       });
 
       if (!publicInvite) {

@@ -1,6 +1,7 @@
 const validator = require('validator');
 const InviteController = require('./InviteController');
 const { statusMap } = require('../services/FhirService');
+const { escapeHtml } = require('../utils/helpers');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
   let canSendSMS = false;
@@ -241,7 +242,8 @@ module.exports = {
 
   async getFhirAppointmentByField(req, res) {
     try {
-      const { id } = req.query;
+      let { id } = req.query;
+      id = escapeHtml(id);
 
       if (!id) {
         return res.status(400).json({ error: 'Id is required' });
