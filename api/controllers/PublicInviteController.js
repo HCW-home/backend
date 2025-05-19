@@ -235,14 +235,20 @@ module.exports = {
 
   async getFhirAppointmentByField(req, res) {
     try {
-      let { id } = req.query;
+      let { id, identifier } = req.query;
       id = escapeHtml(id);
+      identifier = escapeHtml(identifier);
 
-      if (!id) {
-        return res.status(400).json({ error: 'Id is required' });
+      let publicInvite;
+
+      if (identifier) {
+        publicInvite = await PublicInvite.findOne({ 'metadata.identifier': identifier }).meta({ enableExperimentalDeepTargets: true });;
+      } else if (id) {
+        publicInvite = await PublicInvite.findOne({ id });
+      } else {
+        return res.status(400).json({ error: 'Either id or identifier is required' });
       }
 
-      const publicInvite = await PublicInvite.findOne({ id });
       if (!publicInvite || !publicInvite.fhirData) {
         return res.status(404).json({ error: 'Appointment not found or FHIR data missing' });
       }
