@@ -139,21 +139,13 @@ module.exports = {
 
   async getAllFhirAppointments(req, res) {
     try {
-
+      const fhirParams = req.query;
       let where = {
         fhirData: { '!=': null }
       };
 
-      try {
-        if (req.query.where) {
-          const extraWhere = typeof req.query.where === 'string'
-            ? JSON.parse(req.query.where)
-            : req.query.where;
-
-          where = { ...where, ...extraWhere };
-        }
-      } catch (err) {
-        return res.badRequest({ error: 'Invalid JSON in `where` param' });
+      if (fhirParams.identifier) {
+        where['metadata.identifier'] = fhirParams.identifier;
       }
 
       const invites = await PublicInvite.find({
