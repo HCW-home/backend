@@ -94,7 +94,7 @@ module.exports.routes = {
   'GET /api/v1/fhir/Appointments': 'PublicInviteController.getAllFhirAppointments',
   'GET /api/v1/fhir/Appointment': 'PublicInviteController.getFhirAppointmentByField',
   'PUT /api/v1/fhir/Appointment': 'PublicInviteController.updateFhirAppointmentByField',
-  'DELETE /api/v1/fhir/Appointment': 'PublicInviteController.deleteFhirAppointmentByField',
+  'DELETE /api/v1/fhir/Appointment/:id': 'PublicInviteController.deleteFhirAppointmentByField',
   'PATCH /api/v1/invite/:id': 'InviteController.update',
   'POST /api/v1/invite/:invite/resend': 'InviteController.resend',
   'POST /api/v1/invite/:invite/revoke': 'InviteController.revoke',
