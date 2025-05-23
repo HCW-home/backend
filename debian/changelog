@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.56) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.57) UNRELEASED; urgency=medium
 
   * add more logs for consultation controller
   * add more verbose logs
@@ -14,14 +14,20 @@ hcw-athome-backend (0.5.56) UNRELEASED; urgency=medium
   * support contained reference of patient and practitioner
   * add skipCodeValidation for fhir
   * fix create fhir invite for scheduler role
-  * update post fhir appointment edpoint respone
+  * update post fhir appointment endpoint respone
   * refs #8277, Unable to request consultation as requester
   * safe file name on Content-disposition header
   * add ability to query by where in metadata
   * add note for invite and consultation
   * add ability to edit consultation note
+  * security fixes
+  * security fixes
+  * change filter for fhir getting fhir appointments
+  * add ability to search by identifier
+  * change delete fhir appointment url
+  * add update fhir appointment
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 15 May 2025 14:54:48 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 23 May 2025 06:00:24 +0000
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
