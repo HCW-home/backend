@@ -634,6 +634,7 @@ module.exports = {
           'openidconnect_nurse',
           async (err, user, info = {}) => {
             if (err) {
+              console.log(err, 'err');
               sails.config.customLogger.log('error', `Error authenticating for nurse: ${err?.message || err}`, null, 'server-action', user?.id);
               return res.view('pages/error', { error: err });
             }

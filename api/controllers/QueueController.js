@@ -9,7 +9,6 @@ module.exports = {
     if (
       viewAll ||
       req.user.viewAllQueues ||
-      req.user.role === sails.config.globals.ROLE_NURSE ||
       req.user.role === sails.config.globals.ROLE_SCHEDULER
     ) {
       const queues = await Queue.find({});
