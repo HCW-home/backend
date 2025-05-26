@@ -1,3 +1,9 @@
+hcw-athome-backend (0.5.58) UNRELEASED; urgency=medium
+
+  * change get fhir appointment route
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 26 May 2025 09:59:49 +0000
+
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
   [ Gor Grigoryan ]
