@@ -1,5 +1,6 @@
-hcw-athome-backend (0.5.57) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.57) focal; urgency=medium
 
+  [ Gor Grigoryan ]
   * add more logs for consultation controller
   * add more verbose logs
   * add more verbose logs
@@ -26,8 +27,9 @@ hcw-athome-backend (0.5.57) UNRELEASED; urgency=medium
   * add ability to search by identifier
   * change delete fhir appointment url
   * add update fhir appointment
+  * refs #8323, Requester should only see queue assigned
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 23 May 2025 06:00:24 +0000
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 26 May 2025 10:02:48 +0200
 
 hcw-athome-backend (0.5.42) focal; urgency=medium
 
