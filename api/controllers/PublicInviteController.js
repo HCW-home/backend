@@ -332,19 +332,15 @@ module.exports = {
 
   async getFhirAppointment(req, res) {
     try {
-      let { id, identifier } = req.query;
+      let { id } = req.params;
       id = escapeHtml(id);
-      identifier = escapeHtml(identifier);
 
       let publicInvite;
 
-      if (identifier) {
-        publicInvite = await PublicInvite.findOne({ 'metadata.identifier': identifier }).meta({ enableExperimentalDeepTargets: true });
-        ;
-      } else if (id) {
+      if (id) {
         publicInvite = await PublicInvite.findOne({ id });
       } else {
-        return res.status(400).json({ error: 'Either id or identifier is required' });
+        return res.status(400).json({ error: 'Id is required' });
       }
 
       if (!publicInvite || !publicInvite.fhirData) {
@@ -359,7 +355,7 @@ module.exports = {
 
       const appointment = JSON.parse(JSON.stringify(publicInvite.fhirData));
 
-      appointment.status = publicInvite.status || appointment.status;
+      appointment.status = statusMap[publicInvite.status] || publicInvite.status || appointment.status;
 
       if (publicInvite.scheduledFor) {
         appointment.start = new Date(publicInvite.scheduledFor).toISOString();
