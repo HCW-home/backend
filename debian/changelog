@@ -1,8 +1,9 @@
-hcw-athome-backend (0.5.58) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.59) UNRELEASED; urgency=medium
 
   * change get fhir appointment route
+  * add expert information in closing consultation broadcasting
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 26 May 2025 09:59:49 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 28 May 2025 14:59:38 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
