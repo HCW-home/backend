@@ -421,6 +421,18 @@ module.exports = {
 
   async sendConsultationClosed(consultation) {
     const participants = await Consultation.getConsultationParticipants(consultation);
+
+    if (consultation.experts && consultation.experts.length > 0) {
+      const populatedExpertsRaw = await User.find({ id: consultation.experts });
+
+      consultation.experts = populatedExpertsRaw.map((expert) => ({
+        id: expert.id,
+        firstName: expert.firstName,
+        lastName: expert.lastName,
+      }));
+
+    }
+
     sails.config.customLogger.log('info', `Broadcasting consultationClosed for consultation id ${consultation.id}`, null, 'message', null);
     participants.forEach((participant) => {
       sails.sockets.broadcast(participant, 'consultationClosed', {

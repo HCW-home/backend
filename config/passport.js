@@ -148,7 +148,7 @@ passport.use(
           return Consultation.update({ _id: consultation.id }, consultation);
         })
         .then(updatedConsultation => {
-          sails.config.customLogger.log('info', `Updated consultation ${updatedConsultation.id} for invite ID: ${invite.id}`, null, 'server-action');
+          sails.config.customLogger.log('info', `Updated consultation ${updatedConsultation?.id} for invite ID: ${invite.id}`, null, 'server-action');
         })
         .catch(err => sails.config.customLogger.log('error', `Error updating consultation for invite ID: ${invite.id}`, err, 'server-action'));
     }

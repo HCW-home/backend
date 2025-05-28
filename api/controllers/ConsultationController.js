@@ -263,7 +263,7 @@ module.exports = {
             id: { in: item.consultation.experts },
           });
           data[index].consultation.experts = experts;
-          sails.config.customLogger.log('verbose', `Processed experts for consultation ${item.consultation.id} expertCount ${experts.length}`, null, 'message', req.user?.id);
+          sails.config.customLogger.log('verbose', `Processed experts for consultation ${item.consultation?.id} expertCount ${experts.length}`, null, 'message', req.user?.id);
         }
       }
 
