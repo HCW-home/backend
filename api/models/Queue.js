@@ -18,6 +18,10 @@ module.exports = {
     disableFeedback: {
       type: 'boolean',
       defaultsTo: false
+    },
+    disableProvidingTimeEstimate: {
+      type: 'boolean',
+      defaultsTo: false
     }
   },
 

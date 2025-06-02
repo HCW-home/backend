@@ -755,6 +755,21 @@ module.exports = {
         { _id: new ObjectId(token.id) },
         { $set: { closedAtISO: new Date() } }
       );
+      if (consultation.queue) {
+        const Queue = sails.models.queue;
+        const queue = await Queue.findOne({ id: consultation.queue });
+
+        if (queue?.disableProvidingTimeEstimate) {
+          sails.config.customLogger.log(
+            'info',
+            `Notification skipped: disableProvidingTimeEstimate is true for queue ${queue.id} in consultation ${consultation.id}`,
+            null,
+            'server-action',
+            null
+          );
+          return;
+        }
+      }
       const url = `${process.env.DOCTOR_URL}/app/plan-consultation?token=${tokenString}`;
       const doctorLanguage = doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
       if (doctor.messageService === '1') {
