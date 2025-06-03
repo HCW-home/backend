@@ -21,21 +21,21 @@ module.exports.sockets = {
         sails.config.globals.APP_SECRET,
         async (err, decoded) => {
           if (err) {
-            sails.config.customLogger.log('error', 'JWT verification failed');
+            sails.config.customLogger.log('error', 'JWT verification failed', null, 'server-action', null);
             return proceed(false);
           }
           const user = await User.findOne({ id: decoded.id });
           if (!user) {
-            sails.config.customLogger.log('error', 'No user found');
+            sails.config.customLogger.log('error', 'No user found', null, 'server-action', null);
             return proceed(false);
           }
           handshake.user = user;
-          sails.config.customLogger.log('info', `Connecting User to Socket: ${user.id}`);
+          sails.config.customLogger.log('info', `Connecting User to Socket: ${user.id}`, null, 'server-action', user?.id);
           return proceed(undefined, true);
         }
       );
     } else {
-      sails.config.customLogger.log('warn', 'No token was found');
+      sails.config.customLogger.log('warn', 'No token was found', null, 'server-action', null);
       return proceed({ message: 'no Token was found' }, false);
     }
   }
