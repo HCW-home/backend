@@ -448,7 +448,7 @@ module.exports = {
 
   checkPrefix: async function(req, res) {
     const type = req.param('type');
-    const language = req.param('language');
+    const language = req.param('language') || 'en';
     const phoneNumber = validator.escape(req.param('phoneNumber')).trim();
     if (!phoneNumber) {
       return res.badRequest({ message: 'Phone number is required.' });
