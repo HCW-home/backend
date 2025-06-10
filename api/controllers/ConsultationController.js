@@ -374,6 +374,7 @@ module.exports = {
           consultationJson.birthDate = invite.birthDate;
           consultationJson.note = invite.note;
           consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
+          consultationJson.expertToken = invite.expertToken;
         }
       }
 

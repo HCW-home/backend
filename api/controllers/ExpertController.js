@@ -4,10 +4,11 @@ module.exports = {
       const { expertLink, to, consultationId, messageService } = req.body;
       const { locale } = req.headers || {};
       let consultation = await Consultation.findOne({ id: consultationId }).populate('doctor');
-      if (!expertLink) {
+      if (consultation && !consultation.expertToken) {
         sails.config.customLogger.log('warn', 'expertLink is missing', null, 'message', req.user?.id);
-        return res.badRequest({ message: 'expertLink is required' });
+        return res.badRequest({ message: 'Expert token is required' });
       }
+      console.log(consultation, 'consultation');
       const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(to);
       const isEmail = to.includes('@');
       if (isPhoneNumber && !isEmail) {
@@ -18,11 +19,11 @@ module.exports = {
           sails.config.customLogger.log('info', `Fetched WhatsApp template for type "${type}" and language "${language}"`, null, 'message', req.user?.id);
           if (template && template.sid) {
             const twilioTemplatedId = template.sid;
-            const params = { 1: expertLink?.expertLink };
+            const params = { 1: consultation.expertToken };
             if (twilioTemplatedId) {
               await sails.helpers.sms.with({
                 phoneNumber: to,
-                message: sails._t(locale, type, { expertLink: expertLink?.expertLink }),
+                message: sails._t(locale, type, { expertLink: consultation.expertInvitationURL }),
                 senderEmail: consultation.doctor?.email,
                 whatsApp: true,
                 params,

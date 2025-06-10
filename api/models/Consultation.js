@@ -59,6 +59,10 @@ module.exports = {
       type: 'string',
       required: false,
     },
+    expertToken: {
+      type: 'string',
+      required: false,
+    },
     expertInvitationURL: {
       type: 'string',
       required: false,

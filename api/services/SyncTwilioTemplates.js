@@ -8,7 +8,7 @@ function convertPlaceholders(template) {
 
   let index = 1;
   return template.replace(/%\((.*?)\)s/g, (_, key) => {
-    if (key === 'url' || key === 'testingUrl') {
+    if (key === 'url' || key === 'testingUrl' || key === 'expertLink') {
       return '';
     }
     return `{{${index++}}}`;
