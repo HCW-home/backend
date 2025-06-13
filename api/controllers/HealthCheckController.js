@@ -1,9 +1,7 @@
 const Redis = require('ioredis');
-const net = require('net');
-const fs = require('fs');
 
 module.exports = {
-  check: async function(req, res) {
+  check: async function (req, res) {
     const startTime = Date.now();
     let response = {
       status: 'success',
@@ -12,18 +10,18 @@ module.exports = {
       clamav: 'healthy'
     };
 
-    const checkMongo = new Promise((resolve, reject) => {
-      let mongoDbNativeConnection = sails.getDatastore().manager;
+    const checkMongo = () => new Promise((resolve) => {
+      const mongoDbNativeConnection = sails.getDatastore().manager;
       if (!mongoDbNativeConnection) {
         sails.config.customLogger.log('error', 'MongoDB not reachable', null, 'message', null);
-        reject(new Error('MongoDB not reachable'));
+        response.mongo = 'unhealthy';
       } else {
         sails.config.customLogger.log('verbose', 'MongoDB is healthy', null, 'message', null);
-        resolve();
       }
+      resolve();
     });
 
-    const checkRedis = new Promise((resolve, reject) => {
+    const checkRedis = () => new Promise((resolve) => {
       const redisClient = new Redis({
         host: process.env.REDIS_HOST || '127.0.0.1',
         port: process.env.REDIS_PORT || 6379
@@ -35,76 +33,46 @@ module.exports = {
           sails.config.customLogger.log('error', 'Redis not reachable', {
             error: err ? err.message : 'Invalid response'
           }, 'message', null);
-          reject(new Error('Redis not reachable'));
+          response.redis = 'unhealthy';
         } else {
           sails.config.customLogger.log('verbose', 'Redis is healthy', null, 'message', null);
-          resolve();
         }
+        resolve();
       });
     });
 
-    const checkClamAV = new Promise((resolve, reject) => {
-      if (process.env.CLAM_SOCKET) {
-        fs.access(process.env.CLAM_SOCKET, (err) => {
-          if (err) {
-            sails.config.customLogger.log('error', 'ClamAV UNIX socket not reachable', {
-              socket: process.env.CLAM_SOCKET
-            }, 'message', null);
-            reject(new Error('ClamAV UNIX socket not reachable'));
-          } else {
-            sails.config.customLogger.log('verbose', `ClamAV UNIX socket ${process.env.CLAM_SOCKET} is reachable `, null, 'message', null);
-            resolve();
-          }
-        });
-      } else if (process.env.CLAM_HOST) {
-        const clamavClient = new net.Socket();
-        const clamPort = process.env.CLAM_PORT || 3310;
-        clamavClient.connect(clamPort, process.env.CLAM_HOST, () => {
-          clamavClient.end();
-          sails.config.customLogger.log('verbose', `ClamAV TCP socket is reachable host ${process.env.CLAM_HOST} port ${clamPort}`, null, 'message', null);
-          resolve();
-        });
-        clamavClient.on('error', (err) => {
-          sails.config.customLogger.log('error', 'ClamAV TCP socket not reachable', {
-            host: process.env.CLAM_HOST,
-            error: err.message
-          }, 'message', null);
-          reject(new Error('ClamAV TCP socket not reachable'));
-        });
-      } else {
-        const defaultSocket = 'var/run/clamd.scan/clamd.sock';
-        fs.access(defaultSocket, (err) => {
-          if (err) {
-            sails.config.customLogger.log('error', 'ClamAV default UNIX socket not reachable', {
-              socket: defaultSocket
-            }, 'message', null);
-            reject(new Error('ClamAV default UNIX socket not reachable'));
-          } else {
-            sails.config.customLogger.log('verbose', `ClamAV default UNIX socket is reachable ${defaultSocket}`, null, 'message', null);
-            resolve();
-          }
-        });
+    const checkClamAV = () => new Promise((resolve) => {
+      const clamscanInstance = sails.config.globals.clamscan;
+      if (!clamscanInstance) {
+        sails.config.customLogger.log('error', 'ClamAV not initialized (clamscan object missing)', null, 'message', null);
+        response.clamav = 'unhealthy';
+        return resolve();
       }
+
+      clamscanInstance.getVersion().then(version => {
+        sails.config.customLogger.log('verbose', `ClamAV is responsive: version ${version}`, null, 'message', null);
+        resolve();
+      }).catch(err => {
+        sails.config.customLogger.log('error', 'ClamAV is not responsive to version check', { error: err.message }, 'message', null);
+        response.clamav = 'unhealthy';
+        resolve();
+      });
     });
 
-    try {
-      await Promise.all([checkMongo, checkRedis, checkClamAV]);
-      response.responseTime = Date.now() - startTime;
-      sails.config.customLogger.log('verbose', `System health check successful responseTime ${response.responseTime}`, null, 'message', null);
-      return res.status(200).send(response);
-    } catch (error) {
+    await Promise.allSettled([
+      checkMongo(),
+      checkRedis(),
+      checkClamAV()
+    ]);
+
+
+    if (response.mongo !== 'healthy' || response.redis !== 'healthy' || response.clamav !== 'healthy') {
       response.status = 'failure';
-      if (error.message === 'MongoDB not reachable') {
-        response.mongo = error.message;
-      }
-      if (error.message === 'Redis not reachable') {
-        response.redis = error.message;
-      }
-      if (error.message.includes('ClamAV')) {
-        response.clamav = error.message;
-      }
-      sails.config.customLogger.log('error', 'System health check failed', { error: error.message }, 'server-action', null);
+      sails.config.customLogger.log('error', 'System health check failed', response, 'server-action', null);
       return res.status(503).send(response);
     }
+
+    sails.config.customLogger.log('verbose', `System health check successful`, null, 'message', null);
+    return res.status(200).send(response);
   }
 };

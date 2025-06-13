@@ -8,7 +8,6 @@ module.exports = {
         sails.config.customLogger.log('warn', 'expertLink is missing', null, 'message', req.user?.id);
         return res.badRequest({ message: 'Expert token is required' });
       }
-      console.log(consultation, 'consultation');
       const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(to);
       const isEmail = to.includes('@');
       if (isPhoneNumber && !isEmail) {
