@@ -1,7 +1,7 @@
 module.exports = {
   sendExpertLink: async function(req, res) {
     try {
-      const { expertLink, to, consultationId, messageService } = req.body;
+      const { to, consultationId, messageService } = req.body;
       const { locale } = req.headers || {};
       let consultation = await Consultation.findOne({ id: consultationId }).populate('doctor');
       if (consultation && !consultation.expertToken) {
@@ -38,7 +38,7 @@ module.exports = {
         } else if (messageService === '2') {
           await sails.helpers.sms.with({
             phoneNumber: to,
-            message: sails._t(locale, 'please use this link', { expertLink: expertLink?.expertLink }),
+            message: sails._t(locale, 'please use this link', { expertLink: consultation.expertInvitationURL }),
             senderEmail: consultation.doctor?.email,
             whatsApp: false,
           });
@@ -49,7 +49,7 @@ module.exports = {
         await sails.helpers.email.with({
           to,
           subject: sails._t(locale, 'consultation link'),
-          text: sails._t(locale, 'please use this link', { expertLink: expertLink?.expertLink }),
+          text: sails._t(locale, 'please use this link', { expertLink: consultation.expertInvitationURL }),
         });
         sails.config.customLogger.log('verbose', `Email sent successfully to ${to}`, null, 'server-action', req.user?.id);
         return res.ok({ message: 'Email sent successfully' });

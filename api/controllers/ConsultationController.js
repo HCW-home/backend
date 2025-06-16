@@ -408,7 +408,7 @@ module.exports = {
         }
       }
 
-      if (req.user && req.user.role === sails.config.globals.ROLE_NURSE) {
+      if (req.user && (req.user.role === sails.config.globals.ROLE_NURSE || req.user.role === sails.config.globals.ROLE_ADMIN)) {
         const inviteData = {
           firstName: req.body.firstName,
           lastName: req.body.lastName,
@@ -420,6 +420,7 @@ module.exports = {
         const newInvite = await PublicInvite.create(inviteData).fetch();
         consultationJson.id = newInvite.id;
         consultationJson.invitationToken = newInvite.inviteToken;
+        consultationJson.expertToken = newInvite.expertToken;
         consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${newInvite.expertToken}`;
         sails.config.customLogger.log('info', `New invite created by nurse ${newInvite.id}`, null, 'server-action');
       }
