@@ -813,10 +813,13 @@ module.exports = {
     const fileId = uuid.v4();
     const locale = validator.escape(req.headers?.locale || 'en').trim();
     const sanitizedLocale = locale || 'en';
+    const maxUploadSizeMb = parseInt(process.env.MAX_UPLOAD_SIZE_MB || '10', 10);
+    const maxBytes = maxUploadSizeMb * 1024 * 1024;
 
     req.file('attachment').upload(
       {
         dirname: sails.config.globals.attachmentsDir,
+        maxBytes,
         saveAs: function(__newFileStream, cb) {
           const fileExtension = __newFileStream.filename.split('.').pop();
           const filePath = `${req.params.consultation}_${fileId}.${fileExtension}`;
