@@ -459,7 +459,10 @@ module.exports = {
     try {
       const consultation = await Consultation.updateOne({
         id: req.params.consultation,
-        status: 'pending'
+        or: [
+          { status: 'pending' },
+          { acceptedBy: null }
+        ]
       }).set({
         status: 'active',
         acceptedBy: req.user.id,
@@ -493,7 +496,10 @@ module.exports = {
         message: 'success'
       });
     } catch (err) {
-      sails.config.customLogger.log('error', 'Error accepting consultation', { consultationId: req.params.consultation, error: err?.message || err }, 'server-action', req.user?.id);
+      sails.config.customLogger.log('error', 'Error accepting consultation', {
+        consultationId: req.params.consultation,
+        error: err?.message || err
+      }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Error accepting consultation' });
     }
   },
@@ -538,7 +544,10 @@ module.exports = {
       sails.config.customLogger.log('info', `Consultation ${consultation.id} closed successfully`, null, 'server-action', user?.id);
       return res.status(200).json(consultation);
     } catch (error) {
-      sails.config.customLogger.log('error', 'Error closing consultation', { consultationId: consultationId, error: error?.message || error }, 'server-action', req.user?.id);
+      sails.config.customLogger.log('error', 'Error closing consultation', {
+        consultationId: consultationId,
+        error: error?.message || error
+      }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Error closing consultation', details: error.message });
     }
   },
@@ -576,7 +585,7 @@ module.exports = {
       sails.config.customLogger.log('verbose', `Retrieved mediasoup servers count is ${mediasoupServers.length}`, null, 'server-action', req.user?.id);
       const serverIndex = Math.floor(Math.random() * mediasoupServers.length);
       const mediasoupServer = mediasoupServers[serverIndex];
-      sails.config.customLogger.log('info', `Selected mediasoup server ${mediasoupServer.url}`, null,'message', req.user?.id);
+      sails.config.customLogger.log('info', `Selected mediasoup server ${mediasoupServer.url}`, null, 'message', req.user?.id);
       const id = validator.escape(req.params.consultation);
       const consultation = await Consultation.findOne({ _id: id });
       if (!consultation) {
@@ -745,7 +754,7 @@ module.exports = {
       const message = await Message.findOne({ id: req.params.message }).populate('currentParticipants');
       if (message.isConferenceCall || consultation.experts?.length) {
         if (!message.currentParticipants.length || message.status === 'ended') {
-          sails.config.customLogger.log('info', `No active conference participants or call already ended messageId ${message.id}`,null, 'message', req.user?.id);
+          sails.config.customLogger.log('info', `No active conference participants or call already ended messageId ${message.id}`, null, 'message', req.user?.id);
           return res.json({ status: 200 });
         }
         await Message.removeFromCollection(message.id, 'currentParticipants', req.user.id);
@@ -759,7 +768,10 @@ module.exports = {
         }
         return res.json({ status: 200 });
       }
-      await Message.updateOne({ id: req.params.message, consultation: req.params.consultation }).set({ closedAt: new Date() });
+      await Message.updateOne({
+        id: req.params.message,
+        consultation: req.params.consultation
+      }).set({ closedAt: new Date() });
       await Message.endCall(message, consultation, 'MEMBERS_LEFT');
       sails.sockets.broadcast(consultation.acceptedBy, 'rejectCall', { data: { consultation, message } });
       sails.sockets.broadcast(consultation.owner, 'rejectCall', { data: { consultation, message } });
@@ -1060,7 +1072,7 @@ module.exports = {
         return res.status(400).json({ message: 'invalidUrl' });
       }
       const queue = await Queue.findOne({ id: consultation.queue });
-      sails.config.customLogger.log('verbose', `Consultation ${consultationId} retrieved from token: queue ${ queue ? queue.id : null}`, null, 'server-action', req.user?.id);
+      sails.config.customLogger.log('verbose', `Consultation ${consultationId} retrieved from token: queue ${queue ? queue.id : null}`, null, 'server-action', req.user?.id);
       return res.status(200).json({ id: consultation.id, status: consultation.status, queue });
     } catch (error) {
       sails.config.customLogger.log('error', 'Error in getConsultationFromToken', { error: error?.message || error }, 'server-action', req.user?.id);
@@ -1134,7 +1146,8 @@ module.exports = {
         to: consultation.owner,
         from: token.user,
       }).fetch();
-      await Message.afterCreate(message, (err, message) => {});
+      await Message.afterCreate(message, (err, message) => {
+      });
       sails.config.customLogger.log('verbose', `Consultation ${consultationId} planned: delay ${delay} `, null, 'message', req.user?.id);
       return res.status(200).json({ message: 'success' });
     } catch (error) {

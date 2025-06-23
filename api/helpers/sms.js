@@ -31,12 +31,12 @@ function sendSmsWithOvh(phoneNumber, message) {
           receivers: [phoneNumber],
         },
         (errsend, result) => {
-          sails.config.customLogger.log('verbose', 'OVH SMS API response', { result }, 'message');
+          sails.config.customLogger.log('verbose', 'OVH SMS API response', { result }, 'message', null);
           if (errsend) {
-            sails.config.customLogger.log('error', 'OVH SMS API error sending SMS', { error: errsend.message }, 'server-action');
+            sails.config.customLogger.log('error', 'OVH SMS API error sending SMS', { error: errsend.message }, 'server-action', null);
             return reject(errsend);
           }
-          sails.config.customLogger.log('info', 'SMS sent via provider OVH', null, 'server-action');
+          sails.config.customLogger.log('info', 'SMS sent via provider OVH', null, 'server-action',null);
           return resolve();
         }
       );

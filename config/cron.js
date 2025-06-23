@@ -132,7 +132,7 @@ const inviteJobs = {
     if (invite.type === 'PATIENT') {
       await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
     }
-    sails.config.customLogger.log('info', `Second reminder email sent inviteId ${invite.id}`, null, 'server-action');
+    sails.config.customLogger.log('info', `Second reminder email sent inviteId ${invite.id}`, null, 'server-action', null);
   },
 };
 
@@ -147,7 +147,7 @@ module.exports = {
         }
       }, null, true);
       job.start();
-      sails.config.customLogger.log('info', `Cron job '${name}' scheduled with cron time '${cronTime}'`, null, 'message');
+      sails.config.customLogger.log('info', `Cron job '${name}' scheduled with cron time '${cronTime}'`, null, 'message', null);
       return job;
     };
 
@@ -161,7 +161,7 @@ module.exports = {
       for (const job of jobs) {
         if (job.createdAt < now - TRANSLATION_REQUEST_TIMEOUT) {
           await sails.models.publicinvite.expireTranslatorRequest(job);
-          sails.config.customLogger.log('info', `Translator request expired inviteId ${job.id}`, null, 'server-action');
+          sails.config.customLogger.log('info', `Translator request expired inviteId ${job.id}`, null, 'server-action', null);
         }
       }
     });
@@ -170,7 +170,7 @@ module.exports = {
       const jobs = await sails.models.message.find({ status: 'ringing' });
       for (const job of jobs) {
         await sails.models.message.endCall(job, job.consultation, 'RINGING_TIMEOUT');
-        sails.config.customLogger.log('info', `Call ended due to RINGING_TIMEOUT messageId ${job.id}`, null, 'server-action');
+        sails.config.customLogger.log('info', `Call ended due to RINGING_TIMEOUT messageId ${job.id}`, null, 'server-action',null);
       }
     });
 
@@ -178,7 +178,7 @@ module.exports = {
       const jobs = await sails.models.message.find({ status: { '!=': 'ended' } });
       for (const job of jobs) {
         await sails.models.message.endCall(job, job.consultation, 'DURATION_TIMEOUT');
-        sails.config.customLogger.log('info', `Call ended due to DURATION_TIMEOUT messageId ${job.id}`, null, 'server-action');
+        sails.config.customLogger.log('info', `Call ended due to DURATION_TIMEOUT messageId ${job.id}`, null, 'server-action', null);
       }
     });
 
@@ -214,7 +214,7 @@ module.exports = {
           }
 
         } catch (error) {
-          sails.config.customLogger.log('error', 'Error in delete old invites job', { error: error?.message || error }, 'server-action');
+          sails.config.customLogger.log('error', 'Error in delete old invites job', { error: error?.message || error }, 'server-action', null);
         }
       },
       start: true,
