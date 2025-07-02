@@ -223,6 +223,7 @@ module.exports = {
         !consultation.flagDoctorNotified
       ) {
         const doctorLang = publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+        const url = `${process.env.DOCTOR_URL}/app/consultation/${consultation.id}`;
 
         if (toUser?.enableNotif && toUser?.notifPhoneNumber) {
           if (toUser.messageService === '1') {
@@ -240,7 +241,7 @@ module.exports = {
                 sails.config.customLogger.log('info', `Sending WhatsApp SMS to doctor ${toUser.notifPhoneNumber}`, null, 'server-action');
                 await sails.helpers.sms.with({
                   phoneNumber: toUser?.notifPhoneNumber,
-                  message: sails._t(doctorLang, 'notification for offline action text for doctor'),
+                  message: sails._t(doctorLang, 'notification for offline action text for doctor', {url}),
                   senderEmail: toUser?.email,
                   whatsApp: true,
                   params,
@@ -254,7 +255,7 @@ module.exports = {
             sails.config.customLogger.log('info', `Sending SMS notification to doctor ${toUser.notifPhoneNumber}`, null, 'server-action');
             await sails.helpers.sms.with({
               phoneNumber: toUser?.notifPhoneNumber,
-              message: sails._t(doctorLang, 'notification for offline action text for doctor'),
+              message: sails._t(doctorLang, 'notification for offline action text for doctor', {url}),
               senderEmail: toUser?.email,
             });
           }
@@ -266,7 +267,7 @@ module.exports = {
           await sails.helpers.email.with({
             to: toUser.email,
             subject: sails._t(doctorLang, 'notification for offline action subject', { branding: process.env.BRANDING }),
-            text: sails._t(doctorLang, 'notification for offline action text for doctor'),
+            text: sails._t(doctorLang, 'notification for offline action text for doctor', {url}),
           });
           await Consultation.updateOne({ id: consultation.id }).set({
             flagDoctorNotified: true,

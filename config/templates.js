@@ -83,7 +83,18 @@ module.exports = {
     {
       key: "notification for offline action text for doctor",
       category: "UTILITY",
-      contentType: 'twilio/text',
+      contentType: 'twilio/call-to-action',
+      actions: [
+        {
+          title: "visit",
+          // url: `https://hcw-athome.dev.oniabsis.com/app/consultation/{{1}}`,
+          url: `${process.env.DOCTOR_URL}/app/consultation/{{1}}`,
+          type: "URL"
+        }
+      ],
+      variables: {
+        1: '68653202db1941a1f85e9497',
+      },
     },
     {
       key: "first guest invite reminder",

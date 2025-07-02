@@ -73,15 +73,32 @@ const i18n = new (require('i18n-2'))({
 const { vsprintf } = require('sprintf-js');
 
 
-sails._t = function(locale) {
-  locale = locales.includes(locale) ? locale : 'en';
-  let msg = i18n.translate(locale, arguments[1]);
+sails._t = function (locale, key, ...args) {
+  const safeLocale = locales.includes(locale) ? locale : 'en';
 
-  if (arguments.length > 2) {
-    msg = vsprintf(msg, Array.prototype.slice.call(arguments, 2));
+  try {
+    let msg = i18n.translate(safeLocale, key);
+
+    if (args.length) {
+      msg = vsprintf(msg, args);
+    }
+    return msg;
+  } catch (error) {
+    sails.config.customLogger.log(
+      'error',
+      'Error in translation (_t)',
+      {
+        key,
+        locale: locale,
+        safeLocale,
+        error: error?.message || error,
+      },
+      'i18n',
+      null
+    );
+
+    return `[?? ${key}]`;
   }
-
-  return msg;
 };
 
 // Start server

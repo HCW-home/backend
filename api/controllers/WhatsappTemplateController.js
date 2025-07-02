@@ -121,7 +121,7 @@ module.exports = {
         filters.approvalStatus = approvalStatus;
       }
       const templates = await WhatsappTemplate.find(filters).sort('key ASC');
-      sails.config.customLogger.log('info', `Templates fetched successfully with filters ${filters}`, null, 'message', req.user?.id);
+      sails.config.customLogger.log('info', `Templates fetched successfully`, null, 'message', req.user?.id);
       return res.json(templates);
     } catch (error) {
       sails.config.customLogger.log('error', 'Failed to fetch templates', { error: error?.message || error }, 'server-action', req.user?.id);
