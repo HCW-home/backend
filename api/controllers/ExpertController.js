@@ -5,8 +5,23 @@ module.exports = {
       const { locale } = req.headers || {};
       let consultation = await Consultation.findOne({ id: consultationId }).populate('doctor');
       if (consultation && !consultation.expertToken) {
-        sails.config.customLogger.log('warn', 'expertLink is missing', null, 'message', req.user?.id);
-        return res.badRequest({ message: 'Expert token is required' });
+        const invite = await PublicInvite.create({
+          id: consultation.id,
+          firstName: consultation.firstName,
+          lastName: consultation.lastName,
+          queue: consultation.queue,
+          gender: consultation.gender,
+        }).fetch();
+
+        const expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
+        await Consultation.updateOne({ id: consultationId }).set({
+          expertInvitationURL,
+          expertToken: invite.expertToken,
+          invitationToken:  invite.inviteToken
+        });
+        consultation.expertToken = invite.expertToken;
+        consultation.expertInvitationURL = expertInvitationURL;
+        sails.config.customLogger.log('info', 'Expert token was missing and has been generated', null, 'message', req.user?.id);
       }
       const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(to);
       const isEmail = to.includes('@');
