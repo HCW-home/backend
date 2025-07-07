@@ -610,7 +610,7 @@ module.exports = {
             }
             if (!user) {
               sails.config.customLogger.log('warn', 'Admin authentication did not return a user.', null, 'message', null);
-              return res.status(403).json({ message: info.message, user });
+              return res.view('pages/error', { error: err });
             }
             if (user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
@@ -639,7 +639,7 @@ module.exports = {
             }
             if (!user) {
               sails.config.customLogger.log('warn', 'Nurse authentication did not return a user.', null, 'message', req.user?.id);
-              return res.status(403).json({ message: info.message, user });
+              return res.view('pages/error', { error: err });
             }
             if (user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
@@ -668,13 +668,14 @@ module.exports = {
             }
             if (!user) {
               sails.config.customLogger.log('warn', 'Doctor authentication did not return a user.', null, 'message', req.user?.id);
-              return res.json({ message: info.message, user });
+              return res.view('pages/error', { error: { message: info.message  } });
             }
             try {
               await User.updateOne({ id: user.id }).set({ lastLoginType: 'openidconnect' });
               sails.config.customLogger.log('verbose', `User ${user.id} lastLoginType updated to 'openidconnect'.`, null, 'server-action', user.id);
             } catch (error) {
               sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`, null, 'server-action', user?.id);
+              return res.view('pages/error', { error: err });
             }
             if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
               if (process.env.NODE_ENV === 'development') {
