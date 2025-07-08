@@ -36,7 +36,7 @@ function sendSmsWithOvh(phoneNumber, message) {
             sails.config.customLogger.log('error', 'OVH SMS API error sending SMS', { error: errsend.message }, 'server-action', null);
             return reject(errsend);
           }
-          sails.config.customLogger.log('info', 'SMS sent via provider OVH', null, 'server-action',null);
+          sails.config.customLogger.log('info', 'SMS sent via provider OVH', null, 'server-action', null);
           return resolve();
         }
       );
@@ -120,14 +120,19 @@ function sendSmsWithTwilio(phoneNumber, message) {
   const client = require('twilio')(accountSid, authToken);
 
   return new Promise((resolve, reject) => {
+    const params = {
+      body: message,
+      from: twilioPhoneNumber,
+      to: phoneNumber,
+    };
+    if (process.env.TWILIO_STATUS_CALLBACK_URL) {
+      params.statusCallback = process.env.TWILIO_STATUS_CALLBACK_URL
+    }
+
     client.messages
-      .create({
-        body: message,
-        from: twilioPhoneNumber,
-        to: phoneNumber,
-      })
+      .create(params)
       .then((msg) => {
-        sails.config.customLogger.log('info', `Twilio SMS sent messageSid is ${msg.sid} `, null, 'server-action',null);
+        sails.config.customLogger.log('info', `Twilio SMS sent messageSid is ${msg.sid} `, null, 'server-action', null);
         resolve(msg.sid);
       })
       .catch((error) => {
@@ -447,10 +452,11 @@ module.exports = {
           }
 
           try {
+            let result
             sails.config.customLogger.log('info', `Attempting to send SMS through ${provider.provider}`, { provider: provider.provider }, 'message');
             switch (provider.provider) {
               case 'TWILIO':
-                await sendSmsWithTwilio(phoneNumber, message);
+                result = await sendSmsWithTwilio(phoneNumber, message);
                 break;
               case 'OVH':
                 await sendSmsWithOvh(phoneNumber, message);
@@ -477,12 +483,12 @@ module.exports = {
                 continue;
             }
             sails.config.customLogger.log('info', `SMS sent via ${provider.provider}`, { provider: provider.provider }, 'server-action');
-            return exits.success();
+            return exits.success(result);
           } catch (error) {
             sails.config.customLogger.log('error', `Failed to send SMS through ${provider.provider}`, {
-              provider: provider.provider,
-              error: error?.message || error
-            },
+                provider: provider.provider,
+                error: error?.message || error
+              },
               'server-action'
             );
           }

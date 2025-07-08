@@ -424,12 +424,16 @@ module.exports = {
       if (invite.messageService === '2') {
         try {
           sails.config.customLogger.log('verbose', `sendPatientInvite: Sending SMS invite to ${invite.phoneNumber}`, null, 'message');
-          await sails.helpers.sms.with({
+          const whatsappMessageSid = await sails.helpers.sms.with({
             phoneNumber: invite.phoneNumber,
             message,
             senderEmail: invite?.doctor?.email,
             whatsApp: false,
           });
+          if (whatsappMessageSid) {
+            await PublicInvite.updateOne({ id: invite.id }).set({ whatsappMessageSid });
+            sails.config.customLogger.log('info', `sendPatientInvite: Updated PublicInvite with SMS SID inviteId ${invite.id}`, null, 'server-action');
+          }
           sails.config.customLogger.log('info', `sendPatientInvite: SMS invite sent to ${invite.phoneNumber}`, null, 'server-action');
         } catch (error) {
           sails.config.customLogger.log('error', 'sendPatientInvite: Error sending SMS invite', { error: error?.message || error }, 'server-action');

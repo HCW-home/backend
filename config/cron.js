@@ -47,13 +47,17 @@ const inviteJobs = {
         }
       }
     } else {
-      await sails.helpers.sms.with({
+      const  whatsappMessageSid = await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
         message: sails.models.publicinvite.getReminderMessage(invite).firstReminderMessage,
         senderEmail: invite?.doctor?.email,
         whatsApp: false,
       });
       sails.config.customLogger.log('info', `First reminder SMS sent (non-WhatsApp) inviteId ${invite.id}`, null, 'server-action');
+      if (whatsappMessageSid) {
+        await PublicInvite.updateOne({ id: invite.id }).set({ whatsappMessageSid });
+        sails.config.customLogger.log('info', `First SMS reminder SMS sent inviteId ${invite.id}`, null, 'server-action');
+      }
     }
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
@@ -95,7 +99,7 @@ const inviteJobs = {
         }
       }
     } else {
-      await sails.helpers.sms.with({
+      const whatsappMessageSid = await sails.helpers.sms.with({
         phoneNumber: invite.phoneNumber,
         message: sails.models.publicinvite.getReminderMessage(invite).secondReminderMessage,
         senderEmail: invite?.doctor?.email,
@@ -103,6 +107,10 @@ const inviteJobs = {
       });
       if (invite.type === 'PATIENT') {
         await PublicInvite.updateOne({ id: invite.id }).set({ status: 'SENT' });
+      }
+      if (whatsappMessageSid) {
+        await PublicInvite.updateOne({ id: invite.id }).set({ whatsappMessageSid });
+        sails.config.customLogger.log('info', `Second SMS reminder SMS sent inviteId ${invite.id}`, null, 'server-action');
       }
       sails.config.customLogger.log('info', `Second reminder SMS sent (non-WhatsApp) inviteId ${invite.id}`, null, 'server-action');
     }
