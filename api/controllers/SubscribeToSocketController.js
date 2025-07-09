@@ -1,3 +1,4 @@
+const { add, remove } = require('../utils/socketTracker');
 module.exports = {
 
   async subscribe(req, res) {
@@ -12,9 +13,16 @@ module.exports = {
     }
     const socketId = sails.sockets.getId(req);
     const socket = sails.sockets.get(socketId);
+    add(user.id, socketId);
+
     socket.once('disconnect', async (reason) => {
       sails.config.customLogger.log('info', `User disconnected: ID=${user.id}, Reason=${reason}`, null, 'server-action', req.user?.id);
-      await Consultation.changeOnlineStatus(user, false);
+      const isLast = remove(user.id, socketId);
+      if (isLast) {
+        await Consultation.changeOnlineStatus(user, false);
+      } else {
+        sails.log.info('info',`User ${user.id} has other active sockets, skipping offline broadcast`, null, 'server-action', req.user?.id);
+      }
     });
     sails.sockets.join(req, user.id, async (err) => {
       await Consultation.changeOnlineStatus(user, true);

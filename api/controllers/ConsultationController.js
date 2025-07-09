@@ -491,6 +491,7 @@ module.exports = {
         });
         sails.config.customLogger.log('info', `Broadcast consultationAccepted event to participant ${participant} consultationId ${consultation.id}`, null, 'server-action', req.user.id);
       });
+      await Consultation.changeOnlineStatus(req.user, true);
 
       return res.status(200).json({
         message: 'success'
