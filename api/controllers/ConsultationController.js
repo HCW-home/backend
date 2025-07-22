@@ -459,10 +459,7 @@ module.exports = {
     try {
       const consultation = await Consultation.updateOne({
         id: req.params.consultation,
-        or: [
-          { status: 'pending' },
-          { acceptedBy: null }
-        ]
+        status: 'pending'
       }).set({
         status: 'active',
         acceptedBy: req.user.id,

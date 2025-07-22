@@ -133,7 +133,7 @@ passport.use(
       await Consultation.findOne({ invitationToken: patientInvite.inviteToken })
         .then(async (consultation) => {
           if (consultation) {
-            consultation.status = 'active';
+            // consultation.status = 'active';
             consultation.experts.push(user.id);
 
             (await Consultation.getConsultationParticipants(consultation)).forEach(
@@ -145,7 +145,7 @@ passport.use(
               }
             );
           }
-          return Consultation.update({ _id: consultation.id }, consultation);
+          return Consultation.update({ _id: consultation?.id }, consultation);
         })
         .then(updatedConsultation => {
           sails.config.customLogger.log('info', `Updated consultation ${updatedConsultation?.id} for invite ID: ${invite.id}`, null, 'server-action');
