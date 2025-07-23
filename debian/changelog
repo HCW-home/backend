@@ -1,5 +1,6 @@
-hcw-athome-backend (0.5.60) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.61) UNRELEASED; urgency=medium
 
+  [ Gor Grigoryan ]
   * change get fhir appointment route
   * add expert information in closing consultation broadcasting
   * refs #8322, have configuration to disable providing time estimate link per queue
@@ -8,8 +9,26 @@ hcw-athome-backend (0.5.60) UNRELEASED; urgency=medium
   * fix expert invitation whatsapp template
   * add CLAM_RETRY_COUNT and CLAM_RETRY_DELAY new variables for retrying clamav initialization
   * fix creating consultation when role admin is creating from nurse interface
+  * add MAX_UPLOAD_SIZE_MB env var
+  * update accept consultation
+  * refs #8416,add link in SMS notification to doctor
+  * refs #8415, Unable to share link
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 18 Jun 2025 09:39:15 +0000
+  [ Anonymous ]
+  * Translated using Weblate (Armenian)
+
+  [ Gor Grigoryan ]
+  * refs #8394, Improve error handling on login page
+  * refs #8378, track twillo sms status
+  * refs #8124, notification about offline action
+
+  [ Eugene Paik ]
+  * Translated using Weblate (Spanish)
+
+  [ Gor Grigoryan ]
+  * fix expert joining when consultation is not accepted
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 23 Jul 2025 08:37:03 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
