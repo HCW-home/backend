@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.61) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.62) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -27,8 +27,10 @@ hcw-athome-backend (0.5.61) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * fix expert joining when consultation is not accepted
+  * fix Absolute Path Traversal security issue
+  * add helper for cleaning phone number before sending to twilio
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 23 Jul 2025 08:37:03 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 29 Jul 2025 13:10:06 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
