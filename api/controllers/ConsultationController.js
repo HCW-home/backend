@@ -919,6 +919,11 @@ module.exports = {
   async attachment(req, res) {
     const attachment = escapeHtml(req.params.attachment);
     const msg = await Message.findOne({ id: attachment });
+
+    if (!msg || !msg.filePath) {
+      return res.notFound({ message: 'File not found' });
+    }
+
     if (!msg.mimeType.startsWith('audio')) {
       const safeFileName = msg.fileName.replace(/[^a-zA-Z0-9-_.]/g, '_');
       res.setHeader('Content-disposition', `attachment; filename=${safeFileName}`);
@@ -929,10 +934,9 @@ module.exports = {
       return res.forbidden({ message: 'Invalid file path' });
     }
 
-    const baseDir = sails.config.globals.attachmentsDir;
-
-    const inputPath = msg.filePath;
-    const resolvedPath = path.resolve(baseDir, inputPath);
+    const fileName = path.basename(msg.filePath);
+    const baseDir = path.resolve(sails.config.globals.attachmentsDir);
+    const resolvedPath = path.join(baseDir, fileName);
 
     if (!resolvedPath.startsWith(baseDir)) {
       sails.config.customLogger.log('warn', `Path traversal attempt blocked: ${resolvedPath}`, null, 'message', req.user?.id);
