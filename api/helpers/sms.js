@@ -1,4 +1,5 @@
 const https = require('https');
+const { cleanPhoneNumberForTwilio } = require('../utils/helpers');
 
 function sendSmsWithOvh(phoneNumber, message) {
   phoneNumber = phoneNumber.replace(/^00/, '+');
@@ -123,7 +124,7 @@ function sendSmsWithTwilio(phoneNumber, message) {
     const params = {
       body: message,
       from: twilioPhoneNumber,
-      to: phoneNumber,
+      to: cleanPhoneNumberForTwilio(phoneNumber),
     };
     if (process.env.TWILIO_STATUS_CALLBACK_URL) {
       params.statusCallback = process.env.TWILIO_STATUS_CALLBACK_URL
@@ -156,7 +157,7 @@ async function sendSmsWithTwilioWhatsapp(phoneNumber, message, contentSid, conte
   try {
     const payload = {
       from: `whatsapp:${twilioPhoneNumber}`,
-      to: `whatsapp:${phoneNumber}`,
+      to: `whatsapp:${cleanPhoneNumberForTwilio(phoneNumber)}`,
     };
 
     if (contentSid) {

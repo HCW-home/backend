@@ -135,12 +135,21 @@ async function recreateTTLIndex(collection, field, expireAfterSeconds) {
   sails.config.customLogger.log('info', `Created TTL index on '${field}' with expiry: ${expireAfterSeconds}s`, null, 'server-action');
 }
 
+function cleanPhoneNumberForTwilio(number) {
+  let cleaned = number.replace(/[^+\d]/g, '');
+  if (!cleaned.startsWith('+')) {
+    cleaned = `+${cleaned}`;
+  }
+
+  return cleaned;
+}
 
 module.exports = {
   parseTime,
   escapeHtml,
   sanitizeMetadata,
   recreateTTLIndex,
+  cleanPhoneNumberForTwilio,
   importFileIfExists,
   createParamsFromJson,
 };
