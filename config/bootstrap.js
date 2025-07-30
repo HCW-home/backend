@@ -103,7 +103,7 @@ module.exports.bootstrap = async function() {
         const filePath = files[i];
         const found = await messageCollection.count({ filePath });
 
-        // if the file message is not found (message was deleted) delete the file
+        // if the file message is not found (a message was deleted) delete the file
         if (!found) {
           fs.unlink(`${sails.config.globals.attachmentsDir}/${filePath}`, err => {
 
