@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.63) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.64) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -31,7 +31,10 @@ hcw-athome-backend (0.5.63) UNRELEASED; urgency=medium
   * add helper for cleaning phone number before sending to twilio
   * update dependencies
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 30 Jul 2025 13:10:28 +0000
+  [ Eugene Paik ]
+  * Added translation using Weblate (Kazakh)
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 05 Aug 2025 08:18:35 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
