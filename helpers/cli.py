@@ -121,4 +121,4 @@ else:
         u.promote()
     else:
         print(
-            "Command not recodnized. Usage : python script.py <create|list|delete|promote>")
+            "Command not recognized. Usage : python script.py <create|list|delete|promote>")
