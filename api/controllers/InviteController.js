@@ -452,7 +452,7 @@ module.exports = {
     try {
       if (shouldSend) {
         invite.doctor = doctor;
-        await PublicInvite.sendPatientInvite(invite);
+        await PublicInvite.sendPatientInvite(invite, false, req.user?.id);
         sails.config.customLogger.log('info', `Patient invite sent inviteId ${invite.id}`, null, 'server-action', req.user.id);
       }
       if (guestInvite) {
@@ -845,7 +845,7 @@ module.exports = {
     try {
       if (shouldSend) {
         invite.doctor = doctor;
-        await PublicInvite.sendPatientInvite(invite);
+        await PublicInvite.sendPatientInvite(invite, false, req.user?.id);
         sails.config.customLogger.log('info', `Patient invite sent inviteId ${invite.id}`, null, 'server-action', req.user.id);
       }
       if (guestInvite) {
@@ -917,7 +917,7 @@ module.exports = {
         });
       }
 
-      await PublicInvite.sendPatientInvite(patientInvite, true);
+      await PublicInvite.sendPatientInvite(patientInvite, true, req.user?.id);
       await PublicInvite.updateOne({ id: inviteId }).set({
         status: 'SENT',
       });
@@ -988,7 +988,7 @@ module.exports = {
         return res.notFound();
       }
 
-      await PublicInvite.destroyPatientInvite(invite);
+      await PublicInvite.destroyPatientInvite(invite, req.user?.id);
       sails.config.customLogger.log('info', `Invite successfully revoked inviteId ${invite.id}`, null, 'server-action', req.user?.id);
       return res.status(200).send();
     } catch (error) {
@@ -1287,7 +1287,7 @@ module.exports = {
       consultation.duration = Date.now() - consultation.acceptedAt;
       sails.config.customLogger.log('info', `Closing active consultation inviteId ${inviteId} consultationId ${consultation.id} duration ${consultation.duration}`, null, 'server-action', req.user?.id);
 
-      await Consultation.closeConsultation(consultation);
+      await Consultation.closeConsultation(consultation, req.user?.id);
       sails.config.customLogger.log('info', `Consultation closed successfully inviteId ${inviteId} consultationId ${consultation.id}`, null, 'message', req.user?.id);
 
       return res.status(200).json(consultation);

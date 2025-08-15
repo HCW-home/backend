@@ -538,7 +538,7 @@ module.exports = {
         sails.config.customLogger.log('info', `No ongoing call found for consultation ${consultationId}`, null, 'server-action', user?.id);
       }
 
-      await Consultation.closeConsultation(consultation);
+      await Consultation.closeConsultation(consultation, req.user?.id);
       sails.config.customLogger.log('info', `Consultation ${consultation.id} closed successfully`, null, 'server-action', user?.id);
       return res.status(200).json(consultation);
     } catch (error) {

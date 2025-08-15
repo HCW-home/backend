@@ -97,7 +97,7 @@ module.exports = {
 
         if (patientInvite.emailAddress || patientInvite.phoneNumber) {
 
-          await PublicInvite.sendPatientInvite(patientInvite);
+          await PublicInvite.sendPatientInvite(patientInvite, false, req.user?.id);
         }
         if (patientInvite.guestInvite) {
           patientInvite.guestInvite.doctor = patientInvite.doctor

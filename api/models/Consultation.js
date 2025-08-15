@@ -449,7 +449,7 @@ module.exports = {
     });
   },
 
-  async closeConsultation(consultation) {
+  async closeConsultation(consultation, userId) {
     if (consultation.status === 'closed') {
       return;
     }
@@ -459,16 +459,16 @@ module.exports = {
     try {
       const anonymousConsultation = await Consultation.getAnonymousDetails(consultation);
       await AnonymousConsultation.create(anonymousConsultation);
-      sails.config.customLogger.log('info', `Anonymous consultation details saved for consultation id ${consultation.id}`,null, 'server-action', null);
+      sails.config.customLogger.log('info', `Anonymous consultation details saved for consultation id ${consultation.id}`,null, 'server-action', userId);
     } catch (error) {
-      sails.config.customLogger.log('error', `Error saving anonymous details for consultation id ${consultation.id}`, { error: error?.message || error }, 'server-action', null);
+      sails.config.customLogger.log('error', `Error saving anonymous details for consultation id ${consultation.id}`, { error: error?.message || error }, 'server-action', userId);
     }
 
     if (consultation.invitationToken) {
       try {
         const patientInvite = await PublicInvite.findOne({ inviteToken: consultation.invitationToken });
         if (patientInvite) {
-          await PublicInvite.destroyPatientInvite(patientInvite);
+          await PublicInvite.destroyPatientInvite(patientInvite, userId);
           sails.config.customLogger.log('info', `Patient invite destroyed for consultation id ${consultation.id}`, null,'server-action', null);
         }
       } catch (error) {

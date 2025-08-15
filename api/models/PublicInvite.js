@@ -361,8 +361,8 @@ module.exports = {
     sails.config.customLogger.log('info', `Translator request timer set for invite ${invite.id}`, null, 'server-action');
   },
 
-  async sendPatientInvite(invite, resend = false) {
-    sails.config.customLogger.log('info', `sendPatientInvite: Starting patient invite ${invite.id}} process`, null, 'message');
+  async sendPatientInvite(invite, resend = false, userId) {
+    sails.config.customLogger.log('info', `sendPatientInvite: Starting patient invite ${invite.id}} process`, null, 'message', userId);
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
@@ -886,14 +886,14 @@ module.exports = {
     sails.config.customLogger.log('info', `setPatientOrGuestInviteReminders: Completed scheduling invite reminders ${invite.id}`, null, 'message');
   },
 
-  async destroyPatientInvite(invite) {
+  async destroyPatientInvite(invite, userId) {
     const db = Consultation.getDatastore().manager;
     const userCollection = db.collection('user');
 
     if (invite.guestInvite) {
       sails.config.customLogger.log('verbose', `destroyPatientInvite: Destroying guest invite ${invite.guestInvite}`, null, 'message');
       await PublicInvite.destroyOne({ id: invite.guestInvite });
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Updating guest user with consultation closed time', { userId: invite.guestInvite }, 'server-action');
+      sails.config.customLogger.log('info', `destroyPatientInvite: Updating guest user with consultation closed time ${invite.guestInvite}`, null, 'server-action');
       await userCollection.updateOne(
         { username: invite.guestInvite },
         {
@@ -910,7 +910,7 @@ module.exports = {
     if (invite.translatorInvite) {
       sails.config.customLogger.log('info', `destroyPatientInvite: Destroying translator invite ${invite.translatorInvite}`, null, 'server-action');
       await PublicInvite.destroyOne({ id: invite.translatorInvite });
-      sails.config.customLogger.log('info', 'destroyPatientInvite: Updating translator user with consultation closed time', { userId: invite.translatorInvite }, 'server-action');
+      sails.config.customLogger.log('info', `destroyPatientInvite: Updating translator user with consultation closed time ${invite.translatorInvite}}`, null, 'server-action');
       await userCollection.updateOne(
         { username: invite.translatorInvite },
         {
@@ -921,9 +921,9 @@ module.exports = {
       );
     }
 
-    sails.config.customLogger.log('info', `destroyPatientInvite: Destroying main invite ${invite.id}`, null, 'server-action');
+    sails.config.customLogger.log('info', `destroyPatientInvite: Destroying main invite ${invite.id}`, null, 'server-action', userId);
     await PublicInvite.destroyOne({ id: invite.id });
-    sails.config.customLogger.log('info', 'destroyPatientInvite: Updating main user with consultation closed time', { userId: invite.id }, 'server-action');
+    sails.config.customLogger.log('info', `destroyPatientInvite: Updating main user with consultation closed time ${invite.id}`, null, 'server-action', userId);
     await userCollection.updateOne(
       { username: invite.id },
       {
