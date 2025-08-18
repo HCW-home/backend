@@ -51,7 +51,7 @@ module.exports.policies = {
     findOne: ["isLoggedIn", "isAdmin"],
     populate: ["isLoggedIn", "isAdmin"],
     create: ["isLoggedIn", "isAdmin"],
-    update: ["isLoggedIn", "isDoctorOrAdmin"],
+    update: ["isLoggedIn", "isAdmin"],
     addDoctorToQueue: ["isLoggedIn", "isAdmin"],
     removeDoctorFromQueue: ["isLoggedIn", "isAdmin"],
     getDoctorQueues: ["isLoggedIn", "isAdmin"],

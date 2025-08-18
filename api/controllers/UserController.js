@@ -150,13 +150,20 @@ module.exports = {
 
   async updateNotif(req, res) {
     const valuesToUpdate = {};
+
     if (req.body.enableNotif !== undefined) {
       valuesToUpdate.enableNotif = req.body.enableNotif;
     }
+
     if (req.body.notifPhoneNumber) {
       valuesToUpdate.notifPhoneNumber = req.body.notifPhoneNumber;
     }
-    const user = await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
+
+    if (req.body.messageService !== undefined) {
+      valuesToUpdate.messageService = req.body.messageService;
+    }
+
+    await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
     return res.status(200).json({ success: true });
   },
 
