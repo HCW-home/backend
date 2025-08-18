@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.64) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.65) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -34,7 +34,12 @@ hcw-athome-backend (0.5.64) UNRELEASED; urgency=medium
   [ Eugene Paik ]
   * Added translation using Weblate (Kazakh)
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 05 Aug 2025 08:18:35 +0000
+  [ Gor Grigoryan ]
+  * improve logs
+  * fix update user endpoint permission
+  * update enable/disable notification api for doctor
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 18 Aug 2025 12:28:58 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
