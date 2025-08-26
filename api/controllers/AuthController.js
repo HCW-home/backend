@@ -1,6 +1,5 @@
 const bodyParser = require('body-parser');
 const passport = require('passport');
-const { samlStrategy } = require('../../config/passport');
 const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const Joi = require('joi');
@@ -432,14 +431,6 @@ module.exports = {
 
     if ((process.env.LOGIN_METHOD === 'saml' || process.env.LOGIN_METHOD === 'both') && process.env.LOGOUT_URL) {
       try {
-        samlStrategy.logout(req, (err) => {
-          if (err) {
-            sails.config.customLogger.log('error', `Error logging out from SAML: ${err.message}`, null, 'server-action', req.user?.id);
-            return performLogout();
-          }
-          sails.config.customLogger.log('info', 'SAML logged out successfully.', null, 'server-action', req.user?.id);
-          performLogout();
-        });
       } catch (error) {
         sails.config.customLogger.log('error', `Error logging out from SAML: ${error.message}`, null, 'server-action', req.user?.id);
         performLogout();
@@ -522,62 +513,6 @@ module.exports = {
       sails.config.customLogger.log('info', `getCurrentUser: Returning current user ${user.id}.`, null, 'user-action', user?.id);
       return res.json({ user });
     }
-  },
-
-  loginSaml(req, res) {
-    if (
-      !process.env.LOGIN_METHOD ||
-      (process.env.LOGIN_METHOD !== 'saml' &&
-        process.env.LOGIN_METHOD !== 'both')
-    ) {
-      sails.config.customLogger.log('warn', 'SAML login is disabled.', null, 'message', req.user?.id);
-      return res.status(500).json({ message: 'SAML login is disabled' });
-    }
-    passport.authenticate('saml', { failureRedirect: '/app/login' })(req, res, (err) => {
-      if (err) {
-        sails.config.customLogger.log('error', `Error with SAML: ${err?.message || err}`, null, 'server-action', req.user?.id);
-        return res.view('pages/error', { error: err });
-      }
-    });
-  },
-
-  samlCallback(req, res) {
-    if (
-      !process.env.LOGIN_METHOD ||
-      (process.env.LOGIN_METHOD !== 'saml' &&
-        process.env.LOGIN_METHOD !== 'both')
-    ) {
-      sails.config.customLogger.log('warn', 'SAML login is disabled.', null, 'message', req.user?.id);
-      return res.status(500).json({ message: 'SAML login is disabled' });
-    }
-    bodyParser.urlencoded({ extended: false })(req, res, () => {
-      passport.authenticate('saml', async (err, user, info = {}) => {
-        if (err) {
-          sails.config.customLogger.log('error', `Error authenticating: ${err?.message || err}`, null, 'server-action', req.user?.id);
-          return res.view('pages/error', { error: err });
-        }
-        if (!user) {
-          sails.config.customLogger.log('warn', 'SAML authentication did not return a user.', null, 'message', req.user?.id);
-          return res.json({ message: info.message, user });
-        }
-        try {
-          await User.updateOne({ id: user.id }).set({ lastLoginType: 'saml' });
-          sails.config.customLogger.log('verbose', `User ${user.id} lastLoginType set to 'saml'.`, null, 'server-action', user?.id);
-        } catch (error) {
-          sails.config.customLogger.log('error', `Error updating user ${user.id} login type: ${error?.message}`, null, 'server-action', user?.id);
-        }
-        res.setHeader('Content-Security-Policy',
-          "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; frame-ancestors 'none';"
-        );
-        return res.redirect(`/app?tk=${user.token}`);
-      })(req, res, (err) => {
-        if (err) {
-          sails.config.customLogger.log('error', `Error in SAML callback authentication: ${err.message || err}`, null, 'server-action', req.user?.id);
-          return res.view('pages/error', { error: err });
-        }
-        res.redirect('/app/login');
-      });
-    });
   },
 
   loginOpenId(req, res, next) {

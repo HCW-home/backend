@@ -98,7 +98,6 @@ module.exports.policies = {
   },
   AuthController: {
     loginLocal: true,
-    loginSaml: true,
     loginOpenId: true,
     loginOpenIdReturn: true,
     loginInvite: true,
@@ -108,7 +107,6 @@ module.exports.policies = {
     forgotPassword: true,
     resetPassword: true,
     getCurrentUser: true,
-    samlCallback: true,
     getConfig: true,
     logout: true,
     externalAuth: true,
