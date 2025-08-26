@@ -16,9 +16,9 @@
     "scheduled patient invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous remercions de bien vouloir valider la date en utilisant le lien suivant.\n\n %(testingUrl)s",
     "scheduled guest invite": "Bonjour, vous avez été invité.e pour une téléconsultation %(branding)s le %(inviteTime)s. Nous vous conseillons d'ores et déjà de tester la compatibilité de votre appareil via le lien suivant.  %(testingUrl)s",
     "first invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain le %(timePhrase)s à %(inviteTime)s.",
-    "second invite reminder": "Votre téléconsultation démarre dans %(timePhrase)s : %(url)s",
+    "second invite reminder": "Votre téléconsultation démarre dans %(timePhrase)s: %(url)s",
     "first guest invite reminder": "Rappel J-1 Votre téléconsultation %(branding)s aura lieu demain le %(timePhrase)s à %(inviteTime)s.",
-    "second guest invite reminder": "Votre téléconsultation démarre dans %(timePhrase)s : %(url)s",
+    "second guest invite reminder": "Votre téléconsultation démarre dans %(timePhrase)s: %(url)s",
     "your consultation link": "Votre lien de téléconsultation %(branding)s",
     "translation request email subject": "Requête d'interprète entre %(doctorLanguage)s et %(patientLanguage)s",
     "translation request email": "Cher interprète,\n\nNous avons reçu de la part d'un soignant une demande d'interprétation sur la plateforme %(branding)s :\nLangue du soignant : %(doctorLanguage)s\nLangue du patient : %(patientLanguage)s\nDate : aussi vite que possible\nAfin de confirmer ou non votre disponibilité, veuillez cliquer sur le lien ci-dessous\n%(url)s\n\nSi personne ne confirme sa disponibilité après 48h, nous considérerons que personne n'est disponible.\n\nMerci",
@@ -65,7 +65,7 @@
     "notification for offline action subject": "%(branding)s Message reçu hors ligne",
     "notification for offline action text": "Vous recevez ce message car vous êtes hors ligne et une tierce personne a envoyé une mise à jour dans une consultation. Vous ne recevrez plus ce message jusqu'a ce que vous vous connectez à nouveau sur la plateforme. Pour vous connectez, vous pouvez utiliser ce lien %(url)s",
     "notification for offline action text for nurse": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform.",
-    "notification for offline action text for doctor": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform.",
+    "notification for offline action text for doctor": "Vous recevez ce message car vous êtes hors ligne et quelqu'un a envoyé une mise à jour lors d'une consultation. Vous ne recevrez plus ce message avant votre prochaine connexion à la plateforme.\n\n%(url)s ",
     "infected file": "Impossible d'envoyer le fichier, le fichier contient probablement un malware. Nous vous encourageons à le supprimer de votre disque dur.",
     "invalid file type": "Impossible d'envoyer le fichier, seuls les types de fichiers PDF, JPEG et PNG sont autorisés.",
     "no file": "Impossible d'envoyer le fichier, aucun fichier n'a été fourni.",
@@ -83,5 +83,6 @@
     "uk": "Ukrainien",
     "acknowledge invite": "Accepter l'invitation",
     "virus scan": "Erreur lors de l'analyse antivirus du fichier",
-    "join": "Rejoindre"
+    "join": "Rejoindre",
+    "verification code message": "Votre code de vérification est %(code)s. Ce code est valable %(minutes)s minutes"
 }
