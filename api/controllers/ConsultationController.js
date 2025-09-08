@@ -2,7 +2,6 @@ const { ObjectId } = require('mongodb');
 const fs = require('fs');
 const json2csv = require('@json2csv/plainjs');
 const uuid = require('uuid');
-const fileType = require('file-type');
 const path = require('path');
 
 const validator = require('validator');
@@ -858,7 +857,8 @@ module.exports = {
           sails.config.customLogger.log('error', 'Error reading uploaded file', { error: readError?.message || readError }, 'message', req.user?.id);
           return res.status(500).send(sails._t(sanitizedLocale, 'server error'));
         }
-        const type = await fileType.fromBuffer(buffer);
+        const { fileTypeFromBuffer } = await import('file-type');
+        const type = await fileTypeFromBuffer(buffer);
         const extraMimeTypes = sails.config.globals.EXTRA_MIME_TYPES;
         const defaultMimeTypes = sails.config.globals.DEFAULT_MIME_TYPES;
         const allowedMimeTypes = extraMimeTypes && extraMimeTypes.length > 0
