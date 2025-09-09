@@ -230,7 +230,7 @@ module.exports = {
         where: whereClause,
         skip: pageIndex * pageSize,
         limit: pageSize,
-      });
+      }).meta({ makeLikeModifierCaseInsensitive: true });
 
       const total = Number(await User.count(whereClause)) || 0;
 
