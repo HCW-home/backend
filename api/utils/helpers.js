@@ -39,20 +39,35 @@ function escapeHtml(str) {
   return str.replace(/[&<>"']/g, (char) => escapeMap[char]);
 }
 
-function sanitizeMetadata(obj) {
-  if (Array.isArray(obj)) {
-    return obj.map(sanitizeMetadata);
-  } else if (typeof obj === 'object' && obj !== null) {
-    return Object.entries(obj).reduce((acc, [key, value]) => {
-      const sanitizedKey = typeof key === 'string' ? validator.escape(key) : key;
-      acc[sanitizedKey] = sanitizeMetadata(value);
-      return acc;
-    }, {});
-  } else if (typeof obj === 'string') {
-    return validator.escape(obj);
-  } else {
-    return validator.escape(String(obj));
+function sanitizeMetadata(obj, seen = new WeakSet()) {
+  if (obj === null || obj === undefined) return obj;
+
+  const t = typeof obj;
+
+  if (t === 'string' || t === 'number' || t === 'boolean') {
+    return obj;
   }
+
+  if (Array.isArray(obj)) {
+    if (seen.has(obj)) throw new Error('Circular reference in metadata');
+    seen.add(obj);
+    return obj.map(v => sanitizeMetadata(v, seen));
+  }
+
+  if (t === 'object' && obj.constructor === Object) {
+    if (seen.has(obj)) throw new Error('Circular reference in metadata');
+    seen.add(obj);
+    return Object.fromEntries(
+      Object.entries(obj).map(([k, v]) => {
+        if (typeof k !== 'string') {
+          throw new Error(`Invalid key type: ${typeof k}`);
+        }
+        return [k, sanitizeMetadata(v, seen)];
+      })
+    );
+  }
+
+  throw new Error(`Unsupported metadata type: ${Object.prototype.toString.call(obj)}`);
 }
 
 async function recreateTTLIndex(collection, field, expireAfterSeconds) {
