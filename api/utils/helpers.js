@@ -51,7 +51,7 @@ function sanitizeMetadata(obj) {
   } else if (typeof obj === 'string') {
     return validator.escape(obj);
   } else {
-    return obj;
+    return validator.escape(String(obj));
   }
 }
 
