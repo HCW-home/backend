@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.66) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.67) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -46,8 +46,16 @@ hcw-athome-backend (0.5.66) UNRELEASED; urgency=medium
   [ Gor Grigoryan ]
   * remove saml
   * update node js version in debian
+  * update file-type version to 21.0.0
+  * use sails 1.5.15
+  * enable case-insensitive search for user queries
+  * use validator escape in sanitizeMetadata
+  * restrict metadata to plain objects, arrays, strings, and safe primitives
+  * update sanitizeMetadata function
+  * add skiping planning consultation and navigation after login
+  * fix shared queue consultation for role admin/nurse
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 27 Aug 2025 13:51:18 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 15 Sep 2025 16:10:26 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
