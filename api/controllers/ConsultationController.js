@@ -50,26 +50,31 @@ module.exports = {
           {
             doctor: new ObjectId(req.user.id),
           },
+          {
+            owner: new ObjectId(req.user.id),
+          },
         ];
       }
 
-      if (req.user.viewAllQueues) {
-        const queues = (await Queue.find({})).map(
-          (queue) => new ObjectId(queue.id)
-        );
-        match.push({
-          status: 'pending',
-          queue: { $in: queues },
-        });
-      } else if (req.user.allowedQueues && req.user.allowedQueues.length > 0) {
-        const queues = req.user.allowedQueues.map(
-          (queue) => new ObjectId(queue.id)
-        );
+      if (req.user.role === 'doctor' || req.user.role === 'admin') {
+        if (req.user.viewAllQueues) {
+          const queues = (await Queue.find({})).map(
+            (queue) => new ObjectId(queue.id)
+          );
+          match.push({
+            status: 'pending',
+            queue: { $in: queues },
+          });
+        } else if (req.user.allowedQueues && req.user.allowedQueues.length > 0) {
+          const queues = req.user.allowedQueues.map(
+            (queue) => new ObjectId(queue.id)
+          );
 
-        match.push({
-          status: 'pending',
-          queue: { $in: queues },
-        });
+          match.push({
+            status: 'pending',
+            queue: { $in: queues },
+          });
+        }
       }
 
       const agg = [
