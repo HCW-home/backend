@@ -516,6 +516,11 @@ module.exports = {
   },
 
   loginOpenId(req, res, next) {
+    if (req.query.redirectUrl) {
+      req.session.redirectUrl = req.query.redirectUrl;
+      sails.config.customLogger.log('info', `Stored redirectUrl in session: ${req.query.redirectUrl}`, null, 'message', req.user?.id);
+    }
+
     const role = req.query.role;
     if (role === sails.config.globals.ROLE_DOCTOR) {
       sails.config.customLogger.log('info', 'Initiating OpenID Connect authentication for doctor.', null, 'message', req.user?.id);
@@ -613,12 +618,20 @@ module.exports = {
               return res.view('pages/error', { error: err });
             }
             if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
+              const redirectUrl = req.session.redirectUrl;
+              if (redirectUrl) {
+                delete req.session.redirectUrl;
+                sails.config.customLogger.log('info', `Using stored redirectUrl: ${redirectUrl}`, null, 'server-action', user?.id);
+              }
+
               if (process.env.NODE_ENV === 'development') {
                 sails.config.customLogger.log('info', `Doctor user ${user.id} authenticated; redirecting to development URL.`, null, 'server-action', user?.id);
-                return res.redirect(`${process.env['DOCTOR_URL']}/app?tk=${user.token}`);
+                const url = `${process.env['DOCTOR_URL']}/app?tk=${user.token}${redirectUrl ? `&redirectUrl=${encodeURIComponent(redirectUrl)}` : ''}`;
+                return res.redirect(url);
               } else {
                 sails.config.customLogger.log('info', `Doctor user ${user.id} authenticated; redirecting to production URL.`, null, 'server-action', user?.id);
-                return res.redirect(`/app?tk=${user.token}`);
+                const url = `/app?tk=${user.token}${redirectUrl ? `&redirectUrl=${encodeURIComponent(redirectUrl)}` : ''}`;
+                return res.redirect(url);
               }
             }
           }
