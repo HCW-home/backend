@@ -1,14 +1,15 @@
 #!/bin/sh
 ## Adapt according to you build environment.
-VERSION=node_20.x
-DISTRO=focal
+VERSION=20
+DISTRO=nodistro
+PACKAGE=nodejs
 
 set -e
 
 apt update
-apt -y install wget apt-transport-https gnupg ca-certificates
-wget --quiet -O - https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add -
+KEY_URL="https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key"
+APT_URL="https://deb.nodesource.com/node_${VERSION}.x ${DISTRO} main"
 
-echo "deb https://deb.nodesource.com/$VERSION $DISTRO main" | tee /etc/apt/sources.list.d/nodesource.list
-echo "deb-src https://deb.nodesource.com/$VERSION $DISTRO main" | tee -a /etc/apt/sources.list.d/nodesource.list
+curl -fsSL ${KEY_URL} | gpg -o /etc/apt/trusted.gpg.d/${PACKAGE}.gpg --dearmor
+echo "deb [signed-by=/etc/apt/trusted.gpg.d/${PACKAGE}.gpg] ${APT_URL}" > /etc/apt/sources.list.d/${PACKAGE}.list
 apt update
