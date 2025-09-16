@@ -220,7 +220,7 @@ module.exports = {
       }
 
       if (
-        (user.role === sails.config.globals.ROLE_NURSE ||
+        (user.role === sails.config.globals.ROLE_EXPERT || user.role === sails.config.globals.ROLE_NURSE ||
           user.role === sails.config.globals.ROLE_PATIENT) &&
         !consultation.flagDoctorOnline &&
         !consultation.flagDoctorNotified
