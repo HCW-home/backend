@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.67) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.68) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -55,7 +55,21 @@ hcw-athome-backend (0.5.67) UNRELEASED; urgency=medium
   * add skiping planning consultation and navigation after login
   * fix shared queue consultation for role admin/nurse
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 15 Sep 2025 16:10:26 +0000
+  [ Olivier Bitsch ]
+  * Migrate repo node
+
+  [ Gor Grigoryan ]
+  * update yarn lock
+
+  [ Olivier Bitsch ]
+  * Bypass dh_dwz
+  * Bypass dh_strip
+  * Bypass dh_shlibdeps
+
+  [ Gor Grigoryan ]
+  * fix notification for offline action for doctor and patient
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 16 Sep 2025 12:21:29 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
