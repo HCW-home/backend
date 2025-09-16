@@ -24,6 +24,9 @@
 #	dh_auto_configure -- \
 #	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
 
+override_dh_dwz:
+	echo "Ignore dh_dwz"
+
 override_dh_auto_install:
 	## Prepare node_modules
 	make
