@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.68) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.69) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -68,8 +68,9 @@ hcw-athome-backend (0.5.68) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * fix notification for offline action for doctor and patient
+  * handle expert case when sending offline notification
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 16 Sep 2025 12:21:29 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 16 Sep 2025 13:23:51 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
