@@ -71,6 +71,8 @@ module.exports.globals = {
   ROLE_NURSE: "nurse",
   ROLE_PATIENT: "patient",
   ROLE_EXPERT: "expert",
+  ROLE_GUEST: "guest",
+  ROLE_TRANSLATOR: "translator",
   ROLE_ADMIN: "admin",
   ROLE_SCHEDULER: "scheduler",
 

@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb');
 const _ = require('@sailshq/lodash');
 const moment = require('moment');
+const { get } = require('../utils/socketTracker');
 
 const columns = [
   { colName: 'Invite sent at', key: 'inviteCreatedAt' },
@@ -242,6 +243,37 @@ module.exports = {
     if (consultation.guestInvite) {
       guestInvite = await PublicInvite.findOne({ id: consultation.guestInvite });
     }
+
+    if (consultation.owner) {
+      const ownerSockets = get(consultation.owner);
+      consultation.flagPatientOnline = ownerSockets && ownerSockets.size > 0;
+    }
+
+    if (consultation.acceptedBy) {
+      const doctorSockets = get(consultation.acceptedBy);
+      consultation.flagDoctorOnline = doctorSockets && doctorSockets.size > 0;
+    } else if (consultation.doctor) {
+      const doctorSockets = get(consultation.doctor);
+      consultation.flagDoctorOnline = doctorSockets && doctorSockets.size > 0;
+    }
+
+    if (consultation.translator) {
+      const translatorSockets = get(consultation.translator);
+      consultation.flagTranslatorOnline = translatorSockets && translatorSockets.size > 0;
+    }
+
+    if (consultation.guest) {
+      const guestSockets = get(consultation.guest);
+      consultation.flagGuestOnline = guestSockets && guestSockets.size > 0;
+    }
+
+    await Consultation.updateOne({ id: consultation.id }).set({
+      flagPatientOnline: consultation.flagPatientOnline,
+      flagDoctorOnline: consultation.flagDoctorOnline,
+      flagTranslatorOnline: consultation.flagTranslatorOnline,
+      flagGuestOnline: consultation.flagGuestOnline
+    });
+
     sails.config.customLogger.log('info', `Broadcasting new consultation ${consultation.id}`, null, 'server-action', null);
     const participants = await Consultation.getConsultationParticipants(consultation);
     participants.forEach((participant) => {

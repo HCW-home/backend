@@ -152,8 +152,8 @@ module.exports = {
       inviteToken: consultation.invitationToken,
     });
 
-    if (publicInvite) {
-      const url = `${process.env.PUBLIC_URL}/inv/?invite=${publicInvite.inviteToken}`;
+    if (consultation) {
+      const url = `${process.env.PUBLIC_URL}/inv/?invite=${consultation.invitationToken}`;
       if (
         (user.role === sails.config.globals.ROLE_ADMIN ||
           user.role === sails.config.globals.ROLE_DOCTOR) &&
@@ -161,9 +161,12 @@ module.exports = {
         !consultation.flagPatientNotified
       ) {
         sails.config.customLogger.log('info', `Updating public invite status to SENT inviteToken ${consultation.invitationToken}`, null, 'server-action');
-        await PublicInvite.updateOne({
-          inviteToken: consultation.invitationToken,
-        }).set({ status: 'SENT' });
+
+        if (publicInvite) {
+          await PublicInvite.updateOne({
+            inviteToken: consultation.invitationToken,
+          }).set({ status: 'SENT' });
+        }
 
         const locale = publicInvite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
 
@@ -212,12 +215,12 @@ module.exports = {
       }
 
       if (
-        (user.role === sails.config.globals.ROLE_NURSE ||
+        (user.role === sails.config.globals.ROLE_EXPERT || user.role === sails.config.globals.ROLE_NURSE ||
           user.role === sails.config.globals.ROLE_PATIENT) &&
         !consultation.flagDoctorOnline &&
         !consultation.flagDoctorNotified
       ) {
-        const doctorLang = publicInvite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+        const doctorLang = process.env.DEFAULT_DOCTOR_LOCALE;
         const url = `${process.env.DOCTOR_URL}/app/consultation/${consultation.id}`;
 
         if (toUser?.enableNotif && toUser?.notifPhoneNumber) {
