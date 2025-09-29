@@ -28,6 +28,13 @@ module.exports = async function (req, res, proceed) {
           { acceptedBy: null }
         ]
       });
+
+      if (!consultation) {
+        const consultationData = await Consultation.findOne({ id: consultationId }).populate('queue');
+        if (consultationData && consultationData.queue && consultationData.queue.shareWhenOpened) {
+          consultation = 1;
+        }
+      }
     } else if (req.user.role === 'translator') {
       consultation = await Consultation.count({
         id: consultationId,

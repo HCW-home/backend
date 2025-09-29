@@ -23,7 +23,7 @@ module.exports = {
     },
     type: {
       type: 'string',
-      isIn: ['attachment', 'text', 'videoCall', 'audioCall'],
+      isIn: ['attachment', 'text', 'videoCall', 'audioCall', 'ownershipTransfer'],
     },
     mimeType: {
       type: 'string',
@@ -113,15 +113,10 @@ module.exports = {
     const user = await User.findOne({ id: message.from });
     const toUser = await User.findOne({ id: message.to });
 
-    let roomNames = [
-      message.to || consultation.queue || consultation.doctor,
-      ...consultation.experts,
-    ];
-    if (user?.role === 'expert') {
-      roomNames = consultation.experts.filter((expert) => expert !== user.id);
-      roomNames.push(consultation.doctor);
-      roomNames.push(consultation.owner);
-    }
+    const participants = await Consultation.getConsultationParticipants(consultation, { includeSharedQueueUsers: true });
+
+    const roomNames = participants.filter(p => p !== message.from);
+
     const fromUserDetail = {
       firstName: user.firstName,
       lastName: user.lastName,

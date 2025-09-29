@@ -26,26 +26,30 @@ module.exports = async function (req, res, proceed) {
     if (acceptedByMyselfOrDoctor) {
       consultation = 1;
     } else {
-      // If accepted by someone else, not allow read it
-      acceptedBySomeoneElse = await Consultation.count({
-        id: consultationId,
-        and: [
-          { acceptedBy: { "!=": null } },
-          { acceptedBy: { "!=": req.user.id } },
-        ],
-      });
-
-      if (acceptedBySomeoneElse) {
-        consultation = 0;
+      // Check if the consultation belongs to a shared queue
+      const consultationData = await Consultation.findOne({ id: consultationId }).populate('queue');
+      if (consultationData && consultationData.queue && consultationData.queue.shareWhenOpened) {
+        consultation = 1;
       } else {
-        // Check if the consultation is in an accessible queue and not accepted yet
-        const myQueues = req.user.allowedQueues;
-        if (myQueues) {
-          consultation = await Consultation.count({
-            id: consultationId,
-            acceptedBy: null,
-            queue: { in: myQueues.map((q) => q.id) },
-          });
+        acceptedBySomeoneElse = await Consultation.count({
+          id: consultationId,
+          and: [
+            { acceptedBy: { "!=": null } },
+            { acceptedBy: { "!=": req.user.id } },
+          ],
+        });
+
+        if (acceptedBySomeoneElse) {
+          consultation = 0;
+        } else {
+          const myQueues = req.user.allowedQueues;
+          if (myQueues) {
+            consultation = await Consultation.count({
+              id: consultationId,
+              acceptedBy: null,
+              queue: { in: myQueues.map((q) => q.id) },
+            });
+          }
         }
       }
     }

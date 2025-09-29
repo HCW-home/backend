@@ -84,5 +84,7 @@
   "in %(count)s %(unit)s": "in %(count)s %(unit)s",
   "join": "Join",
   "acknowledge invite": "Acknowledge invite",
-  "verification code message": "Your verification code is %(code)s. This code is valid for %(minutes)s minutes"
+  "verification code message": "Your verification code is %(code)s. This code is valid for %(minutes)s minutes",
+  "ownership transfer message": "Doctor changed from %(previousOwner)s to %(newOwner)s",
+  "ownership unassigned": "unassigned"
 }

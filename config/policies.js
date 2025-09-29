@@ -86,6 +86,7 @@ module.exports.policies = {
     call: ["isLoggedIn", "isConsultationOwner"],
     rejectCall: ["isLoggedIn", "isConsultationParticipant"],
     acceptCall: ["isLoggedIn", "isConsultationParticipant"],
+    transferOwnership: ["isLoggedIn", "isConsultationParticipant"],
     patientFeedback: ["isLoggedIn", "isNurseOrPatientOrAdmin"],
     doctorFeedback: ["isLoggedIn", "isConsultationOwner"],
     updateConsultationNote: ["isLoggedIn", "isConsultationOwner"],

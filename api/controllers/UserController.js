@@ -162,6 +162,9 @@ module.exports = {
     if (req.body.messageService !== undefined) {
       valuesToUpdate.messageService = req.body.messageService;
     }
+    if (req.body.preferredLanguage !== undefined) {
+      valuesToUpdate.preferredLanguage = req.body.preferredLanguage;
+    }
 
     await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
     return res.status(200).json({ success: true });

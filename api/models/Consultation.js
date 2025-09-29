@@ -130,6 +130,9 @@ module.exports = {
       type: 'ref',
       columnType: 'datetime',
     },
+    closedBy: {
+      model: 'user',
+    },
     patientRating: {
       type: 'string',
       required: false,
@@ -260,34 +263,58 @@ module.exports = {
     sails.config.customLogger.log('verbose', `Finished broadcasting new consultation ${consultation.id} participantCount ${participants.length}`, null, 'server-action', null);
   },
 
-  async getConsultationParticipants(consultation) {
-    const consultationParticipants = [consultation.owner];
-    if (consultation.translator) {
-      consultationParticipants.push(consultation.translator);
-    }
-    if (consultation.acceptedBy) {
-      consultationParticipants.push(consultation.acceptedBy);
-    }
-    if (consultation.guest) {
-      consultationParticipants.push(consultation.guest);
-    }
+  async getConsultationParticipants(consultation, options = {}) {
+    const { includeSharedQueueUsers = true } = options;
+    const participantSet = new Set();
+
     if (consultation.owner) {
-      consultationParticipants.push(consultation.owner);
+      participantSet.add(consultation.owner);
     }
+
+    if (consultation.translator) {
+      participantSet.add(consultation.translator);
+    }
+
+    if (consultation.acceptedBy) {
+      participantSet.add(consultation.acceptedBy);
+    }
+
+    if (consultation.guest) {
+      participantSet.add(consultation.guest);
+    }
+
     if (consultation.status === 'pending' && consultation.queue) {
-      consultationParticipants.push(consultation.queue);
+      participantSet.add(consultation.queue);
     }
-    if (
-      consultation.doctor &&
-      consultation.doctor !== consultation.acceptedBy
-    ) {
-      consultationParticipants.push(consultation.doctor);
+
+    if (includeSharedQueueUsers && consultation.queue) {
+      const queueId = consultation.queue.toString ? consultation.queue.toString() : consultation.queue;
+      const queue = await Queue.findOne({ id: queueId });
+      if (queue && queue.shareWhenOpened) {
+        const doctorsAndAdmins = await User.find({
+          or: [
+            { role: 'doctor' },
+            { role: 'admin' }
+          ]
+        });
+
+        doctorsAndAdmins.forEach(user => {
+          participantSet.add(user.id);
+        });
+      }
     }
+
+    if (consultation.doctor && consultation.doctor !== consultation.acceptedBy) {
+      participantSet.add(consultation.doctor);
+    }
+
     if (consultation.experts?.length) {
       consultation.experts.forEach((expert) => {
-        consultationParticipants.push(expert);
+        participantSet.add(expert);
       });
     }
+
+    const consultationParticipants = Array.from(participantSet);
     sails.config.customLogger.log('info', `Consultation participants computed for consultation ${consultation.id || consultation._id}`, null, 'message', null);
     return consultationParticipants;
   },
@@ -775,7 +802,7 @@ module.exports = {
         }
       }
       const url = `${process.env.DOCTOR_URL}/app/plan-consultation?token=${tokenString}`;
-      const doctorLanguage = doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
+      const doctorLanguage = doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE || 'en';
       if (doctor.messageService === '1') {
         const type = 'patient is ready';
         if (doctorLanguage) {

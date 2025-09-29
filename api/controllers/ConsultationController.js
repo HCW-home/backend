@@ -75,6 +75,18 @@ module.exports = {
             queue: { $in: queues },
           });
         }
+
+        const sharedQueues = await Queue.find({
+          shareWhenOpened: true
+        });
+
+        if (sharedQueues.length > 0) {
+          const sharedQueueIds = sharedQueues.map(q => new ObjectId(q.id));
+
+          match.push({
+            queue: { $in: sharedQueueIds }
+          });
+        }
       }
 
       const agg = [
@@ -242,6 +254,16 @@ module.exports = {
             translator: {
               $arrayElemAt: ['$translator', 0],
             },
+            acceptedByUser: {
+              $cond: {
+                if: { $ne: ['$doctor', null] },
+                then: {
+                  firstName: '$doctor.firstName',
+                  lastName: '$doctor.lastName'
+                },
+                else: null
+              }
+            },
           },
         },
         {
@@ -268,6 +290,17 @@ module.exports = {
           });
           data[index].consultation.experts = experts;
           sails.config.customLogger.log('verbose', `Processed experts for consultation ${item.consultation?.id} expertCount ${experts.length}`, null, 'message', req.user?.id);
+        }
+
+        if (item.consultation.closedBy) {
+          const closedById = item.consultation.closedBy.toString ? item.consultation.closedBy.toString() : item.consultation.closedBy;
+          const closedByUser = await User.findOne({ id: closedById });
+          if (closedByUser) {
+            data[index].closedByUser = {
+              firstName: closedByUser.firstName,
+              lastName: closedByUser.lastName
+            };
+          }
         }
       }
 
@@ -459,6 +492,96 @@ module.exports = {
     }
   },
 
+  async transferOwnership(req, res) {
+    try {
+      const consultationId = req.params.consultation;
+      const newOwnerId = req.user.id;
+
+      const consultation = await Consultation.findOne({ id: consultationId })
+        .populate('queue')
+        .populate('acceptedBy');
+
+      if (!consultation) {
+        return res.notFound({ error: 'Consultation not found' });
+      }
+
+      if (!consultation.queue || !consultation.queue.shareWhenOpened) {
+        return res.forbidden({ error: 'Ownership transfer not allowed for this consultation' });
+      }
+
+      if (consultation.status !== 'active') {
+        return res.badRequest({ error: 'Can only transfer ownership of active consultations' });
+      }
+
+      if (consultation.acceptedBy && consultation.acceptedBy.id === newOwnerId) {
+        return res.badRequest({ error: 'You are already the owner of this consultation' });
+      }
+
+      const previousOwner = consultation.acceptedBy;
+
+      await Consultation.updateOne({ id: consultationId }).set({
+        acceptedBy: newOwnerId,
+        acceptedAt: new Date()
+      });
+
+      const newOwner = await User.findOne({ id: newOwnerId });
+
+      const locale = newOwner.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE || 'en';
+
+      const previousOwnerName = previousOwner ? `${previousOwner.firstName} ${previousOwner.lastName}` : sails._t(locale, 'ownership unassigned');
+      const newOwnerName = `${newOwner.firstName} ${newOwner.lastName}`;
+
+      const message = await Message.create({
+        type: 'ownershipTransfer',
+        consultation: consultationId,
+        from: newOwnerId,
+        text: sails._t(locale, 'ownership transfer message', { previousOwner: previousOwnerName, newOwner: newOwnerName }),
+        metadata: {
+          previousOwner: previousOwner ? {
+            id: previousOwner.id,
+            firstName: previousOwner.firstName,
+            lastName: previousOwner.lastName
+          } : null,
+          newOwner: {
+            id: newOwner.id,
+            firstName: newOwner.firstName,
+            lastName: newOwner.lastName
+          }
+        }
+      }).fetch();
+
+      const updatedConsultation = await Consultation.findOne({ id: consultationId })
+        .populate('owner')
+        .populate('acceptedBy')
+        .populate('queue');
+
+      const participants = await Consultation.getConsultationParticipants(updatedConsultation);
+      participants.forEach(participantId => {
+        sails.sockets.broadcast(participantId, 'ownershipTransferred', {
+          data: {
+            consultation: updatedConsultation,
+            previousOwner: previousOwner,
+            newOwner: newOwner
+          }
+        });
+      });
+
+      sails.config.customLogger.log('info', `Ownership transferred for consultation ${consultationId} from ${previousOwner?.id} to ${newOwnerId}`, null, 'server-action', req.user?.id);
+
+      return res.json({
+        consultation: updatedConsultation,
+        message: message
+      });
+
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error transferring ownership', {
+        consultationId: req.params.consultation,
+        error: error?.message || error
+      }, 'server-action', req.user?.id);
+      return res.serverError({ error: 'Error transferring ownership', details: error.message });
+    }
+  },
+
   async acceptConsultation(req, res) {
     try {
       const consultation = await Consultation.updateOne({
@@ -541,6 +664,10 @@ module.exports = {
       } else {
         sails.config.customLogger.log('info', `No ongoing call found for consultation ${consultationId}`, null, 'server-action', user?.id);
       }
+
+      await Consultation.updateOne({ id: consultationId }).set({
+        closedBy: req.user.id
+      });
 
       await Consultation.closeConsultation(consultation, req.user?.id);
       sails.config.customLogger.log('info', `Consultation ${consultation.id} closed successfully`, null, 'server-action', user?.id);

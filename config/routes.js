@@ -36,6 +36,7 @@ module.exports.routes = {
   'post /api/v1/consultation': 'ConsultationController.create',
   'GET /api/v1/consultation/test-call': 'ConsultationController.testCall',
   'post /api/v1/consultation/:consultation/accept': 'ConsultationController.acceptConsultation',
+  'post /api/v1/consultation/:consultation/transfer-ownership': 'ConsultationController.transferOwnership',
   // 'delete /api/v1/consultation/:consultation': 'ConsultationController.destroy',
   'post /api/v1/consultation/:consultation/close': 'ConsultationController.closeConsultation',
   'post /api/v1/consultation/:consultation/call': 'ConsultationController.call',
