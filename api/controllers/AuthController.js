@@ -700,6 +700,7 @@ module.exports = {
       hideSchedulerRole: sails.config.globals.HIDE_SCHEDULER_ROLE,
       forcePatientLanguage: sails.config.globals.FORCE_PATIENT_LANGUAGE,
       showDoctorPrivateNote: sails.config.globals.SHOW_DOCTOR_PRIVATE_NOTE,
+      skipConsultationPlanPage: sails.config.globals.SKIP_CONSULTATION_PLAN_PAGE,
       doctorLanguages,
       patientLanguages,
       enableFieldsFormDoctor
