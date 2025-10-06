@@ -302,6 +302,13 @@ module.exports = {
             };
           }
         }
+
+        const ownerId = item.consultation.owner?.toString ? item.consultation.owner.toString() : item.consultation.owner;
+        const acceptedById = item.consultation.acceptedBy?.toString ? item.consultation.acceptedBy.toString() : item.consultation.acceptedBy;
+        if (ownerId && acceptedById && ownerId === acceptedById) {
+          data[index].consultation.isSelfCallScenario = true;
+          sails.config.customLogger.log('info', `Self-call scenario detected for consultation ${item.consultation?.id}`, null, 'message', req.user?.id);
+        }
       }
 
       if (req.user?.role === sails.config.globals.ROLE_PATIENT) {
@@ -722,13 +729,22 @@ module.exports = {
         return res.notFound({ error: 'Consultation not found' });
       }
       sails.config.customLogger.log('info', `Consultation found ${consultation.id}`, null, 'message', req.user?.id);
+      const calleeId = req.user.id === consultation.owner ? consultation.acceptedBy : consultation.owner;
+
+      if (req.user.id === calleeId) {
+        sails.config.customLogger.log('warn', `User ${req.user.id} attempting to call themselves in consultation ${consultation.id}`, null, 'message', req.user?.id);
+        return res.status(400).json({
+          error: 'SELF_CALL_NOT_ALLOWED',
+          message: 'You cannot call yourself. The same user is assigned as both doctor and requester in this consultation.'
+        });
+      }
+
       const callerToken = await sails.helpers.getMediasoupToken.with({
         roomId: consultation.id,
         peerId: req.user.id,
         server: mediasoupServer,
       });
       sails.config.customLogger.log('info', `Caller token generated consultationId ${consultation.id}, callerId ${req.user.id}`, null, 'server-action', req.user?.id);
-      const calleeId = req.user.id === consultation.owner ? consultation.acceptedBy : consultation.owner;
       const patientToken = await sails.helpers.getMediasoupToken.with({
         roomId: consultation.id,
         peerId: calleeId,
