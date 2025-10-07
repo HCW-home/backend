@@ -1,8 +1,5 @@
 const Fhir = require('fhir').Fhir;
 const fhir = new Fhir();
-const moment = require('moment-timezone');
-const uuid = require('uuid');
-
 
 const statusMap = {
   PENDING: "proposed",
@@ -31,7 +28,7 @@ module.exports = {
   findParticipantsByResourceType: function(data, containedResources, resourceType) {
     return data?.filter(participant => {
       const ref = participant?.actor?.reference;
-      const refId = ref?.startsWith('#') ? ref.slice(1) : null;
+      const refId = (typeof ref === 'string' && ref.startsWith('#')) ? ref.slice(1) : null;
       const matchedResource = containedResources?.find(res => res.id === refId);
       return matchedResource?.resourceType === resourceType;
     });
@@ -40,8 +37,9 @@ module.exports = {
   findContainedResourcesByType(participants, contained, resourceType) {
     return participants
       .map(participant => {
-        const refId = participant?.actor?.reference?.startsWith('#')
-          ? participant.actor.reference.slice(1)
+        const ref = participant?.actor?.reference;
+        const refId = (typeof ref === 'string' && ref.startsWith('#'))
+          ? ref.slice(1)
           : null;
 
         return contained?.find(resource => resource.id === refId && resource.resourceType === resourceType);
@@ -52,8 +50,9 @@ module.exports = {
 
   findParticipantsExcludingResourceTypes: function(participants, contained, resourceTypes) {
     return participants?.filter(participant => {
-      const refId = participant?.actor?.reference?.startsWith('#')
-        ? participant.actor.reference.slice(1)
+      const ref = participant?.actor?.reference;
+      const refId = (typeof ref === 'string' && ref.startsWith('#'))
+        ? ref.slice(1)
         : null;
 
       const matchedResource = contained?.find(resource => resource.id === refId);
@@ -116,14 +115,23 @@ module.exports = {
       throw new Error('Allowed only 1 "note"');
     }
 
-    /** reason: must return error if defined **/
+    /** reason: must return error if defined more than one **/
     if (appointmentData?.reason?.length > 1) {
-      throw new Error('Field "cancellationDate" is not allowed');
+      throw new Error('Only 1 "reason" is allowed');
     }
 
 
     if (!appointmentData?.participant || !Array.isArray(appointmentData.participant) || appointmentData?.participant?.length === 0) {
       throw new Error('Field "participant" is mandatory and must be a non-empty list');
+    }
+
+    for (const participant of appointmentData.participant) {
+      if (!participant.actor) {
+        throw new Error('Each participant must have an "actor" field');
+      }
+      if (!participant.actor.reference || typeof participant.actor.reference !== 'string') {
+        throw new Error('Each participant.actor must have a "reference" field of type string');
+      }
     }
 
     const foundedDoctors = this.findContainedResourcesByType(
@@ -150,7 +158,7 @@ module.exports = {
     if (!foundedDoctors.length) {
       throw new Error('Primary performer not founded');
     }
-    if (!foundedDoctors.length > 1) {
+    if (foundedDoctors.length > 1) {
       throw new Error('Only 1 Primary performer is allowed');
     }
 
@@ -158,7 +166,8 @@ module.exports = {
     if (!foundedPatients.length) {
       throw new Error('Patient not founded');
     }
-    if (!foundedPatients.length > 1) {
+
+    if (foundedPatients.length > 1) {
       throw new Error('Only 1 patient is allowed');
     }
 
@@ -259,7 +268,8 @@ module.exports = {
                                                       email,
                                                       phoneNumber,
                                                       username,
-                                                      inviteToken
+                                                      inviteToken,
+                                                      gender
                                                     }) {
     return {
       username: username,
@@ -271,6 +281,7 @@ module.exports = {
       email: email,
       phoneNumber: phoneNumber,
       inviteToken: inviteToken,
+      gender: gender,
       direct: '',
     };
   },
@@ -327,8 +338,14 @@ module.exports = {
       metadata.reason = appointmentData.reason[0]?.reference?.display;
     }
 
-    if (appointmentData?.identifier?.length > 0 && appointmentData?.identifier?.[0]?.value) {
-      metadata.identifier = appointmentData?.identifier?.[0]?.value;
+    if (appointmentData?.identifier?.length > 0) {
+      const firstIdentifier = appointmentData.identifier[0];
+      if (firstIdentifier?.value) {
+        metadata.identifier = firstIdentifier.value;
+        if (firstIdentifier?.system) {
+          metadata.identifierSystem = firstIdentifier.system;
+        }
+      }
     }
 
     return metadata;
