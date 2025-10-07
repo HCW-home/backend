@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.71) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.72) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -79,8 +79,9 @@ hcw-athome-backend (0.5.71) UNRELEASED; urgency=medium
   * refs #8707, Managed by queue
   * refs #8722, Skip parameter for time estimation
   * Check if the caller is trying to call themselves
+  * update fhir endpoints
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 06 Oct 2025 06:58:11 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 07 Oct 2025 11:47:52 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
