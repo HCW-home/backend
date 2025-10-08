@@ -91,6 +91,7 @@ module.exports.routes = {
   'DELETE /api/v1/invite/:id': 'PublicInviteController.destroy',
   'POST /api/v1/fhir/Appointment': 'PublicInviteController.createFhirAppointment',
   'GET /api/v1/fhir/Appointments': 'PublicInviteController.getAllFhirAppointments',
+  'GET /api/v1/fhir/Appointment': 'PublicInviteController.getFhirAppointment',
   'GET /api/v1/fhir/Appointment/:id': 'PublicInviteController.getFhirAppointment',
   'PUT /api/v1/fhir/Appointment/:id': 'PublicInviteController.updateFhirAppointment',
   'DELETE /api/v1/fhir/Appointment/:id': 'PublicInviteController.deleteFhirAppointment',

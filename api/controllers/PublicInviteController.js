@@ -405,7 +405,11 @@ module.exports = {
   async getFhirAppointment(req, res) {
     try {
       let { id } = req.params;
-      id = escapeHtml(id);
+      const { identifier } = req.query;
+
+      if (id || identifier) {
+        id = escapeHtml(id || identifier);
+      }
 
       sails.config.customLogger.log('info', `getFhirAppointment: Looking up appointment with id: ${id}`, null, 'message', req.user?.id);
 
