@@ -1,6 +1,6 @@
 const validator = require('validator');
 const InviteController = require('./InviteController');
-const { statusMap } = require('../services/FhirService');
+const { statusMap, reverseStatusMap } = require('../services/FhirService');
 const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
 
 async function determineStatus(phoneNumber, smsProviders, whatsappConfig) {
@@ -228,9 +228,16 @@ module.exports = {
         });
       }
 
+      const updateData = { fhirData: appointmentData };
+      if (appointmentData.status && reverseStatusMap[appointmentData.status]) {
+        const hcwStatus = reverseStatusMap[appointmentData.status];
+        updateData.status = hcwStatus;
+        sails.config.customLogger.log('info', `updateFhirAppointment: Applying FHIR status '${appointmentData.status}' as HCW status '${hcwStatus}'`, null, 'message', req.user?.id);
+      }
+
       await PublicInvite.updateOne({
         id: appointmentId,
-      }).set({ fhirData: appointmentData });
+      }).set(updateData);
 
       const resJson = {
         ...appointmentData,
@@ -343,8 +350,6 @@ module.exports = {
                 updatedResource.telecom = telecom;
               }
 
-              delete updatedResource.status;
-
               return updatedResource;
             }
 
@@ -360,19 +365,10 @@ module.exports = {
                 updatedResource.telecom = telecom;
               }
 
-              delete updatedResource.status;
-
               return updatedResource;
             }
 
             return resource;
-          });
-        }
-
-        if (appointment.participant && Array.isArray(appointment.participant)) {
-          appointment.participant = appointment.participant.map(p => {
-            const { status, ...rest } = p;
-            return rest;
           });
         }
 
@@ -494,8 +490,6 @@ module.exports = {
               updatedResource.telecom = telecom;
             }
 
-            delete updatedResource.status;
-
             return updatedResource;
           }
 
@@ -511,19 +505,10 @@ module.exports = {
               updatedResource.telecom = telecom;
             }
 
-            delete updatedResource.status;
-
             return updatedResource;
           }
 
           return resource;
-        });
-      }
-
-      if (appointment.participant && Array.isArray(appointment.participant)) {
-        appointment.participant = appointment.participant.map(p => {
-          const { status, ...rest } = p;
-          return rest;
         });
       }
 

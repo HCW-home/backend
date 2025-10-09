@@ -23,8 +23,22 @@ const statusMap = {
   READ: "arrived"
 };
 
+const reverseStatusMap = {
+  "proposed": "PENDING",
+  "pending": "SENT",
+  "booked": "DELIVERED",
+  "arrived": "READ",
+  "fulfilled": "COMPLETE",
+  "cancelled": "CANCELED",
+  "noshow": "REFUSED",
+  "entered-in-error": "CANCELED",
+  "checked-in": "ACKNOWLEDGED",
+  "waitlist": "QUEUED"
+};
+
 module.exports = {
   statusMap,
+  reverseStatusMap,
   findParticipantsByResourceType: function(data, containedResources, resourceType) {
     return data?.filter(participant => {
       const ref = participant?.actor?.reference;
