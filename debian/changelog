@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.72) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.73) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
