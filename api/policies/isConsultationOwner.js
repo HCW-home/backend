@@ -5,9 +5,26 @@ module.exports = async function (req, res, proceed) {
   if (!consultationId) {
     return res.notFound();
   }
+
+  let consultationExists;
+  try {
+    consultationExists = await Consultation.count({
+      id: consultationId
+    });
+
+    if (!consultationExists) {
+      sails.config.customLogger.log('warn', `Consultation not found: ${consultationId}`, null, 'message', req.user?.id);
+      return res.notFound('Consultation not found');
+    }
+  } catch (err) {
+    sails.config.customLogger.log('error', 'Error checking consultation existence', { consultationId, error: err?.message || err }, 'server-action', req.user?.id);
+    return res.serverError('Server error');
+  }
+
   let consultation;
   const { role } = req.user;
-  if (role === "nurse" || role === "patient") {
+  try {
+    if (role === "nurse" || role === "patient") {
     consultation = await Consultation.count({
       id: consultationId,
       owner: req.user.id,
@@ -73,11 +90,18 @@ module.exports = async function (req, res, proceed) {
       id: consultationId,
       experts: req.user.id,
     });
-  } else {
-    return res.notFound();
+    } else {
+      sails.config.customLogger.log('warn', `Unknown role: ${role}`, null, 'message', req.user?.id);
+      return res.forbidden('Invalid user role');
+    }
+  } catch (err) {
+    sails.config.customLogger.log('error', 'Error checking consultation access', { consultationId, error: err?.message || err }, 'server-action', req.user?.id);
+    return res.serverError('Server error');
   }
+
   if (!consultation) {
-    return res.forbidden();
+    sails.config.customLogger.log('warn', `Forbidden: User does not have access to consultation ${consultationId}`, null, 'message', req.user?.id);
+    return res.forbidden('You do not have permission to access this consultation');
   }
 
   return proceed();
