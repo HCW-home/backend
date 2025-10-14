@@ -501,7 +501,7 @@ module.exports = {
 
   async transferOwnership(req, res) {
     try {
-      const consultationId = req.params.consultation;
+      const consultationId = escapeHtml(req.params.consultation);
       const newOwnerId = req.user.id;
 
       const consultation = await Consultation.findOne({ id: consultationId })

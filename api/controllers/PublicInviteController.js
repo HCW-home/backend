@@ -140,7 +140,7 @@ module.exports = {
   async updateFhirAppointment(req, res) {
     try {
       const appointmentData = req.body;
-      const appointmentId = req.params.id;
+      const appointmentId = escapeHtml(req.params.id);
 
       if (!appointmentId) {
         return res.status(400).json({ error: 'Appointment ID is required' });
@@ -261,14 +261,15 @@ module.exports = {
       let invites;
 
       if (fhirParams.identifier) {
+        const sanitizedIdentifier = escapeHtml(fhirParams.identifier);
         const db = PublicInvite.getDatastore().manager;
         const collection = db.collection('publicinvite');
 
         invites = await collection.find({
           fhirData: { $ne: null },
           $or: [
-            { 'metadata.identifier': fhirParams.identifier },
-            { 'fhirData.identifier': { $elemMatch: { value: fhirParams.identifier } } }
+            { 'metadata.identifier': sanitizedIdentifier },
+            { 'fhirData.identifier': { $elemMatch: { value: sanitizedIdentifier } } }
           ]
         }).toArray();
       } else {
@@ -400,25 +401,23 @@ module.exports = {
 
   async getFhirAppointment(req, res) {
     try {
-      let { id } = req.params;
-      const { identifier } = req.query;
+      let id = escapeHtml(req.params.id);
+      const identifier = req.query.identifier ? escapeHtml(req.query.identifier) : null;
 
-      if (id || identifier) {
-        id = escapeHtml(id || identifier);
+      if (!id && identifier) {
+        id = identifier;
+      }
+
+      if (!id) {
+        return res.status(400).json({ error: 'Id is required' });
       }
 
       sails.config.customLogger.log('info', `getFhirAppointment: Looking up appointment with id: ${id}`, null, 'message', req.user?.id);
 
-      let publicInvite;
+      const publicInvite = await PublicInvite.findOne({ id });
 
-      if (id) {
-        publicInvite = await PublicInvite.findOne({ id });
-
-        if (!publicInvite) {
-          sails.config.customLogger.log('warn', `getFhirAppointment: Appointment not found with id: ${id}`, null, 'message', req.user?.id);
-        }
-      } else {
-        return res.status(400).json({ error: 'Id is required' });
+      if (!publicInvite) {
+        sails.config.customLogger.log('warn', `getFhirAppointment: Appointment not found with id: ${id}`, null, 'message', req.user?.id);
       }
 
       if (!publicInvite || !publicInvite.fhirData) {
