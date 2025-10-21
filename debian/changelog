@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.73) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.74) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -84,8 +84,10 @@ hcw-athome-backend (0.5.73) UNRELEASED; urgency=medium
   * update fhir routes
   * fix fhir appointment status update
   * improve error handling in policies isConsultationOwner and isConsultationParticipant
+  * security fixes
+  * update 'notification for offline action text for doctor' whatsapp template
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 13 Oct 2025 14:44:58 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 21 Oct 2025 08:31:46 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
