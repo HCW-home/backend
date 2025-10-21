@@ -414,6 +414,7 @@ module.exports = {
           consultationJson.invite = invite.id;
           consultationJson.invitedBy = invite.invitedBy;
           consultationJson.metadata = invite.metadata; // Pass metadata from the invite to the consultation
+          consultationJson.fhirData = invite.fhirData; // Pass FHIR data from the invite to the consultation
           consultationJson.IMADTeam = invite.IMADTeam || 'none';
           consultationJson.birthDate = invite.birthDate;
           consultationJson.note = invite.note;
@@ -1231,42 +1232,38 @@ module.exports = {
   },
 
   async planConsultation(req, res) {
-    const { delay } = req.body;
+    const { delay, consultation: consultationId } = req.body;
+
     if (!delay || delay > 60 || delay < 0) {
       return res.status(400).json({ message: 'invalidDelay' });
     }
-    if (!req.body.token) {
-      return res.status(400).json({ message: 'invalidUrl' });
-    }
+
     try {
-      const token = await Token.findOne({ token: req.body.token });
-      if (!token) {
-        sails.config.customLogger.log('warn', `Token ${req.body.token} not found or expired`, null, 'message', req.user?.id);
-        return res.status(400).json({ message: 'tokenExpired' });
-      }
-      const consultationId = token.value;
+      const doctorId = req.user.id;
+      const doctor = req.user;
+
       let consultation = await Consultation.findOne({ id: consultationId }).populate('invite');
+
       if (!consultation) {
-        sails.config.customLogger.log('warn', `Consultation ${consultationId} not found for token`, null, 'message', req.user?.id);
-        return res.status(400).json({ message: 'invalidUrl' });
+        sails.config.customLogger.log('warn', `Consultation ${consultationId} not found`, null, 'message', req.user?.id);
+        return res.status(404).json({ message: 'Consultation not found' });
       }
+
       if (consultation.status !== 'pending') {
         sails.config.customLogger.log('warn', `Consultation ${consultationId} already started`, null, 'message', req.user?.id);
         return res.status(400).json({ message: 'alreadyStarted' });
       }
-      const doctor = await User.findOne({ id: token.user });
-      if (!doctor) {
-        sails.config.customLogger.log('warn', `Doctor not found for token ${token.user}`, null, 'message', req.user?.id);
-        return res.status(400).json({ message: 'invalidUrl' });
-      }
+
       await Consultation.updateOne({ id: consultationId, status: 'pending' }).set({
         status: 'active',
-        acceptedBy: token.user,
+        acceptedBy: doctorId,
         acceptedAt: new Date(),
         consultationEstimatedAt: new Date(new Date().getTime() + delay * 60000),
       });
+
       consultation = await Consultation.findOne({ id: consultationId }).populate('invite');
       const participants = await Consultation.getConsultationParticipants(consultation);
+
       participants.forEach((participant) => {
         sails.sockets.broadcast(participant, 'consultationAccepted', {
           data: {
@@ -1280,25 +1277,27 @@ module.exports = {
           },
         });
       });
+
       const patientLanguage =
         consultation.invite && consultation.invite.patientLanguage
           ? consultation.invite.patientLanguage
           : sails.config.globals.DEFAULT_PATIENT_LOCALE;
+
       const doctorDelayMsg = sails._t(patientLanguage, 'doctor delay in minutes', {
         delay,
         patientLanguage,
         branding: process.env.BRANDING,
       });
+
       const message = await Message.create({
         text: doctorDelayMsg,
         consultation: consultationId,
         type: 'text',
         to: consultation.owner,
-        from: token.user,
+        from: doctorId,
       }).fetch();
-      await Message.afterCreate(message, (err, message) => {
-      });
-      sails.config.customLogger.log('verbose', `Consultation ${consultationId} planned: delay ${delay} `, null, 'message', req.user?.id);
+
+      sails.config.customLogger.log('verbose', `Consultation ${consultationId} planned: delay ${delay}`, null, 'message', req.user?.id);
       return res.status(200).json({ message: 'success' });
     } catch (error) {
       sails.config.customLogger.log('error', 'Error in planConsultation', { error: error?.message || error }, 'server-action', req.user?.id);

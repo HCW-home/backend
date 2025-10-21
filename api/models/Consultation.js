@@ -187,6 +187,14 @@ module.exports = {
     note: {
       type: 'string',
     },
+    fhirData: {
+      type: 'json',
+      required: false,
+    },
+    metadata: {
+      type: 'json',
+      required: false,
+    },
   },
 
   async beforeCreate(consultation, cb) {
@@ -833,7 +841,7 @@ module.exports = {
           return;
         }
       }
-      const url = `${process.env.DOCTOR_URL}/app/plan-consultation?token=${tokenString}`;
+      const url = `${process.env.DOCTOR_URL}/app/consultation/${consultation.id}`;
       const doctorLanguage = doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE || 'en';
       if (doctor.messageService === '1') {
         const type = 'patient is ready';
@@ -845,7 +853,7 @@ module.exports = {
           });
           if (template && template.sid) {
             const twilioTemplatedId = template.sid;
-            const params = { 1: tokenString };
+            const params = {};
             if (twilioTemplatedId) {
               await sails.helpers.sms.with({
                 phoneNumber: doctor.notifPhoneNumber,

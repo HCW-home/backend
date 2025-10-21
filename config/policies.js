@@ -94,7 +94,7 @@ module.exports.policies = {
     testCall: true,
     getCurrentCall: ["isLoggedIn", "isConsultationParticipant"],
     getConsultationFromToken: true,
-    planConsultation: true,
+    planConsultation:  ["isLoggedIn", "isConsultationParticipant"],
     // findOne: ['isLoggedIn', 'isConsultationOwnerOrTranslator']
   },
   AuthController: {

@@ -147,8 +147,8 @@ module.exports = {
       actions: [
         {
           title: "visit",
-          // url: `https://hcw-athome.dev.oniabsis.com/app/plan-consultation?token={{1}}`,
-          url: `${process.env.DOCTOR_URL}/app/plan-consultation?token={{1}}`,
+          // url: `https://hcw-athome.dev.oniabsis.com/app/consultation/{{1}}`,
+          url: `${process.env.DOCTOR_URL}/app/consultation/{{1}}`,
           type: "URL"
         }
       ],
