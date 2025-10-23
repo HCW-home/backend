@@ -178,6 +178,9 @@ module.exports = {
     scheduledFor: {
       type: 'number',
     },
+    patientTZ: {
+      type: 'string',
+    },
     consultationEstimatedAt: {
       type: 'number',
     },

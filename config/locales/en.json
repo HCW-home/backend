@@ -21,6 +21,7 @@
   "first guest invite reminder": "D-1 reminder your %(branding)s telemedicine consultation will take place in %(timePhrase)s on %(inviteTime)s",
   "second guest invite reminder": "Your consultation will start in %(timePhrase)s: %(url)s",
   "your consultation link": "Your tele-consultation link %(branding)s",
+  "doctor rescheduled call": "Doctor rescheduled call at %(scheduledTime)s %(timezone)s",
   "notification for offline action text for doctor": "You receive this message because you are offline and somebody sent an update in a consultation. You will not receive this message anymore until your next connection to the platform.\n\n %(url)s ",
   "patient is ready": "A patient is in waiting queue. You can provide an estimation waiting time by using the following link %(url)s",
   "please use this link": "Please use this link to join the consultation: %(expertLink)s",

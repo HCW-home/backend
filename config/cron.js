@@ -9,6 +9,13 @@ const TRANSLATION_REQUEST_TIMEOUT = 48 * 60 * 60 * 1000;
 
 const inviteJobs = {
   FIRST_INVITE_REMINDER_SMS: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `FIRST_INVITE_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
     const isWhatsApp = (invite.type === 'PATIENT' && invite.messageService === '1') ||
       (invite.type !== 'PATIENT' && invite.guestMessageService === '1');
 
@@ -61,6 +68,13 @@ const inviteJobs = {
     }
   },
   SECOND_INVITE_REMINDER_SMS: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `SECOND_INVITE_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
     const isWhatsApp = (invite.type === 'PATIENT' && invite.messageService === '1') ||
       (invite.type !== 'PATIENT' && invite.guestMessageService === '1');
 
@@ -116,6 +130,13 @@ const inviteJobs = {
     }
   },
   FIRST_INVITE_REMINDER_EMAIL: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `FIRST_INVITE_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
@@ -128,6 +149,13 @@ const inviteJobs = {
     sails.config.customLogger.log('info', `First reminder email sent inviteId ${invite.id}`, null, 'server-action');
   },
   SECOND_INVITE_REMINDER_EMAIL: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `SECOND_INVITE_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
@@ -215,8 +243,17 @@ module.exports = {
             }
           });
 
-
           for (const invitation of invitesToBeRemoved) {
+            const activeConsultation = await sails.models.consultation.findOne({
+              invitationToken: invitation.inviteToken,
+              status: 'active'
+            });
+
+            if (activeConsultation) {
+              sails.config.customLogger.log('info', `Skipping invite deletion - active consultation exists inviteId ${invitation.id} consultationId ${activeConsultation.id}`, null, 'server-action');
+              continue;
+            }
+
             await sails.models.publicinvite.destroyOne({ id: invitation.id });
             sails.config.customLogger.log('info', `Old invite deleted inviteId ${invitation.id}`, null, 'server-action');
           }

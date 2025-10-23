@@ -3,6 +3,7 @@ const fs = require('fs');
 const json2csv = require('@json2csv/plainjs');
 const uuid = require('uuid');
 const path = require('path');
+const moment = require('moment-timezone');
 
 const validator = require('validator');
 const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
@@ -420,6 +421,7 @@ module.exports = {
           consultationJson.note = invite.note;
           consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
           consultationJson.expertToken = invite.expertToken;
+          consultationJson.patientTZ = invite.patientTZ;
         }
       }
 
@@ -686,6 +688,165 @@ module.exports = {
         error: error?.message || error
       }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Error closing consultation', details: error.message });
+    }
+  },
+
+  async rescheduleConsultation(req, res) {
+    const consultationId = escapeHtml(req.params.consultation);
+    try {
+      const { user } = req;
+      const { scheduledFor, patientTZ } = req.body;
+
+      sails.config.customLogger.log('info', `rescheduleConsultation: Starting reschedule for consultation ${consultationId}`, null, 'message', user?.id);
+
+      const consultation = await Consultation.findOne({ id: consultationId });
+
+      if (!consultation) {
+        sails.config.customLogger.log('warn', `rescheduleConsultation: Consultation ${consultationId} not found`, null, 'message', user?.id);
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+
+      if (consultation.status !== 'active') {
+        sails.config.customLogger.log('warn', `rescheduleConsultation: Consultation ${consultationId} is not active (status: ${consultation.status})`, null, 'message', user?.id);
+        return res.status(400).json({ error: 'Only active consultations can be rescheduled' });
+      }
+
+      if (!scheduledFor || !moment(scheduledFor).isValid()) {
+        sails.config.customLogger.log('warn', 'rescheduleConsultation: Invalid scheduledFor provided', null, 'message', user?.id);
+        return res.status(400).json({ error: 'Valid scheduledFor is required' });
+      }
+
+      const scheduledTimeUTC = patientTZ
+        ? moment.tz(scheduledFor, 'UTC').valueOf()
+        : new Date(scheduledFor).getTime();
+
+      if (scheduledTimeUTC < Date.now()) {
+        sails.config.customLogger.log('warn', 'rescheduleConsultation: Scheduled time is in the past', null, 'message', user?.id);
+        return res.status(400).json({ error: 'Scheduled time must be in the future' });
+      }
+
+      if (!consultation.invitationToken) {
+        sails.config.customLogger.log('warn', `rescheduleConsultation: Consultation ${consultationId} has no invitationToken - cannot reschedule`, null, 'message', user?.id);
+        return res.status(400).json({ error: 'This consultation cannot be rescheduled (no invitation token)' });
+      }
+
+      const invite = await PublicInvite.findOne({ inviteToken: consultation.invitationToken }).populate('doctor');
+
+      if (!invite) {
+        sails.config.customLogger.log('error', `rescheduleConsultation: Invite not found for active consultation ${consultationId} with token ${consultation.invitationToken}`, null, 'message', user?.id);
+        return res.status(500).json({ error: 'Invite not found for active consultation - this should not happen' });
+      }
+
+      sails.config.customLogger.log('info', `rescheduleConsultation: Found invite ${invite.id} - email: ${invite.emailAddress || 'none'}, phone: ${invite.phoneNumber || 'none'}, messageService: ${invite.messageService}`, null, 'message', user?.id);
+
+      const oldScheduledFor = consultation.scheduledFor;
+      const formattedOldTime = oldScheduledFor ? moment(oldScheduledFor).tz(patientTZ || 'UTC').format('YYYY-MM-DD HH:mm:ss') : 'none';
+      const formattedNewTime = moment(scheduledTimeUTC).tz(patientTZ || 'UTC').format('YYYY-MM-DD HH:mm:ss');
+      sails.config.customLogger.log('info', `rescheduleConsultation: Rescheduling from ${formattedOldTime} to ${formattedNewTime} (${patientTZ || 'UTC'})`, null, 'message', user?.id);
+
+      await Consultation.updateOne({ id: consultationId }).set({
+        scheduledFor: scheduledTimeUTC,
+        patientTZ: patientTZ || consultation.patientTZ || invite.patientTZ || 'UTC'
+      });
+      sails.config.customLogger.log('info', `rescheduleConsultation: Updated consultation ${consultationId} with new scheduledFor`, null, 'server-action', user?.id);
+
+      await PublicInvite.updateOne({ id: invite.id }).set({
+        scheduledFor: scheduledTimeUTC,
+        patientTZ: patientTZ || invite.patientTZ || 'UTC',
+      });
+      sails.config.customLogger.log('info', `rescheduleConsultation: Updated invite ${invite.id} with new scheduledFor`, null, 'server-action', user?.id);
+
+      const updatedInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+
+      try {
+        sails.config.customLogger.log('info', `rescheduleConsultation: Sending reschedule notification for invite ${invite.id}`, null, 'message', user?.id);
+        await PublicInvite.sendPatientInvite(updatedInvite, true, user?.id);
+        sails.config.customLogger.log('info', `rescheduleConsultation: Sent reschedule notification for invite ${invite.id}`, null, 'server-action', user?.id);
+      } catch (error) {
+        sails.config.customLogger.log('error', 'rescheduleConsultation: Error sending notification', {
+          error: error?.message || error,
+          inviteId: invite.id
+        }, 'server-action', user?.id);
+      }
+
+      try {
+        sails.config.customLogger.log('info', `rescheduleConsultation: Scheduling new reminders for invite ${invite.id}`, null, 'message', user?.id);
+        await PublicInvite.setPatientOrGuestInviteReminders(updatedInvite);
+        sails.config.customLogger.log('info', `rescheduleConsultation: Scheduled new reminders for invite ${invite.id}`, null, 'server-action', user?.id);
+      } catch (error) {
+        sails.config.customLogger.log('error', 'rescheduleConsultation: Error scheduling reminders', {
+          error: error?.message || error,
+          inviteId: invite.id
+        }, 'server-action', user?.id);
+      }
+
+      const subInvites = await PublicInvite.find({ patientInvite: invite.id });
+      const guestInvite = subInvites.find((i) => i.type === 'GUEST');
+
+      if (guestInvite) {
+        try {
+          sails.config.customLogger.log('info', `rescheduleConsultation: Updating guest invite ${guestInvite.id}`, null, 'message', user?.id);
+          await PublicInvite.updateOne({ id: guestInvite.id }).set({
+            scheduledFor: scheduledTimeUTC,
+            patientTZ: patientTZ || guestInvite.patientTZ || 'UTC',
+          });
+
+          const updatedGuestInvite = await PublicInvite.findOne({ id: guestInvite.id }).populate('doctor');
+          await PublicInvite.sendGuestInvite(updatedGuestInvite, true, user?.id);
+          await PublicInvite.setPatientOrGuestInviteReminders(updatedGuestInvite);
+          sails.config.customLogger.log('info', `rescheduleConsultation: Rescheduled guest invite ${guestInvite.id}`, null, 'server-action', user?.id);
+        } catch (error) {
+          sails.config.customLogger.log('error', 'rescheduleConsultation: Error handling guest invite', {
+            error: error?.message || error,
+            guestInviteId: guestInvite.id
+          }, 'server-action', user?.id);
+        }
+      }
+
+      try {
+        const rescheduleMessageText = sails._t('en', 'doctor rescheduled call', {
+          scheduledTime: formattedNewTime,
+          timezone: patientTZ || 'UTC'
+        });
+
+        const msg = await Message.create({
+          consultation: consultationId,
+          from: user.id,
+          text: rescheduleMessageText,
+          type: 'text'
+        }).fetch();
+
+        sails.sockets.broadcast(user.id, 'newMessage', { data: msg });
+
+        sails.config.customLogger.log('info', `rescheduleConsultation: Created chat message about reschedule messageId ${msg.id}`, null, 'server-action', user?.id);
+      } catch (error) {
+        sails.config.customLogger.log('error', 'rescheduleConsultation: Error creating chat message', {
+          error: error?.message || error
+        }, 'server-action', user?.id);
+      }
+
+      const updatedConsultation = await Consultation.findOne({ id: consultationId });
+
+      const inviteUrl = invite.inviteToken
+        ? `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`
+        : null;
+
+      sails.config.customLogger.log('info', `rescheduleConsultation: Successfully rescheduled consultation ${consultationId} to ${formattedNewTime} ${patientTZ || 'UTC'}`, null, 'server-action', user?.id);
+
+      return res.status(200).json({
+        success: true,
+        consultation: updatedConsultation,
+        inviteUrl: inviteUrl,
+        messageService: invite.messageService,
+        message: 'Consultation rescheduled successfully'
+      });
+
+    } catch (error) {
+      sails.config.customLogger.log('error', 'rescheduleConsultation: Error rescheduling consultation', {
+        error: error?.message || error,
+        consultationId: consultationId
+      }, 'server-action', req.user?.id);
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
     }
   },
 
