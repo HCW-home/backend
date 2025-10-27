@@ -365,10 +365,44 @@ module.exports = {
         }
 
         if (invite.emailAddress || invite.phoneNumber) {
-          sails.config.customLogger.log('info', `Invite contains emailAddress/phoneNumber, consultation not created invite id ${invite.id}`, null, 'message', user.id);
-          return res.status(200).send(null);
+          const existingConsultation = await Consultation.findOne({
+            invite: invite.id,
+          });
+
+
+          if (existingConsultation) {
+            sails.config.customLogger.log('info', `Guest/translator joining existing consultation invite id ${invite.id} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+
+            const updateData = {};
+            if (user.role === 'guest' && !existingConsultation.guest) {
+              updateData.guest = user.id;
+            }
+            if (user.role === 'translator' && !existingConsultation.translator) {
+              updateData.translator = user.id;
+            }
+
+            if (Object.keys(updateData).length > 0) {
+              await Consultation.updateOne({ id: existingConsultation.id }).set(updateData);
+              sails.config.customLogger.log('info', `Updated consultation ${existingConsultation.id} with ${user.role} ${user.id}`, null, 'server-action', user.id);
+
+              const updatedConsultation = await Consultation.findOne({ id: existingConsultation.id });
+              (await Consultation.getConsultationParticipants(updatedConsultation)).forEach(
+                (participant) => {
+                  sails.config.customLogger.log('info', `Broadcasting consultation ${updatedConsultation.id} update for participant with MongoID: ${participant}`, null, 'server-action');
+                  sails.sockets.broadcast(participant, "consultationUpdated", {
+                    data: { consultation: updatedConsultation },
+                  });
+                }
+              );
+            }
+
+            return res.status(200).json(existingConsultation);
+          }
+
+          sails.config.customLogger.log('info', `Guest/translator arrived first, creating consultation for invite id ${invite.id}`, null, 'message', user.id);
+          req.body.invitationToken = invite.inviteToken;
+          consultationJson.invitationToken = invite.inviteToken;
         }
-        req.body.invitationToken = invite.inviteToken;
       }
 
       if (req.body.invitationToken) {
@@ -382,11 +416,30 @@ module.exports = {
           });
         }
 
-        const existingConsultation = await Consultation.findOne({
+        let existingConsultation = await Consultation.findOne({
           invitationToken: sanitizedToken,
         });
+
+        if (!existingConsultation && invite) {
+          existingConsultation = await Consultation.findOne({
+            invite: invite.id,
+          });
+          if (existingConsultation) {
+            sails.config.customLogger.log('info', `Found consultation by invite.id ${invite.id} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+          }
+        }
+
         if (existingConsultation) {
           sails.config.customLogger.log('verbose', `Existing consultation found with invitationToken ${req.body.invitationToken} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+
+          if (req.body.owner && !existingConsultation.owner) {
+            sails.config.customLogger.log('info', `Patient joining consultation created by guest/translator - setting owner to ${req.body.owner}`, null, 'server-action', user.id);
+            await Consultation.updateOne({ id: existingConsultation.id }).set({ owner: req.body.owner });
+            const updatedConsultation = await Consultation.findOne({ id: existingConsultation.id });
+            sails.config.customLogger.log('info', `Updated consultation ${existingConsultation.id} with owner ${req.body.owner}`, null, 'server-action', user.id);
+            return res.json(updatedConsultation);
+          }
+
           return res.json(existingConsultation);
         }
 
