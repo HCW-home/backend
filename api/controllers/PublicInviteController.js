@@ -559,6 +559,145 @@ module.exports = {
       status: status.code,
       message: status.message
     });
+  },
+
+  async getFhirEncounter(req, res) {
+    try {
+      const id = escapeHtml(req.params.id);
+
+      if (!id) {
+        return res.status(400).json({ error: 'Id is required' });
+      }
+
+      const consultation = await Consultation.findOne({ id });
+
+      if (!consultation) {
+        return res.status(404).json({ error: 'Encounter not found' });
+      }
+
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      let hasAccess = false;
+
+      if (userRole === 'patient') {
+        hasAccess = consultation.owner === userId;
+      } else if (userRole === 'doctor' || userRole === 'admin') {
+        hasAccess = consultation.acceptedBy === userId || consultation.doctor === userId || consultation.owner === userId;
+      } else if (userRole === 'translator') {
+        hasAccess = consultation.translator === userId;
+      } else if (userRole === 'guest') {
+        hasAccess = consultation.guest === userId;
+      } else if (userRole === 'expert') {
+        hasAccess = consultation.experts && consultation.experts.includes(userId);
+      }
+
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied to this encounter' });
+      }
+
+      const encounter = FhirService.serializeConsultationToEncounter(consultation);
+
+      return res.status(200).json(encounter);
+    } catch (error) {
+      return res.status(500).json({
+        error: 'An error occurred while retrieving the encounter.',
+        details: error.message
+      });
+    }
+  },
+
+  async getAllFhirEncounters(req, res) {
+    try {
+      const fhirParams = req.query;
+      const { ObjectId } = require('mongodb');
+      const db = Consultation.getDatastore().manager;
+      const collection = db.collection('consultation');
+
+      let match = [];
+
+      if (req.user.role === 'patient') {
+        match = [{ owner: new ObjectId(req.user.id) }];
+      } else if (req.user.role === 'doctor') {
+        match = [
+          { acceptedBy: new ObjectId(req.user.id) },
+          { doctor: new ObjectId(req.user.id), queue: null }
+        ];
+      } else if (req.user.role === 'translator') {
+        match = [{ translator: new ObjectId(req.user.id) }];
+      } else if (req.user.role === 'guest') {
+        match = [{ guest: new ObjectId(req.user.id) }];
+      } else if (req.user.role === 'expert') {
+        match = [{ experts: req.user.id }];
+      } else if (req.user.role === 'admin') {
+        match = [
+          { acceptedBy: new ObjectId(req.user.id) },
+          { doctor: new ObjectId(req.user.id) },
+          { owner: new ObjectId(req.user.id) }
+        ];
+      }
+
+      if (req.user.role === 'doctor' || req.user.role === 'admin') {
+        if (req.user.viewAllQueues) {
+          const queues = (await Queue.find({})).map(queue => new ObjectId(queue.id));
+          match.push({
+            status: 'pending',
+            queue: { $in: queues }
+          });
+        } else if (req.user.allowedQueues && req.user.allowedQueues.length > 0) {
+          const queues = req.user.allowedQueues.map(queue => new ObjectId(queue.id));
+          match.push({
+            status: 'pending',
+            queue: { $in: queues }
+          });
+        }
+
+        const sharedQueues = await Queue.find({
+          shareWhenOpened: true
+        });
+
+        if (sharedQueues.length > 0) {
+          const sharedQueueIds = sharedQueues.map(q => new ObjectId(q.id));
+          match.push({
+            queue: { $in: sharedQueueIds }
+          });
+        }
+      }
+
+      let query = { $or: match };
+
+      if (fhirParams.identifier) {
+        const sanitizedIdentifier = escapeHtml(fhirParams.identifier);
+        query['metadata.identifier'] = sanitizedIdentifier;
+      }
+
+      const consultations = await collection.find(query).toArray();
+
+      const results = consultations.map(consultation =>
+        FhirService.serializeConsultationToEncounter(consultation)
+      );
+
+      const bundle = {
+        resourceType: 'Bundle',
+        id: require('crypto').randomUUID(),
+        type: 'searchset',
+        timestamp: new Date().toISOString(),
+        total: results.length,
+        entry: results.map(resource => ({
+          resource,
+          search: {
+            mode: 'match'
+          }
+        }))
+      };
+
+      return res.status(200).json(bundle);
+    } catch (error) {
+      return res.status(500).json({
+        error: 'An error occurred while retrieving encounters.',
+        details: error.message
+      });
+    }
   }
 
 };

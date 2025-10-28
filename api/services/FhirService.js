@@ -363,6 +363,52 @@ module.exports = {
     }
 
     return metadata;
+  },
+
+  consultationStatusToEncounterStatus: function(status) {
+    const encounterStatusMap = {
+      'pending': 'planned',
+      'active': 'in-progress',
+      'closed': 'finished'
+    };
+    return encounterStatusMap[status] || 'unknown';
+  },
+
+  serializeConsultationToEncounter: function(consultation) {
+    const consultationId = consultation.id || (consultation._id ? consultation._id.toString() : null);
+
+    const encounter = {
+      resourceType: 'Encounter',
+      id: consultationId,
+      status: this.consultationStatusToEncounterStatus(consultation.status),
+      class: {
+        code: 'VR',
+        display: 'virtual'
+      }
+    };
+
+    if (consultation.metadata?.identifier) {
+      encounter.identifier = [{ value: consultation.metadata.identifier }];
+    }
+
+    if (consultation.createdAt || consultation.closedAt) {
+      encounter.period = {};
+      if (consultation.createdAt) {
+        encounter.period.start = new Date(consultation.createdAt).toISOString();
+      }
+      if (consultation.closedAt) {
+        encounter.period.end = new Date(consultation.closedAt).toISOString();
+      }
+    }
+
+    if (consultation.invite) {
+      const inviteId = consultation.invite.toString ? consultation.invite.toString() : consultation.invite;
+      encounter.appointment = [{
+        reference: `Appointment/${inviteId}`
+      }];
+    }
+
+    return encounter;
   }
 
 };
