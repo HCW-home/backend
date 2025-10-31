@@ -806,8 +806,9 @@ module.exports = {
       await PublicInvite.updateOne({ id: invite.id }).set({
         scheduledFor: scheduledTimeUTC,
         patientTZ: patientTZ || invite.patientTZ || 'UTC',
+        status: 'SCHEDULED_FOR_INVITE',
       });
-      sails.config.customLogger.log('info', `rescheduleConsultation: Updated invite ${invite.id} with new scheduledFor`, null, 'server-action', user?.id);
+      sails.config.customLogger.log('info', `rescheduleConsultation: Updated invite ${invite.id} with new scheduledFor and reset status`, null, 'server-action', user?.id);
 
       const updatedInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
 
@@ -842,6 +843,7 @@ module.exports = {
           await PublicInvite.updateOne({ id: guestInvite.id }).set({
             scheduledFor: scheduledTimeUTC,
             patientTZ: patientTZ || guestInvite.patientTZ || 'UTC',
+            status: 'SCHEDULED_FOR_INVITE',
           });
 
           const updatedGuestInvite = await PublicInvite.findOne({ id: guestInvite.id }).populate('doctor');
