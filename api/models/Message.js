@@ -115,7 +115,12 @@ module.exports = {
 
     const participants = await Consultation.getConsultationParticipants(consultation, { includeSharedQueueUsers: true });
 
-    const roomNames = participants.filter(p => p !== message.from);
+    const senderInMultipleRoles =
+      consultation.owner === message.from && consultation.acceptedBy === message.from;
+
+    const roomNames = senderInMultipleRoles
+      ? participants
+      : participants.filter(p => p !== message.from);
 
     const fromUserDetail = {
       firstName: user.firstName,
