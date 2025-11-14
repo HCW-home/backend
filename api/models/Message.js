@@ -240,7 +240,7 @@ module.exports = {
               });
               if (template && template.sid) {
                 const twilioTemplatedId = template.sid;
-                const params = {};
+                const params = { 1: consultation.id };
                 sails.config.customLogger.log('info', `Sending WhatsApp SMS to doctor ${toUser.notifPhoneNumber}`, null, 'server-action');
                 await sails.helpers.sms.with({
                   phoneNumber: toUser?.notifPhoneNumber,
