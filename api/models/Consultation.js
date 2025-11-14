@@ -856,7 +856,7 @@ module.exports = {
           });
           if (template && template.sid) {
             const twilioTemplatedId = template.sid;
-            const params = {};
+            const params = { 1: consultation.id };
             if (twilioTemplatedId) {
               await sails.helpers.sms.with({
                 phoneNumber: doctor.notifPhoneNumber,
