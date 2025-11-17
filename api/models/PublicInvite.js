@@ -250,7 +250,7 @@ module.exports = {
     const nowDate = moment().local(doctorLangCode).format('D MMMM YYYY');
     const doctorLanguage = sails._t(doctorLangCode, doctorLangCode);
     const patientLanguage = sails._t(doctorLangCode, invite.patientLanguage);
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     sails.config.customLogger.log('info', 'Translation invite email prepared', null, 'message');
     return sails.helpers.email.with({
       to: email,
@@ -283,7 +283,7 @@ module.exports = {
     sails.config.customLogger.log('info', 'sendTranslatorInvite: Preparing translator invite email', null, 'message');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorLang = invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     sails.config.customLogger.log('info', 'sendTranslatorInvite: Translator invite email content prepared', null, 'message');
 
     return sails.helpers.email.with({
@@ -333,20 +333,20 @@ module.exports = {
         sails.config.customLogger.log('info', `expireTranslatorRequest: Updated guest invite ${translatorRequestInvite?.patientInvite?.guestInvite} status to CANCELED`, null, 'server-action');
       }
 
-      if (translatorRequestInvite.doctor.email) {
+      if (translatorRequestInvite.doctor?.email) {
         const docLocale =
-          translatorRequestInvite.doctor.preferredLanguage ||
+          translatorRequestInvite.doctor?.preferredLanguage ||
           process.env.DEFAULT_DOCTOR_LOCALE;
-        sails.config.customLogger.log('info', `expireTranslatorRequest: Sending email notification to doctor ${translatorRequestInvite.doctor.id}`, null, 'message');
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Sending email notification to doctor ${translatorRequestInvite.doctor?.id}`, null, 'message');
 
         await sails.helpers.email.with({
-          to: translatorRequestInvite.doctor.email,
+          to: translatorRequestInvite.doctor?.email,
           subject: sails._t(docLocale, 'translation request refused subject'),
           text: sails._t(docLocale, 'translation request refused body', {
             branding: process.env.BRANDING,
           }),
         });
-        sails.config.customLogger.log('info', `expireTranslatorRequest: Email notification sent to doctor ${translatorRequestInvite.doctor.id}`, null, 'server-action');
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Email notification sent to doctor ${translatorRequestInvite.doctor?.id}`, null, 'server-action');
       }
     }
   },
@@ -521,7 +521,7 @@ module.exports = {
       scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
     }
     const timeUntilScheduled = scheduledTime - currentTime;
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
 
     const message =
       invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
@@ -632,7 +632,7 @@ module.exports = {
       : '';
 
     const doctorName =
-      (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+      (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
 
     const firstInviteReminder = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
     const defaultFirstReminderTime = { number: 1, unit: 'd' };
@@ -732,7 +732,7 @@ module.exports = {
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
     sails.config.customLogger.log('info', `createAndSendICS: Started processing invite ${invite.id}`, null, 'message');
@@ -964,13 +964,13 @@ module.exports = {
       sails.config.customLogger.log('info', `refuseTranslatorRequest: Updated guest invite status to CANCELED ${translatorRequestInvite.patientInvite.guestInvite}`, null, 'server-action');
     }
 
-    if (translatorRequestInvite.doctor.email) {
+    if (translatorRequestInvite.doctor?.email) {
       const docLocale =
-        translatorRequestInvite.doctor.preferredLanguage ||
+        translatorRequestInvite.doctor?.preferredLanguage ||
         process.env.DEFAULT_DOCTOR_LOCALE;
       sails.config.customLogger.log('info', `refuseTranslatorRequest: Sending refusal email to doctor ${translatorRequestInvite.doctor?.id}`, null, 'message');
       await sails.helpers.email.with({
-        to: translatorRequestInvite.doctor.email,
+        to: translatorRequestInvite.doctor?.email,
         subject: sails._t(docLocale, 'translation request refused subject'),
         text: sails._t(docLocale, 'translation request refused body', {
           branding: process.env.BRANDING,
