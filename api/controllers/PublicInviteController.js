@@ -580,9 +580,11 @@ module.exports = {
 
       let hasAccess = false;
 
-      if (userRole === 'patient') {
+      if (userRole === 'admin' || userRole === 'scheduler') {
+        hasAccess = true;
+      } else if (userRole === 'patient') {
         hasAccess = consultation.owner === userId;
-      } else if (userRole === 'doctor' || userRole === 'admin') {
+      } else if (userRole === 'doctor') {
         hasAccess = consultation.acceptedBy === userId || consultation.doctor === userId || consultation.owner === userId;
       } else if (userRole === 'translator') {
         hasAccess = consultation.translator === userId;
@@ -616,7 +618,9 @@ module.exports = {
 
       let match = [];
 
-      if (req.user.role === 'patient') {
+      if (req.user.role === 'admin' || req.user.role === 'scheduler') {
+        match = [{}];
+      } else if (req.user.role === 'patient') {
         match = [{ owner: new ObjectId(req.user.id) }];
       } else if (req.user.role === 'doctor') {
         match = [
@@ -629,12 +633,6 @@ module.exports = {
         match = [{ guest: new ObjectId(req.user.id) }];
       } else if (req.user.role === 'expert') {
         match = [{ experts: req.user.id }];
-      } else if (req.user.role === 'admin') {
-        match = [
-          { acceptedBy: new ObjectId(req.user.id) },
-          { doctor: new ObjectId(req.user.id) },
-          { owner: new ObjectId(req.user.id) }
-        ];
       }
 
       if (req.user.role === 'doctor' || req.user.role === 'admin') {
@@ -669,6 +667,31 @@ module.exports = {
       if (fhirParams.identifier) {
         const sanitizedIdentifier = escapeHtml(fhirParams.identifier);
         query['metadata.identifier'] = sanitizedIdentifier;
+      }
+
+      if (fhirParams['appointment.identifier']) {
+        const sanitizedIdentifier = escapeHtml(fhirParams['appointment.identifier']);
+
+        const invites = await PublicInvite.find({
+          where: {
+            'metadata.identifier': sanitizedIdentifier
+          }
+        }).meta({ enableExperimentalDeepTargets: true });
+
+        if (invites.length > 0) {
+          const inviteIds = invites.map(inv => new ObjectId(inv.id));
+          query['invite'] = { $in: inviteIds };
+        } else {
+          const bundle = {
+            resourceType: 'Bundle',
+            id: require('crypto').randomUUID(),
+            type: 'searchset',
+            timestamp: new Date().toISOString(),
+            total: 0,
+            entry: []
+          };
+          return res.status(200).json(bundle);
+        }
       }
 
       const consultations = await collection.find(query).toArray();

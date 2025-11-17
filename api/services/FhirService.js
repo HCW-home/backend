@@ -408,6 +408,58 @@ module.exports = {
       }];
     }
 
+    const notes = [];
+
+    if (consultation.doctorComment) {
+      const doctorId = consultation.acceptedBy ?
+        (consultation.acceptedBy.toString ? consultation.acceptedBy.toString() : consultation.acceptedBy) :
+        null;
+
+      const doctorNote = {
+        text: consultation.doctorComment
+      };
+
+      if (doctorId) {
+        doctorNote.authorReference = {
+          reference: `Practitioner/${doctorId}`,
+          display: 'Doctor'
+        };
+      }
+
+      if (consultation.closedAt) {
+        doctorNote.time = new Date(consultation.closedAt).toISOString();
+      }
+
+      notes.push(doctorNote);
+    }
+
+    if (consultation.patientComment) {
+      const patientId = consultation.owner ?
+        (consultation.owner.toString ? consultation.owner.toString() : consultation.owner) :
+        null;
+
+      const patientNote = {
+        text: consultation.patientComment
+      };
+
+      if (patientId) {
+        patientNote.authorReference = {
+          reference: `Patient/${patientId}`,
+          display: 'Patient'
+        };
+      }
+
+      if (consultation.closedAt) {
+        patientNote.time = new Date(consultation.closedAt).toISOString();
+      }
+
+      notes.push(patientNote);
+    }
+
+    if (notes.length > 0) {
+      encounter.note = notes;
+    }
+
     return encounter;
   }
 
