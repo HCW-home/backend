@@ -328,6 +328,251 @@ module.exports = {
     }
   },
 
+  async consultationsCreatedByRequester(req, res) {
+    try {
+      const match = [
+        {
+          owner: new ObjectId(req.user.id),
+        },
+      ];
+
+      const agg = [
+        {
+          $match: {
+            $or: match,
+          },
+        },
+        {
+          $project: {
+            invitationToken: 0,
+          },
+        },
+        {
+          $project: {
+            consultation: '$$ROOT',
+          },
+        },
+        {
+          $lookup: {
+            from: 'message',
+            localField: '_id',
+            foreignField: 'consultation',
+            as: 'messages',
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: {
+              $arrayElemAt: ['$messages', -1],
+            },
+            messages: 1,
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: 1,
+            messages: {
+              $filter: {
+                input: '$messages',
+                as: 'msg',
+                cond: {
+                  $and: [
+                    {
+                      $eq: ['$$msg.read', false],
+                    },
+                    {
+                      $or: [
+                        {
+                          $eq: ['$$msg.to', new ObjectId(req.user.id)],
+                        },
+                        {
+                          $eq: ['$$msg.to', null],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: 1,
+            unreadCount: {
+              $size: '$messages',
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.owner',
+            foreignField: '_id',
+            as: 'nurse',
+          },
+        },
+        {
+          $lookup: {
+            from: 'queue',
+            localField: 'consultation.queue',
+            foreignField: '_id',
+            as: 'queue',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.acceptedBy',
+            foreignField: '_id',
+            as: 'doctor',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.translator',
+            foreignField: '_id',
+            as: 'translator',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.guest',
+            foreignField: '_id',
+            as: 'guest',
+          },
+        },
+        {
+          $lookup: {
+            from: 'publicinvite',
+            localField: 'consultation.guestInvite',
+            foreignField: '_id',
+            as: 'guestInvite',
+          },
+        },
+        {
+          $project: {
+            guest: {
+              phoneNumber: -1,
+              email: -1,
+            },
+            translator: {
+              firstName: -1,
+              email: -1,
+              direct: -1,
+            },
+            consultation: 1,
+            lastMsg: 1,
+            unreadCount: 1,
+            doctor: {
+              $arrayElemAt: ['$doctor', 0],
+            },
+            nurse: {
+              $arrayElemAt: ['$nurse', 0],
+            },
+            queue: {
+              $arrayElemAt: ['$queue', 0],
+            },
+            guestInvite: {
+              $arrayElemAt: ['$guestInvite', 0],
+            },
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: 1,
+            unreadCount: 1,
+            'doctor.firstName': 1,
+            'doctor.lastName': 1,
+            'doctor.phoneNumber': 1,
+            'nurse.firstName': 1,
+            'nurse.lastName': 1,
+            'queue': 1,
+            guestInvite: 1,
+            guest: {
+              $arrayElemAt: ['$guest', 0],
+            },
+            translator: {
+              $arrayElemAt: ['$translator', 0],
+            },
+            acceptedByUser: {
+              $cond: {
+                if: { $ne: ['$doctor', null] },
+                then: {
+                  firstName: '$doctor.firstName',
+                  lastName: '$doctor.lastName'
+                },
+                else: null
+              }
+            },
+          },
+        },
+        {
+          $skip: parseInt(req.query.skip) || 0,
+        },
+        {
+          $limit: parseInt(req.query.limit) || 500,
+        },
+      ];
+
+      sails.config.customLogger.log('info', 'Running consultations created by requester aggregation', null, 'message', req.user?.id);
+
+      const consultationCollection = db.collection('consultation');
+      const results = await consultationCollection.aggregate(agg);
+      const data = await results.toArray();
+
+      sails.config.customLogger.log('info', `Aggregation completed resultCount is ${data.length}`, null, 'message', req.user?.id);
+
+      for (const index in data) {
+        const item = data[index];
+        if (item.consultation.experts.length) {
+          const experts = await User.find({
+            id: { in: item.consultation.experts },
+          });
+          data[index].consultation.experts = experts;
+          sails.config.customLogger.log('verbose', `Processed experts for consultation ${item.consultation?.id} expertCount ${experts.length}`, null, 'message', req.user?.id);
+        }
+
+        if (item.consultation.closedBy) {
+          const closedById = item.consultation.closedBy.toString ? item.consultation.closedBy.toString() : item.consultation.closedBy;
+          const closedByUser = await User.findOne({ id: closedById });
+          if (closedByUser) {
+            data[index].closedByUser = {
+              firstName: closedByUser.firstName,
+              lastName: closedByUser.lastName
+            };
+          }
+        }
+
+        const ownerId = item.consultation.owner?.toString ? item.consultation.owner.toString() : item.consultation.owner;
+        const acceptedById = item.consultation.acceptedBy?.toString ? item.consultation.acceptedBy.toString() : item.consultation.acceptedBy;
+        if (ownerId && acceptedById && ownerId === acceptedById) {
+          data[index].consultation.isSelfCallScenario = true;
+          sails.config.customLogger.log('info', `Self-call scenario detected for consultation ${item.consultation?.id}`, null, 'message', req.user?.id);
+        }
+      }
+
+      if (req.user?.role === sails.config.globals.ROLE_PATIENT) {
+        for (const item of data) {
+          if (item.consultation?.note !== undefined) {
+            delete item.consultation.note;
+          }
+        }
+      }
+
+      res.json(data);
+    } catch (err) {
+      sails.config.customLogger.log('error', 'Error in consultationsCreatedByRequester', { error: err?.message || err }, 'server-action', req.user?.id);
+      return res.serverError(err);
+    }
+  },
+
   async create(req, res) {
     try {
       const consultationJson = {
