@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.78) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.79) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -92,8 +92,13 @@ hcw-athome-backend (0.5.78) UNRELEASED; urgency=medium
   * Add FHIR Encounter endpoints for consultations with role-based access control
   * update invite status when reschedule consultation
   * allow to receive broadcast when requester and doctor are same users
+  * fix param in whatsapp template
+  * update patient is ready template with params
+  * update fhir encounter response and params for getting by identifier
+  * add more check on doctor emai;
+  * add new route for retriving consultations created by requester
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Mon, 10 Nov 2025 07:34:24 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 18 Nov 2025 12:28:11 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
