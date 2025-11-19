@@ -589,24 +589,36 @@ module.exports = {
       const { user } = req;
       let invite;
 
-      if (user.role === 'guest' || user.role === 'translator') {
+      if (user.role === 'guest' || user.role === 'translator' || user.role === 'expert') {
         if (!req.body.invitationToken) {
-          sails.config.customLogger.log('info', `No invitationToken provided for guest/translator userId ${user.id}`, null, 'message', user.id);
+          sails.config.customLogger.log('info', `No invitationToken provided for ${user.role} userId ${user.id}`, null, 'message', user.id);
           res.status(200).json({ message: 'OK' });
         }
 
-        const subInvite = await PublicInvite.findOne({
-          inviteToken: escapeHtml(req.body.invitationToken),
-        });
+        let subInvite;
+        if (user.role === 'expert') {
+          subInvite = await PublicInvite.findOne({
+            expertToken: escapeHtml(req.body.invitationToken),
+          });
+        } else {
+          subInvite = await PublicInvite.findOne({
+            inviteToken: escapeHtml(req.body.invitationToken),
+          });
+        }
+
         if (!subInvite) {
-          sails.config.customLogger.log('warn', `Sub-invite not found token ${req.body.invitationToken}`, null, 'message', user.id);
+          sails.config.customLogger.log('warn', `Sub-invite not found for ${user.role} token ${req.body.invitationToken}`, null, 'message', user.id);
           return res.status(400).send();
         }
 
-        invite = await PublicInvite.findOne({ id: subInvite.patientInvite });
-        if (!invite) {
-          sails.config.customLogger.log('warn', `Invite not found for sub-invite ${subInvite.id}`, null, 'message', user.id);
-          return res.status(400).send();
+        if (user.role === 'expert') {
+          invite = subInvite;
+        } else {
+          invite = await PublicInvite.findOne({ id: subInvite.patientInvite });
+          if (!invite) {
+            sails.config.customLogger.log('warn', `Invite not found for sub-invite ${subInvite.id}`, null, 'message', user.id);
+            return res.status(400).send();
+          }
         }
 
         if (invite.emailAddress || invite.phoneNumber) {
@@ -616,7 +628,7 @@ module.exports = {
 
 
           if (existingConsultation) {
-            sails.config.customLogger.log('info', `Guest/translator joining existing consultation invite id ${invite.id} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+            sails.config.customLogger.log('info', `${user.role} joining existing consultation invite id ${invite.id} consultationId ${existingConsultation.id}`, null, 'message', user.id);
 
             const updateData = {};
             if (user.role === 'guest' && !existingConsultation.guest) {
@@ -624,6 +636,10 @@ module.exports = {
             }
             if (user.role === 'translator' && !existingConsultation.translator) {
               updateData.translator = user.id;
+            }
+            if (user.role === 'expert' && !existingConsultation.experts.includes(user.id)) {
+              existingConsultation.experts.push(user.id);
+              updateData.experts = existingConsultation.experts;
             }
 
             if (Object.keys(updateData).length > 0) {
@@ -644,7 +660,7 @@ module.exports = {
             return res.status(200).json(existingConsultation);
           }
 
-          sails.config.customLogger.log('info', `Guest/translator arrived first, creating consultation for invite id ${invite.id}`, null, 'message', user.id);
+          sails.config.customLogger.log('info', `${user.role} arrived first, creating consultation for invite id ${invite.id}`, null, 'message', user.id);
           req.body.invitationToken = invite.inviteToken;
           consultationJson.invitationToken = invite.inviteToken;
         }

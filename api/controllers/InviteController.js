@@ -320,74 +320,6 @@ module.exports = {
       invite = await PublicInvite.create(inviteData).fetch();
       sails.config.customLogger.log('info', `Invite created inviteId ${invite.id}`, null, 'server-action', req.user.id);
 
-      const experts = value.experts;
-      const expertLink = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
-      const doctorLanguage = escapeHtml(value.doctorLanguage) || process.env.DEFAULT_DOCTOR_LOCALE;
-
-      if (Array.isArray(experts)) {
-        for (const contact of experts) {
-          const { expertContact, messageService } = contact || {};
-          if (typeof expertContact === 'string') {
-            const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
-            const isEmail = expertContact.includes('@');
-
-            if (isPhoneNumber && !isEmail) {
-              if (messageService === '1') {
-                const type = 'please use this link';
-                if (inviteData.patientLanguage) {
-                  const template = await WhatsappTemplate.findOne({
-                    language: inviteData.patientLanguage,
-                    key: type,
-                    approvalStatus: 'approved'
-                  });
-                  sails.config.customLogger.log('verbose', 'WhatsApp template fetched', null, 'message', req.user.id);
-                  if (template && template.sid) {
-                    const twilioTemplatedId = template.sid;
-                    const params = { 1: invite.expertToken };
-                    if (twilioTemplatedId) {
-                      await sails.helpers.sms.with({
-                        phoneNumber: expertContact,
-                        message: sails._t(doctorLanguage, type, { expertLink }),
-                        senderEmail: inviteData.doctorData?.email,
-                        whatsApp: true,
-                        params,
-                        twilioTemplatedId
-                      });
-                      sails.config.customLogger.log('info', 'WhatsApp SMS sent', null, 'server-action', req.user.id);
-                    } else {
-                      sails.config.customLogger.log('error', 'Template id is missing for WhatsApp SMS', null, 'message', req.user.id);
-                    }
-                  } else {
-                    sails.config.customLogger.log('error', 'WhatsApp template not approved or not found', null, 'message', req.user.id);
-                  }
-                }
-              } else if (messageService === '2') {
-                await sails.helpers.sms.with({
-                  phoneNumber: expertContact,
-                  message: sails._t(doctorLanguage, 'please use this link', { expertLink }),
-                  senderEmail: inviteData.doctorData?.email,
-                  whatsApp: false,
-                });
-                sails.config.customLogger.log('info', 'SMS sent', null, 'server-action', req.user.id);
-              } else {
-                sails.config.customLogger.log('error', `Invalid messageService info ${messageService}`, null, 'message', req.user.id);
-              }
-            } else if (isEmail && !isPhoneNumber) {
-              await sails.helpers.email.with({
-                to: expertContact,
-                subject: sails._t(doctorLanguage, 'consultation link'),
-                text: sails._t(doctorLanguage, 'please use this link', { expertLink }),
-              });
-              sails.config.customLogger.log('info', 'Email sent to expert', null, 'server-action', req.user.id);
-            } else {
-              sails.config.customLogger.log('error', 'Invalid contact info provided for expert', null, 'message', req.user.id);
-            }
-          } else {
-            sails.config.customLogger.log('error', 'Expert contact info is not a string', null, 'message', req.user.id);
-          }
-        }
-      }
-
       if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
         const guestInviteData = {
           patientInvite: invite.id,
@@ -460,6 +392,11 @@ module.exports = {
         await PublicInvite.sendGuestInvite(guestInvite);
         sails.config.customLogger.log('info', `Guest invite sent guestInvite ${guestInvite.id}`, null, 'server-action', req.user.id);
       }
+      if (invite.experts && invite.experts.length > 0) {
+        invite.doctor = doctor;
+        await PublicInvite.sendExpertInvites(invite);
+        sails.config.customLogger.log('info', `Expert invites sent inviteId ${invite.id}`, null, 'server-action', req.user.id);
+      }
     } catch (error) {
       sails.config.customLogger.log('error', 'Error sending invite', { error: error.message, inviteId: invite.id, uid: req.user.id }, 'server-action', req.user.id);
       await PublicInvite.destroyOne({ id: invite.id });
@@ -482,6 +419,11 @@ module.exports = {
       if (guestInvite) {
         guestInvite.doctor = doctor;
         await PublicInvite.setPatientOrGuestInviteReminders(guestInvite);
+      }
+      if (invite.experts && invite.experts.length > 0) {
+        invite.doctor = doctor;
+        await PublicInvite.setExpertInviteReminders(invite);
+        sails.config.customLogger.log('info', `Scheduled expert reminders set inviteId ${invite.id}`, null, 'server-action', req.user.id);
       }
     }
 
@@ -853,6 +795,11 @@ module.exports = {
         await PublicInvite.sendGuestInvite(guestInvite);
         sails.config.customLogger.log('info', `Guest invite sent guestInviteId ${guestInvite.id}`, null, 'server-action', req.user.id);
       }
+      if (invite.experts && invite.experts.length > 0 && shouldSend) {
+        invite.doctor = doctor;
+        await PublicInvite.sendExpertInvites(invite);
+        sails.config.customLogger.log('info', `Expert invites sent inviteId ${invite.id}`, null, 'server-action', req.user.id);
+      }
     } catch (error) {
       sails.config.customLogger.log('error', 'Error sending invite', { error: error.message, inviteId: invite.id, uid: req.user.id }, 'server-action', req.user?.id);
       return res.status(500).json({
@@ -871,6 +818,11 @@ module.exports = {
         guestInvite.doctor = doctor;
         await PublicInvite.setPatientOrGuestInviteReminders(guestInvite);
         sails.config.customLogger.log('info', `Guest invite reminders set guestInviteId ${guestInvite.id}`, null, 'server-action', req.user.id);
+      }
+      if (invite.experts && invite.experts.length > 0 && shouldSend) {
+        invite.doctor = doctor;
+        await PublicInvite.setExpertInviteReminders(invite);
+        sails.config.customLogger.log('info', `Expert reminders set for updated schedule inviteId ${invite.id}`, null, 'server-action', req.user.id);
       }
     }
 
@@ -949,6 +901,11 @@ module.exports = {
         sails.config.customLogger.log('info', `Guest invite resent guestInviteId ${patientInvite.guestInvite.id} inviteId ${patientInvite.id}`, null, 'server-action', req.user?.id);
       }
 
+      if (patientInvite.experts && patientInvite.experts.length > 0) {
+        await PublicInvite.sendExpertInvites(patientInvite);
+        sails.config.customLogger.log('info', `Expert invites resent inviteId ${patientInvite.id}`, null, 'server-action', req.user?.id);
+      }
+
       if (
         patientInvite.scheduledFor &&
         patientInvite.scheduledFor > Date.now()
@@ -958,6 +915,10 @@ module.exports = {
         if (patientInvite.guestInvite) {
           await PublicInvite.setPatientOrGuestInviteReminders(patientInvite.guestInvite);
           sails.config.customLogger.log('info', `Guest invite reminders set guestInviteId ${patientInvite.guestInvite.id}`, null, 'server-action', req.user?.id);
+        }
+        if (patientInvite.experts && patientInvite.experts.length > 0) {
+          await PublicInvite.setExpertInviteReminders(patientInvite);
+          sails.config.customLogger.log('info', `Expert reminders set inviteId ${patientInvite.id}`, null, 'server-action', req.user?.id);
         }
       }
 

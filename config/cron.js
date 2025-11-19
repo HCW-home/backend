@@ -170,6 +170,212 @@ const inviteJobs = {
     }
     sails.config.customLogger.log('info', `Second reminder email sent inviteId ${invite.id}`, null, 'server-action', null);
   },
+  FIRST_EXPERT_REMINDER_SMS: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `FIRST_EXPERT_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
+    if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
+      sails.config.customLogger.log('verbose', `FIRST_EXPERT_REMINDER_SMS: No experts in invite ${invite.id}`, null, 'server-action');
+      return;
+    }
+
+    const expertReminderData = sails.models.publicinvite.getExpertReminderMessage(invite);
+
+    for (const contact of invite.experts) {
+      const { expertContact, messageService } = contact || {};
+      if (!expertContact) continue;
+
+      const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+      const isEmail = expertContact.includes('@');
+
+      if (isPhoneNumber && !isEmail) {
+        if (messageService === '1') {
+          if (invite.patientLanguage) {
+            const template = await WhatsappTemplate.findOne({
+              language: invite.patientLanguage,
+              key: expertReminderData.firstReminderType,
+              approvalStatus: 'approved'
+            });
+            if (template && template.sid) {
+              try {
+                await sails.helpers.sms.with({
+                  phoneNumber: expertContact,
+                  message: expertReminderData.firstReminderMessage,
+                  senderEmail: invite?.doctor?.email,
+                  whatsApp: true,
+                  twilioTemplatedId: template.sid,
+                  params: expertReminderData.firstReminderParams,
+                  statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
+                });
+                sails.config.customLogger.log('info', `First WhatsApp reminder sent to expert ${expertContact} inviteId ${invite.id}`, null, 'server-action');
+              } catch (error) {
+                sails.config.customLogger.log('error', 'Error sending first WhatsApp reminder to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+              }
+            } else {
+              sails.config.customLogger.log('error', 'WhatsApp template not approved or missing for expert reminder', null, 'message');
+            }
+          }
+        } else if (messageService === '2') {
+          try {
+            await sails.helpers.sms.with({
+              phoneNumber: expertContact,
+              message: expertReminderData.firstReminderMessage,
+              senderEmail: invite?.doctor?.email,
+              whatsApp: false,
+            });
+            sails.config.customLogger.log('info', `First SMS reminder sent to expert ${expertContact} inviteId ${invite.id}`, null, 'server-action');
+          } catch (error) {
+            sails.config.customLogger.log('error', 'Error sending first SMS reminder to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+          }
+        }
+      }
+    }
+  },
+  SECOND_EXPERT_REMINDER_SMS: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `SECOND_EXPERT_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
+    if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
+      sails.config.customLogger.log('verbose', `SECOND_EXPERT_REMINDER_SMS: No experts in invite ${invite.id}`, null, 'server-action');
+      return;
+    }
+
+    const expertReminderData = sails.models.publicinvite.getExpertReminderMessage(invite);
+
+    for (const contact of invite.experts) {
+      const { expertContact, messageService } = contact || {};
+      if (!expertContact) continue;
+
+      const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+      const isEmail = expertContact.includes('@');
+
+      if (isPhoneNumber && !isEmail) {
+        if (messageService === '1') {
+          if (invite.patientLanguage) {
+            const template = await WhatsappTemplate.findOne({
+              language: invite.patientLanguage,
+              key: expertReminderData.secondReminderType,
+              approvalStatus: 'approved'
+            });
+            if (template && template.sid) {
+              try {
+                await sails.helpers.sms.with({
+                  phoneNumber: expertContact,
+                  message: expertReminderData.secondReminderMessage,
+                  senderEmail: invite?.doctor?.email,
+                  whatsApp: true,
+                  params: expertReminderData.secondReminderParams,
+                  twilioTemplatedId: template.sid,
+                  statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL,
+                });
+                sails.config.customLogger.log('info', `Second WhatsApp reminder sent to expert ${expertContact} inviteId ${invite.id}`, null, 'server-action');
+              } catch (error) {
+                sails.config.customLogger.log('error', 'Error sending second WhatsApp reminder to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+              }
+            } else {
+              sails.config.customLogger.log('error', 'WhatsApp template not approved or missing for expert reminder', null, 'message');
+            }
+          }
+        } else if (messageService === '2') {
+          try {
+            await sails.helpers.sms.with({
+              phoneNumber: expertContact,
+              message: expertReminderData.secondReminderMessage,
+              senderEmail: invite?.doctor?.email,
+              whatsApp: false,
+            });
+            sails.config.customLogger.log('info', `Second SMS reminder sent to expert ${expertContact} inviteId ${invite.id}`, null, 'server-action');
+          } catch (error) {
+            sails.config.customLogger.log('error', 'Error sending second SMS reminder to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+          }
+        }
+      }
+    }
+  },
+  FIRST_EXPERT_REMINDER_EMAIL: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `FIRST_EXPERT_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
+    if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
+      sails.config.customLogger.log('verbose', `FIRST_EXPERT_REMINDER_EMAIL: No experts in invite ${invite.id}`, null, 'server-action');
+      return;
+    }
+
+    const expertReminderData = sails.models.publicinvite.getExpertReminderMessage(invite);
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
+
+    for (const contact of invite.experts) {
+      const { expertContact } = contact || {};
+      if (!expertContact) continue;
+
+      const isEmail = expertContact.includes('@');
+      const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+
+      if (isEmail && !isPhoneNumber) {
+        try {
+          await sails.helpers.email.with({
+            to: expertContact,
+            subject: sails._t(locale, 'your consultation link', { url: expertReminderData.expertLink, branding: process.env.BRANDING, doctorName }),
+            text: expertReminderData.firstReminderMessage,
+          });
+          sails.config.customLogger.log('info', `First reminder email sent to expert ${expertContact} inviteId ${invite.id}`, null, 'server-action');
+        } catch (error) {
+          sails.config.customLogger.log('error', 'Error sending first reminder email to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+        }
+      }
+    }
+  },
+  SECOND_EXPERT_REMINDER_EMAIL: async (invite) => {
+    const latestInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+    if (!latestInvite) {
+      sails.config.customLogger.log('warn', `SECOND_EXPERT_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
+      return;
+    }
+    invite = latestInvite;
+
+    if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
+      sails.config.customLogger.log('verbose', `SECOND_EXPERT_REMINDER_EMAIL: No experts in invite ${invite.id}`, null, 'server-action');
+      return;
+    }
+
+    const expertReminderData = sails.models.publicinvite.getExpertReminderMessage(invite);
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
+
+    for (const contact of invite.experts) {
+      const { expertContact } = contact || {};
+      if (!expertContact) continue;
+
+      const isEmail = expertContact.includes('@');
+      const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+
+      if (isEmail && !isPhoneNumber) {
+        try {
+          await sails.helpers.email.with({
+            to: expertContact,
+            subject: sails._t(locale, 'your consultation link', { url: expertReminderData.expertLink, branding: process.env.BRANDING, doctorName }),
+            text: expertReminderData.secondReminderMessage,
+          });
+          sails.config.customLogger.log('info', `Second reminder email sent to expert ${expertContact} inviteId ${invite.id}`, null, 'server-action');
+        } catch (error) {
+          sails.config.customLogger.log('error', 'Error sending second reminder email to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+        }
+      }
+    }
+  },
 };
 
 module.exports = {
