@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.80) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.81) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -98,8 +98,9 @@ hcw-athome-backend (0.5.80) UNRELEASED; urgency=medium
   * add more check on doctor emai;
   * add new route for retriving consultations created by requester
   * change expert invite flow
+  * fix consultation overview when first is joining expert
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 19 Nov 2025 14:49:55 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 19 Nov 2025 15:58:53 +0000
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
