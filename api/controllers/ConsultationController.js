@@ -210,6 +210,22 @@ module.exports = {
           },
         },
         {
+          $lookup: {
+            from: 'user',
+            let: { expertIds: '$consultation.experts' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ['$_id', { $ifNull: ['$$expertIds', []] }]
+                  }
+                }
+              }
+            ],
+            as: 'experts',
+          },
+        },
+        {
           $project: {
             guest: {
               phoneNumber: -1,
@@ -235,6 +251,7 @@ module.exports = {
             guestInvite: {
               $arrayElemAt: ['$guestInvite', 0],
             },
+            experts: 1,
           },
         },
         {
@@ -255,6 +272,7 @@ module.exports = {
             translator: {
               $arrayElemAt: ['$translator', 0],
             },
+            experts: 1,
             acceptedByUser: {
               $cond: {
                 if: { $ne: ['$doctor', null] },
@@ -456,6 +474,22 @@ module.exports = {
           },
         },
         {
+          $lookup: {
+            from: 'user',
+            let: { expertIds: '$consultation.experts' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ['$_id', { $ifNull: ['$$expertIds', []] }]
+                  }
+                }
+              }
+            ],
+            as: 'experts',
+          },
+        },
+        {
           $project: {
             guest: {
               phoneNumber: -1,
@@ -481,6 +515,7 @@ module.exports = {
             guestInvite: {
               $arrayElemAt: ['$guestInvite', 0],
             },
+            experts: 1,
           },
         },
         {
@@ -501,6 +536,7 @@ module.exports = {
             translator: {
               $arrayElemAt: ['$translator', 0],
             },
+            experts: 1,
             acceptedByUser: {
               $cond: {
                 if: { $ne: ['$doctor', null] },
@@ -663,6 +699,16 @@ module.exports = {
           sails.config.customLogger.log('info', `${user.role} arrived first, creating consultation for invite id ${invite.id}`, null, 'message', user.id);
           req.body.invitationToken = invite.inviteToken;
           consultationJson.invitationToken = invite.inviteToken;
+
+          if (user.role === 'guest') {
+            consultationJson.guest = user.id;
+          }
+          if (user.role === 'translator') {
+            consultationJson.translator = user.id;
+          }
+          if (user.role === 'expert') {
+            consultationJson.experts = [user.id];
+          }
         }
       }
 
@@ -1208,6 +1254,14 @@ module.exports = {
       }
       sails.config.customLogger.log('info', `Consultation found ${consultation.id}`, null, 'message', req.user?.id);
       const calleeId = req.user.id === consultation.owner ? consultation.acceptedBy : consultation.owner;
+
+      if (!calleeId) {
+        sails.config.customLogger.log('warn', `Cannot initiate call - no valid callee found for consultation ${consultation.id}. Owner: ${consultation.owner}, AcceptedBy: ${consultation.acceptedBy}`, null, 'message', req.user?.id);
+        return res.status(400).json({
+          error: 'NO_CALLEE',
+          message: sails._t('en', 'cannot initiate call patient not joined')
+        });
+      }
 
       if (req.user.id === calleeId) {
         sails.config.customLogger.log('warn', `User ${req.user.id} attempting to call themselves in consultation ${consultation.id}`, null, 'message', req.user?.id);

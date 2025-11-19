@@ -255,6 +255,11 @@ module.exports = {
       guestInvite = await PublicInvite.findOne({ id: consultation.guestInvite });
     }
 
+    if (consultation.experts && consultation.experts.length > 0) {
+      const experts = await User.find({ id: { in: consultation.experts } });
+      consultation.experts = experts;
+    }
+
     if (consultation.owner) {
       const ownerSockets = get(consultation.owner);
       consultation.flagPatientOnline = ownerSockets && ownerSockets.size > 0;

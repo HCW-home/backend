@@ -88,5 +88,6 @@
   "verification code message": "Your verification code is %(code)s. This code is valid for %(minutes)s minutes",
   "ownership transfer message": "Doctor changed from %(previousOwner)s to %(newOwner)s",
   "ownership unassigned": "unassigned",
-  "visit": "visit"
+  "visit": "visit",
+  "cannot initiate call patient not joined": "Cannot initiate call. The consultation patient has not joined yet."
 }
