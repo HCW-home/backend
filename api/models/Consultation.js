@@ -190,6 +190,10 @@ module.exports = {
     note: {
       type: 'string',
     },
+    clinicalNotes: {
+      type: 'string',
+      required: false,
+    },
     fhirData: {
       type: 'json',
       required: false,

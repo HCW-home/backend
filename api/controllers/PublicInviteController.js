@@ -669,8 +669,9 @@ module.exports = {
         query['metadata.identifier'] = sanitizedIdentifier;
       }
 
-      if (fhirParams['appointment.identifier']) {
-        const sanitizedIdentifier = escapeHtml(fhirParams['appointment.identifier']);
+      const appointmentIdentifier = fhirParams['appointment.identifier'] || fhirParams.appointment?.identifier;
+      if (appointmentIdentifier) {
+        const sanitizedIdentifier = escapeHtml(appointmentIdentifier);
 
         const invites = await PublicInvite.find({
           where: {

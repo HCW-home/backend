@@ -410,13 +410,33 @@ module.exports = {
 
     const notes = [];
 
-    if (consultation.doctorComment) {
-      const doctorId = consultation.acceptedBy ?
-        (consultation.acceptedBy.toString ? consultation.acceptedBy.toString() : consultation.acceptedBy) :
-        null;
+    const doctorId = consultation.acceptedBy ?
+      (consultation.acceptedBy.toString ? consultation.acceptedBy.toString() : consultation.acceptedBy) :
+      null;
 
+    if (consultation.clinicalNotes) {
+      const clinicalNote = {
+        text: consultation.clinicalNotes
+      };
+
+      if (doctorId) {
+        clinicalNote.authorReference = {
+          reference: `Practitioner/${doctorId}`,
+          display: 'Doctor'
+        };
+      }
+
+      if (consultation.closedAt) {
+        clinicalNote.time = new Date(consultation.closedAt).toISOString();
+      }
+
+      notes.push(clinicalNote);
+    }
+
+    if (consultation.doctorComment) {
       const doctorNote = {
-        text: consultation.doctorComment
+        text: consultation.doctorComment,
+        extension: [{ url: 'category', valueString: 'rating' }]
       };
 
       if (doctorId) {
@@ -439,7 +459,8 @@ module.exports = {
         null;
 
       const patientNote = {
-        text: consultation.patientComment
+        text: consultation.patientComment,
+        extension: [{ url: 'category', valueString: 'rating' }]
       };
 
       if (patientId) {
