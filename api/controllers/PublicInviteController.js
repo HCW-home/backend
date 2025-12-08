@@ -673,14 +673,14 @@ module.exports = {
       if (appointmentIdentifier) {
         const sanitizedIdentifier = escapeHtml(appointmentIdentifier);
 
-        const invites = await PublicInvite.find({
-          where: {
-            'metadata.identifier': sanitizedIdentifier
-          }
-        }).meta({ enableExperimentalDeepTargets: true });
+        const inviteDb = PublicInvite.getDatastore().manager;
+        const inviteCollection = inviteDb.collection('publicinvite');
+        const invites = await inviteCollection.find({
+          'metadata.identifier': sanitizedIdentifier
+        }).toArray();
 
         if (invites.length > 0) {
-          const inviteIds = invites.map(inv => new ObjectId(inv.id));
+          const inviteIds = invites.map(inv => new ObjectId(inv._id));
           query['invite'] = { $in: inviteIds };
         } else {
           const bundle = {

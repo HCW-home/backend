@@ -414,9 +414,9 @@ module.exports = {
       (consultation.acceptedBy.toString ? consultation.acceptedBy.toString() : consultation.acceptedBy) :
       null;
 
-    if (consultation.clinicalNotes) {
+    if (consultation.note) {
       const clinicalNote = {
-        text: consultation.clinicalNotes
+        text: consultation.note
       };
 
       if (doctorId) {
