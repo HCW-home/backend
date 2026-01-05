@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.69) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.70) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
@@ -13,6 +13,7 @@ hcw-athome-backend (0.5.69) UNRELEASED; urgency=medium
   * update accept consultation
   * refs #8416,add link in SMS notification to doctor
   * refs #8415, Unable to share link
+  * add guest role in global variables
 
   [ Anonymous ]
   * Translated using Weblate (Armenian)
@@ -57,6 +58,8 @@ hcw-athome-backend (0.5.69) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Migrate repo node
+  * Using node 20 for Dockerfile
+  * Move to node 20
 
   [ Gor Grigoryan ]
   * update yarn lock
@@ -70,7 +73,7 @@ hcw-athome-backend (0.5.69) UNRELEASED; urgency=medium
   * fix notification for offline action for doctor and patient
   * handle expert case when sending offline notification
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 16 Sep 2025 13:23:51 +0000
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 05 Jan 2026 14:26:09 +0100
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
