@@ -3,13 +3,23 @@ module.exports = async function (req, res, proceed) {
 
   let consultation;
   const { user } = req;
+  const consultationId = req.body.consultation || req.params.consultation;
+
   if (user.role === sails.config.globals.ROLE_DOCTOR || user.role === sails.config.globals.ROLE_ADMIN) {
     // doctors can respond to pending consultation
     consultation = await Consultation.findOne({
       or: [
-        { status: 'pending', id: req.body.consultation || req.params.consultation },
-        { acceptedBy: user.id, id: req.body.consultation || req.params.consultation }
-      ] });
+        { status: 'pending', id: consultationId },
+        { acceptedBy: user.id, id: consultationId }
+      ]
+    });
+
+    if (!consultation) {
+      const consultationData = await Consultation.findOne({ id: consultationId }).populate('queue');
+      if (consultationData && consultationData.queue && consultationData.queue.shareWhenOpened) {
+        consultation = consultationData;
+      }
+    }
   }
 
   if (user.role === sails.config.globals.ROLE_NURSE || user.role === sails.config.globals.ROLE_PATIENT) {
@@ -28,7 +38,7 @@ module.exports = async function (req, res, proceed) {
   if (!consultation) {
     return res.forbidden();
   }
-  // if consultation it's closed it's forbiden to add a comment
+  // if consultation it's closed it's forbidden to add a comment
   else if (consultation.status === 'closed') {
     res.status(403);
     return res.json({ message: 'closed' });

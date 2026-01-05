@@ -130,27 +130,28 @@ passport.use(
         expertToken: req.body.inviteToken,
       });
 
-      await Consultation.findOne({ invitationToken: patientInvite.inviteToken })
-        .then(async (consultation) => {
-          if (consultation) {
-            // consultation.status = 'active';
-            consultation.experts.push(user.id);
+      const consultation = await Consultation.findOne({ invitationToken: patientInvite.inviteToken });
+      if (consultation) {
+        consultation.experts.push(user.id);
 
-            (await Consultation.getConsultationParticipants(consultation)).forEach(
-              (participant) => {
-                sails.config.customLogger.log('info', `Broadcasting consultation ${consultation?.id} update for participant with MongoID: ${participant}`, null, 'server-action');
-                sails.sockets.broadcast(participant, "consultationUpdated", {
-                  data: { consultation },
-                });
-              }
-            );
+        (await Consultation.getConsultationParticipants(consultation)).forEach(
+          (participant) => {
+            sails.config.customLogger.log('info', `Broadcasting consultation ${consultation.id} update for participant with MongoID: ${participant}`, null, 'server-action');
+            sails.sockets.broadcast(participant, "consultationUpdated", {
+              data: { consultation },
+            });
           }
-          return Consultation.update({ _id: consultation?.id }, consultation);
-        })
-        .then(updatedConsultation => {
-          sails.config.customLogger.log('info', `Updated consultation ${updatedConsultation?.id} for invite ID: ${invite.id}`, null, 'server-action');
-        })
-        .catch(err => sails.config.customLogger.log('error', `Error updating consultation for invite ID: ${invite.id}`, err, 'server-action'));
+        );
+
+        try {
+          await Consultation.update({ _id: consultation.id }, consultation);
+          sails.config.customLogger.log('info', `Updated consultation ${consultation.id} for invite ID: ${invite.id}`, null, 'server-action');
+        } catch (err) {
+          sails.config.customLogger.log('error', `Error updating consultation for invite ID: ${invite.id}`, err, 'server-action');
+        }
+      } else {
+        sails.config.customLogger.log('info', `No consultation found yet for expert login, invite ID: ${invite.id}`, null, 'server-action');
+      }
     }
 
     if (invite.type === "GUEST") {

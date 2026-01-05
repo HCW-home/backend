@@ -1,11 +1,11 @@
-hcw-athome-backend (0.5.70) focal; urgency=medium
+hcw-athome-backend (0.5.82) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * change get fhir appointment route
   * add expert information in closing consultation broadcasting
   * refs #8322, have configuration to disable providing time estimate link per queue
   * add category of logs in token service
-  * add default languge for checking prefix
+  * add default language for checking prefix
   * fix expert invitation whatsapp template
   * add CLAM_RETRY_COUNT and CLAM_RETRY_DELAY new variables for retrying clamav initialization
   * fix creating consultation when role admin is creating from nurse interface
@@ -72,8 +72,42 @@ hcw-athome-backend (0.5.70) focal; urgency=medium
   [ Gor Grigoryan ]
   * fix notification for offline action for doctor and patient
   * handle expert case when sending offline notification
+  * add guest role in global variables
 
+<<<<<<< HEAD
  -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 05 Jan 2026 14:26:09 +0100
+=======
+  [ Olivier Bitsch ]
+  * Using node 20 for Dockerfile
+  * Move to node 20
+
+  [ Gor Grigoryan ]
+  * refs #8707, Managed by queue
+  * refs #8722, Skip parameter for time estimation
+  * Check if the caller is trying to call themselves
+  * update fhir endpoints
+  * add new route for getting appointment by identifier
+  * update fhir routes
+  * fix fhir appointment status update
+  * improve error handling in policies isConsultationOwner and isConsultationParticipant
+  * security fixes
+  * update 'notification for offline action text for doctor' whatsapp template
+  * add a way to reschedule call
+  * fix consultation creation when guest is joining before patieint joining
+  * add missing translation
+  * Add FHIR Encounter endpoints for consultations with role-based access control
+  * update invite status when reschedule consultation
+  * allow to receive broadcast when requester and doctor are same users
+  * fix param in whatsapp template
+  * update patient is ready template with params
+  * update fhir encounter response and params for getting by identifier
+  * add more check on doctor emai;
+  * add new route for retriving consultations created by requester
+  * change expert invite flow
+  * fix consultation overview when first is joining expert
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 19 Nov 2025 15:58:53 +0000
+>>>>>>> 6ac716c97073b8eb61e90844e23db7d974ae2c67
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 

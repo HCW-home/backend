@@ -250,7 +250,7 @@ module.exports = {
     const nowDate = moment().local(doctorLangCode).format('D MMMM YYYY');
     const doctorLanguage = sails._t(doctorLangCode, doctorLangCode);
     const patientLanguage = sails._t(doctorLangCode, invite.patientLanguage);
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     sails.config.customLogger.log('info', 'Translation invite email prepared', null, 'message');
     return sails.helpers.email.with({
       to: email,
@@ -283,7 +283,7 @@ module.exports = {
     sails.config.customLogger.log('info', 'sendTranslatorInvite: Preparing translator invite email', null, 'message');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorLang = invite.doctorLanguage || process.env.DEFAULT_DOCTOR_LOCALE;
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     sails.config.customLogger.log('info', 'sendTranslatorInvite: Translator invite email content prepared', null, 'message');
 
     return sails.helpers.email.with({
@@ -333,20 +333,20 @@ module.exports = {
         sails.config.customLogger.log('info', `expireTranslatorRequest: Updated guest invite ${translatorRequestInvite?.patientInvite?.guestInvite} status to CANCELED`, null, 'server-action');
       }
 
-      if (translatorRequestInvite.doctor.email) {
+      if (translatorRequestInvite.doctor?.email) {
         const docLocale =
-          translatorRequestInvite.doctor.preferredLanguage ||
+          translatorRequestInvite.doctor?.preferredLanguage ||
           process.env.DEFAULT_DOCTOR_LOCALE;
-        sails.config.customLogger.log('info', `expireTranslatorRequest: Sending email notification to doctor ${translatorRequestInvite.doctor.id}`, null, 'message');
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Sending email notification to doctor ${translatorRequestInvite.doctor?.id}`, null, 'message');
 
         await sails.helpers.email.with({
-          to: translatorRequestInvite.doctor.email,
+          to: translatorRequestInvite.doctor?.email,
           subject: sails._t(docLocale, 'translation request refused subject'),
           text: sails._t(docLocale, 'translation request refused body', {
             branding: process.env.BRANDING,
           }),
         });
-        sails.config.customLogger.log('info', `expireTranslatorRequest: Email notification sent to doctor ${translatorRequestInvite.doctor.id}`, null, 'server-action');
+        sails.config.customLogger.log('info', `expireTranslatorRequest: Email notification sent to doctor ${translatorRequestInvite.doctor?.id}`, null, 'server-action');
       }
     }
   },
@@ -521,7 +521,7 @@ module.exports = {
       scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
     }
     const timeUntilScheduled = scheduledTime - currentTime;
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
 
     const message =
       invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
@@ -620,6 +620,236 @@ module.exports = {
     }
   },
 
+  async sendExpertInvites(invite) {
+    sails.config.customLogger.log('verbose', `sendExpertInvites: Starting expert invites process inviteId ${invite.id}`, null, 'message');
+
+    if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
+      sails.config.customLogger.log('verbose', `sendExpertInvites: No experts to send inviteId ${invite.id}`, null, 'message');
+      return;
+    }
+
+    const expertLink = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
+    const timezone = invite.patientTZ || 'UTC';
+    const inviteTime = invite.scheduledFor
+      ? moment(invite.scheduledFor)
+      .tz(timezone)
+      .locale(locale)
+      .format('D MMMM HH:mm') + ' ' + timezone
+      : '';
+    const currentTime = Date.now();
+    let scheduledTime = invite.scheduledFor;
+    if (invite.patientTZ) {
+      scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
+    }
+    const timeUntilScheduled = scheduledTime - currentTime;
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
+
+    const type = invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
+      ? 'scheduled guest invite'
+      : 'guest invite';
+
+    const message = invite.scheduledFor && timeUntilScheduled > SECOND_INVITE_REMINDER
+      ? sails._t(locale, 'scheduled guest invite', {
+        inviteTime,
+        testingUrl: `${process.env.PUBLIC_URL}/test-call`,
+        branding: process.env.BRANDING,
+        doctorName,
+      })
+      : sails._t(locale, 'guest invite', {
+        url: expertLink,
+        branding: process.env.BRANDING,
+        doctorName,
+      });
+
+    sails.config.customLogger.log('info', `sendExpertInvites: Processing ${invite.experts.length} expert(s) inviteId ${invite.id}`, null, 'message');
+
+    for (const contact of invite.experts) {
+      const { expertContact, messageService } = contact || {};
+      if (typeof expertContact === 'string') {
+        const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+        const isEmail = expertContact.includes('@');
+
+        if (isPhoneNumber && !isEmail) {
+          if (messageService === '1') {
+            if (invite.patientLanguage) {
+              const template = await WhatsappTemplate.findOne({
+                language: invite.patientLanguage,
+                key: type,
+                approvalStatus: 'approved'
+              });
+              if (template && template.sid) {
+                const twilioTemplatedId = template.sid;
+                let params = {};
+                if (type === 'guest invite') {
+                  params = {
+                    1: process.env.BRANDING,
+                    2: invite.expertToken
+                  };
+                } else if (type === 'scheduled guest invite') {
+                  params = {
+                    1: process.env.BRANDING,
+                    2: inviteTime,
+                    3: invite.expertToken
+                  };
+                }
+                try {
+                  sails.config.customLogger.log('verbose', `sendExpertInvites: Sending WhatsApp to ${expertContact}`, null, 'message');
+                  await sails.helpers.sms.with({
+                    phoneNumber: expertContact,
+                    message,
+                    senderEmail: invite.doctor?.email,
+                    whatsApp: true,
+                    params,
+                    twilioTemplatedId,
+                  });
+                  sails.config.customLogger.log('info', `sendExpertInvites: WhatsApp sent to expert ${expertContact}`, null, 'server-action');
+                } catch (error) {
+                  sails.config.customLogger.log('error', 'sendExpertInvites: Error sending WhatsApp to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+                }
+              } else {
+                sails.config.customLogger.log('error', 'sendExpertInvites: WhatsApp template is missing or not approved', null, 'message');
+              }
+            }
+          } else if (messageService === '2') {
+            try {
+              sails.config.customLogger.log('info', `sendExpertInvites: Sending SMS to ${expertContact}`, null, 'message');
+              await sails.helpers.sms.with({
+                phoneNumber: expertContact,
+                message,
+                senderEmail: invite.doctor?.email,
+                whatsApp: false,
+              });
+              sails.config.customLogger.log('info', `sendExpertInvites: SMS sent to expert ${expertContact}`, null, 'server-action');
+            } catch (error) {
+              sails.config.customLogger.log('error', 'sendExpertInvites: Error sending SMS to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+            }
+          } else {
+            sails.config.customLogger.log('error', `sendExpertInvites: Invalid messageService ${messageService}`, null, 'message');
+          }
+        } else if (isEmail && !isPhoneNumber) {
+          try {
+            await sails.helpers.email.with({
+              to: expertContact,
+              subject: sails._t(locale, 'your consultation link', {
+                url: expertLink,
+                branding: process.env.BRANDING,
+                doctorName,
+              }),
+              text: message,
+            });
+            sails.config.customLogger.log('info', `sendExpertInvites: Email sent to expert ${expertContact}`, null, 'server-action');
+          } catch (error) {
+            sails.config.customLogger.log('error', 'sendExpertInvites: Error sending email to expert', { error: error?.message || error, contact: expertContact }, 'server-action');
+          }
+        } else {
+          sails.config.customLogger.log('error', 'sendExpertInvites: Invalid contact info provided for expert', null, 'message');
+        }
+      } else {
+        sails.config.customLogger.log('error', 'sendExpertInvites: Expert contact info is not a string', null, 'message');
+      }
+    }
+
+    sails.config.customLogger.log('info', `sendExpertInvites: Completed sending expert invites inviteId ${invite.id}`, null, 'server-action');
+  },
+
+  getExpertReminderMessage(invite) {
+    const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
+    const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
+    const timezone = invite.patientTZ || 'UTC';
+    const inviteTime = invite.scheduledFor
+      ? moment(invite.scheduledFor)
+      .tz(timezone)
+      .locale(locale)
+      .format('D MMMM HH:mm') + ' ' + timezone
+      : '';
+
+    const doctorName =
+      (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
+
+    const firstInviteReminder = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
+    const defaultFirstReminderTime = { number: 1, unit: 'd' };
+
+    let parsedFirstInviteReminderTime;
+    try {
+      parsedFirstInviteReminderTime = firstInviteReminder
+        ? parseTimeOverride(firstInviteReminder)
+        : defaultFirstReminderTime;
+    } catch (error) {
+      parsedFirstInviteReminderTime = defaultFirstReminderTime;
+    }
+
+    const firstReminderTranslationHelper = {
+      count: parsedFirstInviteReminderTime.number,
+      unitOfMeasurement: parsedFirstInviteReminderTime.unit,
+    };
+
+    const firstTimePhrase = generateTimePhrase(
+      firstReminderTranslationHelper.count,
+      firstReminderTranslationHelper.unitOfMeasurement,
+      locale
+    );
+
+    const firstReminderType = 'first guest invite reminder';
+    const firstReminderMessage = sails._t(locale, firstReminderType, {
+      inviteTime,
+      branding: process.env.BRANDING,
+      doctorName,
+      timePhrase: firstTimePhrase,
+    });
+
+    const secondInviteReminder = process.env.OVERRIDE_SECOND_INVITE_REMINDER;
+    const defaultSecondReminderTime = { number: 1, unit: 'm' };
+    let parsedSecondInviteReminderTime;
+    try {
+      parsedSecondInviteReminderTime = secondInviteReminder
+        ? parseTimeOverride(secondInviteReminder)
+        : defaultSecondReminderTime;
+    } catch (error) {
+      parsedSecondInviteReminderTime = defaultSecondReminderTime;
+    }
+
+    const secondReminderTranslationHelper = {
+      count: parsedSecondInviteReminderTime.number,
+      unitOfMeasurement: parsedSecondInviteReminderTime.unit,
+    };
+
+    const secondTimePhrase = generateTimePhrase(
+      secondReminderTranslationHelper.count,
+      secondReminderTranslationHelper.unitOfMeasurement,
+      locale
+    );
+
+    const secondReminderType = 'second guest invite reminder';
+    const secondReminderMessage = sails._t(locale, secondReminderType, {
+      url,
+      doctorName,
+      timePhrase: secondTimePhrase,
+    });
+
+    const firstReminderParams = {
+      1: process.env.BRANDING,
+      2: firstTimePhrase,
+      3: inviteTime
+    };
+
+    const secondReminderParams = {
+      1: secondTimePhrase,
+      2: invite.expertToken
+    };
+
+    return {
+      firstReminderMessage,
+      secondReminderMessage,
+      firstReminderType,
+      secondReminderType,
+      firstReminderParams,
+      secondReminderParams,
+      inviteTime,
+      expertLink: url,
+    };
+  },
+
   getReminderMessage(invite) {
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
@@ -632,7 +862,7 @@ module.exports = {
       : '';
 
     const doctorName =
-      (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+      (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
 
     const firstInviteReminder = process.env.OVERRIDE_FIRST_INVITE_REMINDER;
     const defaultFirstReminderTime = { number: 1, unit: 'd' };
@@ -732,7 +962,7 @@ module.exports = {
       .locale(locale)
       .format('D MMMM HH:mm') + ' ' + timezone
       : '';
-    const doctorName = (invite.doctor.firstName || '') + ' ' + (invite.doctor.lastName || '');
+    const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
 
     sails.config.customLogger.log('info', `createAndSendICS: Started processing invite ${invite.id}`, null, 'message');
@@ -886,6 +1116,86 @@ module.exports = {
     sails.config.customLogger.log('info', `setPatientOrGuestInviteReminders: Completed scheduling invite reminders ${invite.id}`, null, 'message');
   },
 
+  async setExpertInviteReminders(invite) {
+    sails.config.customLogger.log('info', `setExpertInviteReminders: Starting expert reminder scheduling for ${invite.id}`, null, 'message');
+
+    if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
+      sails.config.customLogger.log('verbose', `setExpertInviteReminders: No experts to schedule reminders for inviteId ${invite.id}`, null, 'message');
+      return;
+    }
+
+    const currentTime = Date.now();
+    let scheduledTime = invite.scheduledFor;
+    if (invite.patientTZ) {
+      scheduledTime = moment.tz(invite.scheduledFor, 'UTC').valueOf();
+    }
+    const timeUntilScheduled = scheduledTime - currentTime;
+
+    sails.config.customLogger.log('verbose', `setExpertInviteReminders: Calculated time until scheduled ${timeUntilScheduled}`, null, 'message');
+
+    const hasPhoneExperts = invite.experts.some(expert => {
+      const { expertContact } = expert || {};
+      const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+      const isEmail = expertContact && expertContact.includes('@');
+      return isPhoneNumber && !isEmail;
+    });
+
+    const hasEmailExperts = invite.experts.some(expert => {
+      const { expertContact } = expert || {};
+      const isEmail = expertContact && expertContact.includes('@');
+      const isPhoneNumber = /^(\+|00)[0-9 ]+$/.test(expertContact);
+      return isEmail && !isPhoneNumber;
+    });
+
+    if (timeUntilScheduled > TIME_UNTIL_SCHEDULE) {
+      if (hasPhoneExperts) {
+        if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
+          sails.config.customLogger.log('info', 'setExpertInviteReminders: Scheduling FIRST_EXPERT_REMINDER_SMS', null, 'message');
+          await sails.helpers.schedule.with({
+            name: 'FIRST_EXPERT_REMINDER_SMS',
+            data: { invite },
+            time: new Date(scheduledTime - FIRST_INVITE_REMINDER),
+          });
+        }
+      }
+
+      if (hasEmailExperts) {
+        if (timeUntilScheduled > FIRST_INVITE_REMINDER) {
+          sails.config.customLogger.log('info', 'setExpertInviteReminders: Scheduling FIRST_EXPERT_REMINDER_EMAIL', null, 'message');
+          await sails.helpers.schedule.with({
+            name: 'FIRST_EXPERT_REMINDER_EMAIL',
+            data: { invite },
+            time: new Date(scheduledTime - FIRST_INVITE_REMINDER),
+          });
+        }
+      }
+    }
+
+    if (hasPhoneExperts) {
+      if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
+        sails.config.customLogger.log('info', 'setExpertInviteReminders: Scheduling SECOND_EXPERT_REMINDER_SMS', null, 'message');
+        await sails.helpers.schedule.with({
+          name: 'SECOND_EXPERT_REMINDER_SMS',
+          data: { invite },
+          time: new Date(scheduledTime - SECOND_INVITE_REMINDER),
+        });
+      }
+    }
+
+    if (hasEmailExperts) {
+      if (timeUntilScheduled > SECOND_INVITE_REMINDER) {
+        sails.config.customLogger.log('info', 'setExpertInviteReminders: Scheduling SECOND_EXPERT_REMINDER_EMAIL', null, 'message');
+        await sails.helpers.schedule.with({
+          name: 'SECOND_EXPERT_REMINDER_EMAIL',
+          data: { invite },
+          time: new Date(scheduledTime - SECOND_INVITE_REMINDER),
+        });
+      }
+    }
+
+    sails.config.customLogger.log('info', `setExpertInviteReminders: Completed scheduling expert reminders ${invite.id}`, null, 'message');
+  },
+
   async destroyPatientInvite(invite, userId) {
     const db = Consultation.getDatastore().manager;
     const userCollection = db.collection('user');
@@ -964,13 +1274,13 @@ module.exports = {
       sails.config.customLogger.log('info', `refuseTranslatorRequest: Updated guest invite status to CANCELED ${translatorRequestInvite.patientInvite.guestInvite}`, null, 'server-action');
     }
 
-    if (translatorRequestInvite.doctor.email) {
+    if (translatorRequestInvite.doctor?.email) {
       const docLocale =
-        translatorRequestInvite.doctor.preferredLanguage ||
+        translatorRequestInvite.doctor?.preferredLanguage ||
         process.env.DEFAULT_DOCTOR_LOCALE;
       sails.config.customLogger.log('info', `refuseTranslatorRequest: Sending refusal email to doctor ${translatorRequestInvite.doctor?.id}`, null, 'message');
       await sails.helpers.email.with({
-        to: translatorRequestInvite.doctor.email,
+        to: translatorRequestInvite.doctor?.email,
         subject: sails._t(docLocale, 'translation request refused subject'),
         text: sails._t(docLocale, 'translation request refused body', {
           branding: process.env.BRANDING,

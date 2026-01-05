@@ -104,10 +104,10 @@ module.exports = {
           await PublicInvite.sendGuestInvite(patientInvite.guestInvite);
         }
 
-        const docLocal = patientInvite.doctor.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE
+        const docLocal = patientInvite.doctor?.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE || 'en'
         // send mail notification to doctor
         await sails.helpers.email.with({
-          to: patientInvite.doctor.email,
+          to: patientInvite.doctor?.email,
           subject: sails._t(docLocal, 'translator is ready subject'),
           text: sails._t(docLocal, 'translator is ready',{branding:process.env.BRANDING})
         });

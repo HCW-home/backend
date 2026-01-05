@@ -22,6 +22,10 @@ module.exports = {
     disableProvidingTimeEstimate: {
       type: 'boolean',
       defaultsTo: false
+    },
+    shareWhenOpened: {
+      type: 'boolean',
+      defaultsTo: false
     }
   },
 

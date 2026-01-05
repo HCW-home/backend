@@ -95,6 +95,8 @@ module.exports.globals = {
 
   SHOW_DOCTOR_PRIVATE_NOTE: process.env.SHOW_DOCTOR_PRIVATE_NOTE === 'true',
 
+  SKIP_CONSULTATION_PLAN_PAGE: process.env.SKIP_CONSULTATION_PLAN_PAGE === 'true',
+
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,
   WHITELISTED_PREFIXES: {

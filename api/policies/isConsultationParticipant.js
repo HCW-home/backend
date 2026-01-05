@@ -9,7 +9,17 @@ module.exports = async function (req, res, proceed) {
     }
   }
   let consultation;
+  let consultationExists;
   try {
+    consultationExists = await Consultation.count({
+      id: consultationId
+    });
+
+    if (!consultationExists) {
+      sails.config.customLogger.log('warn', `Consultation not found: ${consultationId}`, null, 'message', req.user?.id);
+      return res.notFound('Consultation not found');
+    }
+
     if (req.user.role === 'expert') {
       consultation = await Consultation.count({
         id: consultationId,
@@ -28,6 +38,13 @@ module.exports = async function (req, res, proceed) {
           { acceptedBy: null }
         ]
       });
+
+      if (!consultation) {
+        const consultationData = await Consultation.findOne({ id: consultationId }).populate('queue');
+        if (consultationData && consultationData.queue && consultationData.queue.shareWhenOpened) {
+          consultation = 1;
+        }
+      }
     } else if (req.user.role === 'translator') {
       consultation = await Consultation.count({
         id: consultationId,
@@ -45,8 +62,8 @@ module.exports = async function (req, res, proceed) {
   }
 
   if (!consultation) {
-    sails.config.customLogger.log('warn', `Forbidden access to consultation ${consultationId}`, null, 'message', req.user?.id);
-    return res.forbidden();
+    sails.config.customLogger.log('warn', `Forbidden: User does not have access to consultation ${consultationId}`, null, 'message', req.user?.id);
+    return res.forbidden('You do not have permission to access this consultation');
   }
 
   return proceed();

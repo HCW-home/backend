@@ -3,6 +3,7 @@ const fs = require('fs');
 const json2csv = require('@json2csv/plainjs');
 const uuid = require('uuid');
 const path = require('path');
+const moment = require('moment-timezone');
 
 const validator = require('validator');
 const { escapeHtml, sanitizeMetadata } = require('../utils/helpers');
@@ -73,6 +74,18 @@ module.exports = {
           match.push({
             status: 'pending',
             queue: { $in: queues },
+          });
+        }
+
+        const sharedQueues = await Queue.find({
+          shareWhenOpened: true
+        });
+
+        if (sharedQueues.length > 0) {
+          const sharedQueueIds = sharedQueues.map(q => new ObjectId(q.id));
+
+          match.push({
+            queue: { $in: sharedQueueIds }
           });
         }
       }
@@ -197,6 +210,22 @@ module.exports = {
           },
         },
         {
+          $lookup: {
+            from: 'user',
+            let: { expertIds: '$consultation.experts' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ['$_id', { $ifNull: ['$$expertIds', []] }]
+                  }
+                }
+              }
+            ],
+            as: 'experts',
+          },
+        },
+        {
           $project: {
             guest: {
               phoneNumber: -1,
@@ -222,6 +251,7 @@ module.exports = {
             guestInvite: {
               $arrayElemAt: ['$guestInvite', 0],
             },
+            experts: 1,
           },
         },
         {
@@ -241,6 +271,17 @@ module.exports = {
             },
             translator: {
               $arrayElemAt: ['$translator', 0],
+            },
+            experts: 1,
+            acceptedByUser: {
+              $cond: {
+                if: { $ne: ['$doctor', null] },
+                then: {
+                  firstName: '$doctor.firstName',
+                  lastName: '$doctor.lastName'
+                },
+                else: null
+              }
             },
           },
         },
@@ -269,6 +310,24 @@ module.exports = {
           data[index].consultation.experts = experts;
           sails.config.customLogger.log('verbose', `Processed experts for consultation ${item.consultation?.id} expertCount ${experts.length}`, null, 'message', req.user?.id);
         }
+
+        if (item.consultation.closedBy) {
+          const closedById = item.consultation.closedBy.toString ? item.consultation.closedBy.toString() : item.consultation.closedBy;
+          const closedByUser = await User.findOne({ id: closedById });
+          if (closedByUser) {
+            data[index].closedByUser = {
+              firstName: closedByUser.firstName,
+              lastName: closedByUser.lastName
+            };
+          }
+        }
+
+        const ownerId = item.consultation.owner?.toString ? item.consultation.owner.toString() : item.consultation.owner;
+        const acceptedById = item.consultation.acceptedBy?.toString ? item.consultation.acceptedBy.toString() : item.consultation.acceptedBy;
+        if (ownerId && acceptedById && ownerId === acceptedById) {
+          data[index].consultation.isSelfCallScenario = true;
+          sails.config.customLogger.log('info', `Self-call scenario detected for consultation ${item.consultation?.id}`, null, 'message', req.user?.id);
+        }
       }
 
       if (req.user?.role === sails.config.globals.ROLE_PATIENT) {
@@ -284,6 +343,269 @@ module.exports = {
       sails.config.customLogger.log('error', 'Error in consultationOverview', { error: err?.message || err }, 'server-action', req.user?.id);
       return res.serverError(err);
 
+    }
+  },
+
+  async consultationsCreatedByRequester(req, res) {
+    try {
+      const match = [
+        {
+          owner: new ObjectId(req.user.id),
+        },
+      ];
+
+      const agg = [
+        {
+          $match: {
+            $or: match,
+          },
+        },
+        {
+          $project: {
+            invitationToken: 0,
+          },
+        },
+        {
+          $project: {
+            consultation: '$$ROOT',
+          },
+        },
+        {
+          $lookup: {
+            from: 'message',
+            localField: '_id',
+            foreignField: 'consultation',
+            as: 'messages',
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: {
+              $arrayElemAt: ['$messages', -1],
+            },
+            messages: 1,
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: 1,
+            messages: {
+              $filter: {
+                input: '$messages',
+                as: 'msg',
+                cond: {
+                  $and: [
+                    {
+                      $eq: ['$$msg.read', false],
+                    },
+                    {
+                      $or: [
+                        {
+                          $eq: ['$$msg.to', new ObjectId(req.user.id)],
+                        },
+                        {
+                          $eq: ['$$msg.to', null],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: 1,
+            unreadCount: {
+              $size: '$messages',
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.owner',
+            foreignField: '_id',
+            as: 'nurse',
+          },
+        },
+        {
+          $lookup: {
+            from: 'queue',
+            localField: 'consultation.queue',
+            foreignField: '_id',
+            as: 'queue',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.acceptedBy',
+            foreignField: '_id',
+            as: 'doctor',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.translator',
+            foreignField: '_id',
+            as: 'translator',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            localField: 'consultation.guest',
+            foreignField: '_id',
+            as: 'guest',
+          },
+        },
+        {
+          $lookup: {
+            from: 'publicinvite',
+            localField: 'consultation.guestInvite',
+            foreignField: '_id',
+            as: 'guestInvite',
+          },
+        },
+        {
+          $lookup: {
+            from: 'user',
+            let: { expertIds: '$consultation.experts' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $in: ['$_id', { $ifNull: ['$$expertIds', []] }]
+                  }
+                }
+              }
+            ],
+            as: 'experts',
+          },
+        },
+        {
+          $project: {
+            guest: {
+              phoneNumber: -1,
+              email: -1,
+            },
+            translator: {
+              firstName: -1,
+              email: -1,
+              direct: -1,
+            },
+            consultation: 1,
+            lastMsg: 1,
+            unreadCount: 1,
+            doctor: {
+              $arrayElemAt: ['$doctor', 0],
+            },
+            nurse: {
+              $arrayElemAt: ['$nurse', 0],
+            },
+            queue: {
+              $arrayElemAt: ['$queue', 0],
+            },
+            guestInvite: {
+              $arrayElemAt: ['$guestInvite', 0],
+            },
+            experts: 1,
+          },
+        },
+        {
+          $project: {
+            consultation: 1,
+            lastMsg: 1,
+            unreadCount: 1,
+            'doctor.firstName': 1,
+            'doctor.lastName': 1,
+            'doctor.phoneNumber': 1,
+            'nurse.firstName': 1,
+            'nurse.lastName': 1,
+            'queue': 1,
+            guestInvite: 1,
+            guest: {
+              $arrayElemAt: ['$guest', 0],
+            },
+            translator: {
+              $arrayElemAt: ['$translator', 0],
+            },
+            experts: 1,
+            acceptedByUser: {
+              $cond: {
+                if: { $ne: ['$doctor', null] },
+                then: {
+                  firstName: '$doctor.firstName',
+                  lastName: '$doctor.lastName'
+                },
+                else: null
+              }
+            },
+          },
+        },
+        {
+          $skip: parseInt(req.query.skip) || 0,
+        },
+        {
+          $limit: parseInt(req.query.limit) || 500,
+        },
+      ];
+
+      sails.config.customLogger.log('info', 'Running consultations created by requester aggregation', null, 'message', req.user?.id);
+
+      const consultationCollection = db.collection('consultation');
+      const results = await consultationCollection.aggregate(agg);
+      const data = await results.toArray();
+
+      sails.config.customLogger.log('info', `Aggregation completed resultCount is ${data.length}`, null, 'message', req.user?.id);
+
+      for (const index in data) {
+        const item = data[index];
+        if (item.consultation.experts.length) {
+          const experts = await User.find({
+            id: { in: item.consultation.experts },
+          });
+          data[index].consultation.experts = experts;
+          sails.config.customLogger.log('verbose', `Processed experts for consultation ${item.consultation?.id} expertCount ${experts.length}`, null, 'message', req.user?.id);
+        }
+
+        if (item.consultation.closedBy) {
+          const closedById = item.consultation.closedBy.toString ? item.consultation.closedBy.toString() : item.consultation.closedBy;
+          const closedByUser = await User.findOne({ id: closedById });
+          if (closedByUser) {
+            data[index].closedByUser = {
+              firstName: closedByUser.firstName,
+              lastName: closedByUser.lastName
+            };
+          }
+        }
+
+        const ownerId = item.consultation.owner?.toString ? item.consultation.owner.toString() : item.consultation.owner;
+        const acceptedById = item.consultation.acceptedBy?.toString ? item.consultation.acceptedBy.toString() : item.consultation.acceptedBy;
+        if (ownerId && acceptedById && ownerId === acceptedById) {
+          data[index].consultation.isSelfCallScenario = true;
+          sails.config.customLogger.log('info', `Self-call scenario detected for consultation ${item.consultation?.id}`, null, 'message', req.user?.id);
+        }
+      }
+
+      if (req.user?.role === sails.config.globals.ROLE_PATIENT) {
+        for (const item of data) {
+          if (item.consultation?.note !== undefined) {
+            delete item.consultation.note;
+          }
+        }
+      }
+
+      res.json(data);
+    } catch (err) {
+      sails.config.customLogger.log('error', 'Error in consultationsCreatedByRequester', { error: err?.message || err }, 'server-action', req.user?.id);
+      return res.serverError(err);
     }
   },
 
@@ -303,31 +625,91 @@ module.exports = {
       const { user } = req;
       let invite;
 
-      if (user.role === 'guest' || user.role === 'translator') {
+      if (user.role === 'guest' || user.role === 'translator' || user.role === 'expert') {
         if (!req.body.invitationToken) {
-          sails.config.customLogger.log('info', `No invitationToken provided for guest/translator userId ${user.id}`, null, 'message', user.id);
+          sails.config.customLogger.log('info', `No invitationToken provided for ${user.role} userId ${user.id}`, null, 'message', user.id);
           res.status(200).json({ message: 'OK' });
         }
 
-        const subInvite = await PublicInvite.findOne({
-          inviteToken: escapeHtml(req.body.invitationToken),
-        });
+        let subInvite;
+        if (user.role === 'expert') {
+          subInvite = await PublicInvite.findOne({
+            expertToken: escapeHtml(req.body.invitationToken),
+          });
+        } else {
+          subInvite = await PublicInvite.findOne({
+            inviteToken: escapeHtml(req.body.invitationToken),
+          });
+        }
+
         if (!subInvite) {
-          sails.config.customLogger.log('warn', `Sub-invite not found token ${req.body.invitationToken}`, null, 'message', user.id);
+          sails.config.customLogger.log('warn', `Sub-invite not found for ${user.role} token ${req.body.invitationToken}`, null, 'message', user.id);
           return res.status(400).send();
         }
 
-        invite = await PublicInvite.findOne({ id: subInvite.patientInvite });
-        if (!invite) {
-          sails.config.customLogger.log('warn', `Invite not found for sub-invite ${subInvite.id}`, null, 'message', user.id);
-          return res.status(400).send();
+        if (user.role === 'expert') {
+          invite = subInvite;
+        } else {
+          invite = await PublicInvite.findOne({ id: subInvite.patientInvite });
+          if (!invite) {
+            sails.config.customLogger.log('warn', `Invite not found for sub-invite ${subInvite.id}`, null, 'message', user.id);
+            return res.status(400).send();
+          }
         }
 
         if (invite.emailAddress || invite.phoneNumber) {
-          sails.config.customLogger.log('info', `Invite contains emailAddress/phoneNumber, consultation not created invite id ${invite.id}`, null, 'message', user.id);
-          return res.status(200).send(null);
+          const existingConsultation = await Consultation.findOne({
+            invite: invite.id,
+          });
+
+
+          if (existingConsultation) {
+            sails.config.customLogger.log('info', `${user.role} joining existing consultation invite id ${invite.id} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+
+            const updateData = {};
+            if (user.role === 'guest' && !existingConsultation.guest) {
+              updateData.guest = user.id;
+            }
+            if (user.role === 'translator' && !existingConsultation.translator) {
+              updateData.translator = user.id;
+            }
+            if (user.role === 'expert' && !existingConsultation.experts.includes(user.id)) {
+              existingConsultation.experts.push(user.id);
+              updateData.experts = existingConsultation.experts;
+            }
+
+            if (Object.keys(updateData).length > 0) {
+              await Consultation.updateOne({ id: existingConsultation.id }).set(updateData);
+              sails.config.customLogger.log('info', `Updated consultation ${existingConsultation.id} with ${user.role} ${user.id}`, null, 'server-action', user.id);
+
+              const updatedConsultation = await Consultation.findOne({ id: existingConsultation.id });
+              (await Consultation.getConsultationParticipants(updatedConsultation)).forEach(
+                (participant) => {
+                  sails.config.customLogger.log('info', `Broadcasting consultation ${updatedConsultation.id} update for participant with MongoID: ${participant}`, null, 'server-action');
+                  sails.sockets.broadcast(participant, "consultationUpdated", {
+                    data: { consultation: updatedConsultation },
+                  });
+                }
+              );
+            }
+
+            return res.status(200).json(existingConsultation);
+          }
+
+          sails.config.customLogger.log('info', `${user.role} arrived first, creating consultation for invite id ${invite.id}`, null, 'message', user.id);
+          req.body.invitationToken = invite.inviteToken;
+          consultationJson.invitationToken = invite.inviteToken;
+
+          if (user.role === 'guest') {
+            consultationJson.guest = user.id;
+          }
+          if (user.role === 'translator') {
+            consultationJson.translator = user.id;
+          }
+          if (user.role === 'expert') {
+            consultationJson.experts = [user.id];
+          }
         }
-        req.body.invitationToken = invite.inviteToken;
       }
 
       if (req.body.invitationToken) {
@@ -341,11 +723,30 @@ module.exports = {
           });
         }
 
-        const existingConsultation = await Consultation.findOne({
+        let existingConsultation = await Consultation.findOne({
           invitationToken: sanitizedToken,
         });
+
+        if (!existingConsultation && invite) {
+          existingConsultation = await Consultation.findOne({
+            invite: invite.id,
+          });
+          if (existingConsultation) {
+            sails.config.customLogger.log('info', `Found consultation by invite.id ${invite.id} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+          }
+        }
+
         if (existingConsultation) {
           sails.config.customLogger.log('verbose', `Existing consultation found with invitationToken ${req.body.invitationToken} consultationId ${existingConsultation.id}`, null, 'message', user.id);
+
+          if (req.body.owner && !existingConsultation.owner) {
+            sails.config.customLogger.log('info', `Patient joining consultation created by guest/translator - setting owner to ${req.body.owner}`, null, 'server-action', user.id);
+            await Consultation.updateOne({ id: existingConsultation.id }).set({ owner: req.body.owner });
+            const updatedConsultation = await Consultation.findOne({ id: existingConsultation.id });
+            sails.config.customLogger.log('info', `Updated consultation ${existingConsultation.id} with owner ${req.body.owner}`, null, 'server-action', user.id);
+            return res.json(updatedConsultation);
+          }
+
           return res.json(existingConsultation);
         }
 
@@ -374,11 +775,13 @@ module.exports = {
           consultationJson.invite = invite.id;
           consultationJson.invitedBy = invite.invitedBy;
           consultationJson.metadata = invite.metadata; // Pass metadata from the invite to the consultation
+          consultationJson.fhirData = invite.fhirData; // Pass FHIR data from the invite to the consultation
           consultationJson.IMADTeam = invite.IMADTeam || 'none';
           consultationJson.birthDate = invite.birthDate;
           consultationJson.note = invite.note;
           consultationJson.expertInvitationURL = `${process.env.PUBLIC_URL}/inv/?invite=${invite.expertToken}`;
           consultationJson.expertToken = invite.expertToken;
+          consultationJson.patientTZ = invite.patientTZ;
         }
       }
 
@@ -456,6 +859,96 @@ module.exports = {
       sails.config.customLogger.log('error', 'Error while creating consultation', { error: err?.message || err }, 'server-action', req.user?.id);
       const error = err && err.cause ? err.cause : err;
       return res.status(400).json(error);
+    }
+  },
+
+  async transferOwnership(req, res) {
+    try {
+      const consultationId = escapeHtml(req.params.consultation);
+      const newOwnerId = req.user.id;
+
+      const consultation = await Consultation.findOne({ id: consultationId })
+        .populate('queue')
+        .populate('acceptedBy');
+
+      if (!consultation) {
+        return res.notFound({ error: 'Consultation not found' });
+      }
+
+      if (!consultation.queue || !consultation.queue.shareWhenOpened) {
+        return res.forbidden({ error: 'Ownership transfer not allowed for this consultation' });
+      }
+
+      if (consultation.status !== 'active') {
+        return res.badRequest({ error: 'Can only transfer ownership of active consultations' });
+      }
+
+      if (consultation.acceptedBy && consultation.acceptedBy.id === newOwnerId) {
+        return res.badRequest({ error: 'You are already the owner of this consultation' });
+      }
+
+      const previousOwner = consultation.acceptedBy;
+
+      await Consultation.updateOne({ id: consultationId }).set({
+        acceptedBy: newOwnerId,
+        acceptedAt: new Date()
+      });
+
+      const newOwner = await User.findOne({ id: newOwnerId });
+
+      const locale = newOwner.preferredLanguage || process.env.DEFAULT_DOCTOR_LOCALE || 'en';
+
+      const previousOwnerName = previousOwner ? `${previousOwner.firstName} ${previousOwner.lastName}` : sails._t(locale, 'ownership unassigned');
+      const newOwnerName = `${newOwner.firstName} ${newOwner.lastName}`;
+
+      const message = await Message.create({
+        type: 'ownershipTransfer',
+        consultation: consultationId,
+        from: newOwnerId,
+        text: sails._t(locale, 'ownership transfer message', { previousOwner: previousOwnerName, newOwner: newOwnerName }),
+        metadata: {
+          previousOwner: previousOwner ? {
+            id: previousOwner.id,
+            firstName: previousOwner.firstName,
+            lastName: previousOwner.lastName
+          } : null,
+          newOwner: {
+            id: newOwner.id,
+            firstName: newOwner.firstName,
+            lastName: newOwner.lastName
+          }
+        }
+      }).fetch();
+
+      const updatedConsultation = await Consultation.findOne({ id: consultationId })
+        .populate('owner')
+        .populate('acceptedBy')
+        .populate('queue');
+
+      const participants = await Consultation.getConsultationParticipants(updatedConsultation);
+      participants.forEach(participantId => {
+        sails.sockets.broadcast(participantId, 'ownershipTransferred', {
+          data: {
+            consultation: updatedConsultation,
+            previousOwner: previousOwner,
+            newOwner: newOwner
+          }
+        });
+      });
+
+      sails.config.customLogger.log('info', `Ownership transferred for consultation ${consultationId} from ${previousOwner?.id} to ${newOwnerId}`, null, 'server-action', req.user?.id);
+
+      return res.json({
+        consultation: updatedConsultation,
+        message: message
+      });
+
+    } catch (error) {
+      sails.config.customLogger.log('error', 'Error transferring ownership', {
+        consultationId: req.params.consultation,
+        error: error?.message || error
+      }, 'server-action', req.user?.id);
+      return res.serverError({ error: 'Error transferring ownership', details: error.message });
     }
   },
 
@@ -542,6 +1035,10 @@ module.exports = {
         sails.config.customLogger.log('info', `No ongoing call found for consultation ${consultationId}`, null, 'server-action', user?.id);
       }
 
+      await Consultation.updateOne({ id: consultationId }).set({
+        closedBy: req.user.id
+      });
+
       await Consultation.closeConsultation(consultation, req.user?.id);
       sails.config.customLogger.log('info', `Consultation ${consultation.id} closed successfully`, null, 'server-action', user?.id);
       return res.status(200).json(consultation);
@@ -551,6 +1048,167 @@ module.exports = {
         error: error?.message || error
       }, 'server-action', req.user?.id);
       return res.serverError({ error: 'Error closing consultation', details: error.message });
+    }
+  },
+
+  async rescheduleConsultation(req, res) {
+    const consultationId = escapeHtml(req.params.consultation);
+    try {
+      const { user } = req;
+      const { scheduledFor, patientTZ } = req.body;
+
+      sails.config.customLogger.log('info', `rescheduleConsultation: Starting reschedule for consultation ${consultationId}`, null, 'message', user?.id);
+
+      const consultation = await Consultation.findOne({ id: consultationId });
+
+      if (!consultation) {
+        sails.config.customLogger.log('warn', `rescheduleConsultation: Consultation ${consultationId} not found`, null, 'message', user?.id);
+        return res.status(404).json({ error: 'Consultation not found' });
+      }
+
+      if (consultation.status !== 'active') {
+        sails.config.customLogger.log('warn', `rescheduleConsultation: Consultation ${consultationId} is not active (status: ${consultation.status})`, null, 'message', user?.id);
+        return res.status(400).json({ error: 'Only active consultations can be rescheduled' });
+      }
+
+      if (!scheduledFor || !moment(scheduledFor).isValid()) {
+        sails.config.customLogger.log('warn', 'rescheduleConsultation: Invalid scheduledFor provided', null, 'message', user?.id);
+        return res.status(400).json({ error: 'Valid scheduledFor is required' });
+      }
+
+      const scheduledTimeUTC = patientTZ
+        ? moment.tz(scheduledFor, 'UTC').valueOf()
+        : new Date(scheduledFor).getTime();
+
+      if (scheduledTimeUTC < Date.now()) {
+        sails.config.customLogger.log('warn', 'rescheduleConsultation: Scheduled time is in the past', null, 'message', user?.id);
+        return res.status(400).json({ error: 'Scheduled time must be in the future' });
+      }
+
+      if (!consultation.invitationToken) {
+        sails.config.customLogger.log('warn', `rescheduleConsultation: Consultation ${consultationId} has no invitationToken - cannot reschedule`, null, 'message', user?.id);
+        return res.status(400).json({ error: 'This consultation cannot be rescheduled (no invitation token)' });
+      }
+
+      const invite = await PublicInvite.findOne({ inviteToken: consultation.invitationToken }).populate('doctor');
+
+      if (!invite) {
+        sails.config.customLogger.log('error', `rescheduleConsultation: Invite not found for active consultation ${consultationId} with token ${consultation.invitationToken}`, null, 'message', user?.id);
+        return res.status(500).json({ error: 'Invite not found for active consultation - this should not happen' });
+      }
+
+      sails.config.customLogger.log('info', `rescheduleConsultation: Found invite ${invite.id} - email: ${invite.emailAddress || 'none'}, phone: ${invite.phoneNumber || 'none'}, messageService: ${invite.messageService}`, null, 'message', user?.id);
+
+      const oldScheduledFor = consultation.scheduledFor;
+      const formattedOldTime = oldScheduledFor ? moment(oldScheduledFor).tz(patientTZ || 'UTC').format('YYYY-MM-DD HH:mm:ss') : 'none';
+      const formattedNewTime = moment(scheduledTimeUTC).tz(patientTZ || 'UTC').format('YYYY-MM-DD HH:mm:ss');
+      sails.config.customLogger.log('info', `rescheduleConsultation: Rescheduling from ${formattedOldTime} to ${formattedNewTime} (${patientTZ || 'UTC'})`, null, 'message', user?.id);
+
+      await Consultation.updateOne({ id: consultationId }).set({
+        scheduledFor: scheduledTimeUTC,
+        patientTZ: patientTZ || consultation.patientTZ || invite.patientTZ || 'UTC'
+      });
+      sails.config.customLogger.log('info', `rescheduleConsultation: Updated consultation ${consultationId} with new scheduledFor`, null, 'server-action', user?.id);
+
+      await PublicInvite.updateOne({ id: invite.id }).set({
+        scheduledFor: scheduledTimeUTC,
+        patientTZ: patientTZ || invite.patientTZ || 'UTC',
+        status: 'SCHEDULED_FOR_INVITE',
+      });
+      sails.config.customLogger.log('info', `rescheduleConsultation: Updated invite ${invite.id} with new scheduledFor and reset status`, null, 'server-action', user?.id);
+
+      const updatedInvite = await PublicInvite.findOne({ id: invite.id }).populate('doctor');
+
+      try {
+        sails.config.customLogger.log('info', `rescheduleConsultation: Sending reschedule notification for invite ${invite.id}`, null, 'message', user?.id);
+        await PublicInvite.sendPatientInvite(updatedInvite, true, user?.id);
+        sails.config.customLogger.log('info', `rescheduleConsultation: Sent reschedule notification for invite ${invite.id}`, null, 'server-action', user?.id);
+      } catch (error) {
+        sails.config.customLogger.log('error', 'rescheduleConsultation: Error sending notification', {
+          error: error?.message || error,
+          inviteId: invite.id
+        }, 'server-action', user?.id);
+      }
+
+      try {
+        sails.config.customLogger.log('info', `rescheduleConsultation: Scheduling new reminders for invite ${invite.id}`, null, 'message', user?.id);
+        await PublicInvite.setPatientOrGuestInviteReminders(updatedInvite);
+        sails.config.customLogger.log('info', `rescheduleConsultation: Scheduled new reminders for invite ${invite.id}`, null, 'server-action', user?.id);
+      } catch (error) {
+        sails.config.customLogger.log('error', 'rescheduleConsultation: Error scheduling reminders', {
+          error: error?.message || error,
+          inviteId: invite.id
+        }, 'server-action', user?.id);
+      }
+
+      const subInvites = await PublicInvite.find({ patientInvite: invite.id });
+      const guestInvite = subInvites.find((i) => i.type === 'GUEST');
+
+      if (guestInvite) {
+        try {
+          sails.config.customLogger.log('info', `rescheduleConsultation: Updating guest invite ${guestInvite.id}`, null, 'message', user?.id);
+          await PublicInvite.updateOne({ id: guestInvite.id }).set({
+            scheduledFor: scheduledTimeUTC,
+            patientTZ: patientTZ || guestInvite.patientTZ || 'UTC',
+            status: 'SCHEDULED_FOR_INVITE',
+          });
+
+          const updatedGuestInvite = await PublicInvite.findOne({ id: guestInvite.id }).populate('doctor');
+          await PublicInvite.sendGuestInvite(updatedGuestInvite, true, user?.id);
+          await PublicInvite.setPatientOrGuestInviteReminders(updatedGuestInvite);
+          sails.config.customLogger.log('info', `rescheduleConsultation: Rescheduled guest invite ${guestInvite.id}`, null, 'server-action', user?.id);
+        } catch (error) {
+          sails.config.customLogger.log('error', 'rescheduleConsultation: Error handling guest invite', {
+            error: error?.message || error,
+            guestInviteId: guestInvite.id
+          }, 'server-action', user?.id);
+        }
+      }
+
+      try {
+        const rescheduleMessageText = sails._t('en', 'doctor rescheduled call', {
+          scheduledTime: formattedNewTime,
+          timezone: patientTZ || 'UTC'
+        });
+
+        const msg = await Message.create({
+          consultation: consultationId,
+          from: user.id,
+          text: rescheduleMessageText,
+          type: 'text'
+        }).fetch();
+
+        sails.sockets.broadcast(user.id, 'newMessage', { data: msg });
+
+        sails.config.customLogger.log('info', `rescheduleConsultation: Created chat message about reschedule messageId ${msg.id}`, null, 'server-action', user?.id);
+      } catch (error) {
+        sails.config.customLogger.log('error', 'rescheduleConsultation: Error creating chat message', {
+          error: error?.message || error
+        }, 'server-action', user?.id);
+      }
+
+      const updatedConsultation = await Consultation.findOne({ id: consultationId });
+
+      const inviteUrl = invite.inviteToken
+        ? `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`
+        : null;
+
+      sails.config.customLogger.log('info', `rescheduleConsultation: Successfully rescheduled consultation ${consultationId} to ${formattedNewTime} ${patientTZ || 'UTC'}`, null, 'server-action', user?.id);
+
+      return res.status(200).json({
+        success: true,
+        consultation: updatedConsultation,
+        inviteUrl: inviteUrl,
+        messageService: invite.messageService,
+        message: 'Consultation rescheduled successfully'
+      });
+
+    } catch (error) {
+      sails.config.customLogger.log('error', 'rescheduleConsultation: Error rescheduling consultation', {
+        error: error?.message || error,
+        consultationId: consultationId
+      }, 'server-action', req.user?.id);
+      return res.status(500).json({ error: 'An error occurred', details: error.message });
     }
   },
 
@@ -595,13 +1253,30 @@ module.exports = {
         return res.notFound({ error: 'Consultation not found' });
       }
       sails.config.customLogger.log('info', `Consultation found ${consultation.id}`, null, 'message', req.user?.id);
+      const calleeId = req.user.id === consultation.owner ? consultation.acceptedBy : consultation.owner;
+
+      if (!calleeId) {
+        sails.config.customLogger.log('warn', `Cannot initiate call - no valid callee found for consultation ${consultation.id}. Owner: ${consultation.owner}, AcceptedBy: ${consultation.acceptedBy}`, null, 'message', req.user?.id);
+        return res.status(400).json({
+          error: 'NO_CALLEE',
+          message: sails._t('en', 'cannot initiate call patient not joined')
+        });
+      }
+
+      if (req.user.id === calleeId) {
+        sails.config.customLogger.log('warn', `User ${req.user.id} attempting to call themselves in consultation ${consultation.id}`, null, 'message', req.user?.id);
+        return res.status(400).json({
+          error: 'SELF_CALL_NOT_ALLOWED',
+          message: 'You cannot call yourself. The same user is assigned as both doctor and requester in this consultation.'
+        });
+      }
+
       const callerToken = await sails.helpers.getMediasoupToken.with({
         roomId: consultation.id,
         peerId: req.user.id,
         server: mediasoupServer,
       });
       sails.config.customLogger.log('info', `Caller token generated consultationId ${consultation.id}, callerId ${req.user.id}`, null, 'server-action', req.user?.id);
-      const calleeId = req.user.id === consultation.owner ? consultation.acceptedBy : consultation.owner;
       const patientToken = await sails.helpers.getMediasoupToken.with({
         roomId: consultation.id,
         peerId: calleeId,
@@ -1088,42 +1763,38 @@ module.exports = {
   },
 
   async planConsultation(req, res) {
-    const { delay } = req.body;
+    const { delay, consultation: consultationId } = req.body;
+
     if (!delay || delay > 60 || delay < 0) {
       return res.status(400).json({ message: 'invalidDelay' });
     }
-    if (!req.body.token) {
-      return res.status(400).json({ message: 'invalidUrl' });
-    }
+
     try {
-      const token = await Token.findOne({ token: req.body.token });
-      if (!token) {
-        sails.config.customLogger.log('warn', `Token ${req.body.token} not found or expired`, null, 'message', req.user?.id);
-        return res.status(400).json({ message: 'tokenExpired' });
-      }
-      const consultationId = token.value;
+      const doctorId = req.user.id;
+      const doctor = req.user;
+
       let consultation = await Consultation.findOne({ id: consultationId }).populate('invite');
+
       if (!consultation) {
-        sails.config.customLogger.log('warn', `Consultation ${consultationId} not found for token`, null, 'message', req.user?.id);
-        return res.status(400).json({ message: 'invalidUrl' });
+        sails.config.customLogger.log('warn', `Consultation ${consultationId} not found`, null, 'message', req.user?.id);
+        return res.status(404).json({ message: 'Consultation not found' });
       }
+
       if (consultation.status !== 'pending') {
         sails.config.customLogger.log('warn', `Consultation ${consultationId} already started`, null, 'message', req.user?.id);
         return res.status(400).json({ message: 'alreadyStarted' });
       }
-      const doctor = await User.findOne({ id: token.user });
-      if (!doctor) {
-        sails.config.customLogger.log('warn', `Doctor not found for token ${token.user}`, null, 'message', req.user?.id);
-        return res.status(400).json({ message: 'invalidUrl' });
-      }
+
       await Consultation.updateOne({ id: consultationId, status: 'pending' }).set({
         status: 'active',
-        acceptedBy: token.user,
+        acceptedBy: doctorId,
         acceptedAt: new Date(),
         consultationEstimatedAt: new Date(new Date().getTime() + delay * 60000),
       });
+
       consultation = await Consultation.findOne({ id: consultationId }).populate('invite');
       const participants = await Consultation.getConsultationParticipants(consultation);
+
       participants.forEach((participant) => {
         sails.sockets.broadcast(participant, 'consultationAccepted', {
           data: {
@@ -1137,25 +1808,27 @@ module.exports = {
           },
         });
       });
+
       const patientLanguage =
         consultation.invite && consultation.invite.patientLanguage
           ? consultation.invite.patientLanguage
           : sails.config.globals.DEFAULT_PATIENT_LOCALE;
+
       const doctorDelayMsg = sails._t(patientLanguage, 'doctor delay in minutes', {
         delay,
         patientLanguage,
         branding: process.env.BRANDING,
       });
+
       const message = await Message.create({
         text: doctorDelayMsg,
         consultation: consultationId,
         type: 'text',
         to: consultation.owner,
-        from: token.user,
+        from: doctorId,
       }).fetch();
-      await Message.afterCreate(message, (err, message) => {
-      });
-      sails.config.customLogger.log('verbose', `Consultation ${consultationId} planned: delay ${delay} `, null, 'message', req.user?.id);
+
+      sails.config.customLogger.log('verbose', `Consultation ${consultationId} planned: delay ${delay}`, null, 'message', req.user?.id);
       return res.status(200).json({ message: 'success' });
     } catch (error) {
       sails.config.customLogger.log('error', 'Error in planConsultation', { error: error?.message || error }, 'server-action', req.user?.id);
