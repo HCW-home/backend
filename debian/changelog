@@ -74,9 +74,6 @@ hcw-athome-backend (0.5.82) focal; urgency=medium
   * handle expert case when sending offline notification
   * add guest role in global variables
 
-<<<<<<< HEAD
- -- Olivier Bitsch <olivier.b@iabsis.com>  Mon, 05 Jan 2026 14:26:09 +0100
-=======
   [ Olivier Bitsch ]
   * Using node 20 for Dockerfile
   * Move to node 20
@@ -107,7 +104,6 @@ hcw-athome-backend (0.5.82) focal; urgency=medium
   * fix consultation overview when first is joining expert
 
  -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 19 Nov 2025 15:58:53 +0000
->>>>>>> 6ac716c97073b8eb61e90844e23db7d974ae2c67
 
 hcw-athome-backend (0.5.57) focal; urgency=medium
 
