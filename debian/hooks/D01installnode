@@ -1,6 +1,6 @@
 #!/bin/sh
 ## Adapt according to you build environment.
-VERSION=20
+VERSION=22
 DISTRO=nodistro
 PACKAGE=nodejs
 
