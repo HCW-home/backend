@@ -338,6 +338,18 @@ module.exports = {
         }
       }
 
+      const hasKey = !!sails.config.globals.ENCRYPTION_KEY;
+      const encryption = hasKey ? sails.helpers.encryption() : null;
+      for (const item of data) {
+        if (item.lastMsg?.isEncrypted && item.lastMsg?.text && item.lastMsg?.type === 'text') {
+          if (hasKey) {
+            item.lastMsg.text = encryption.decryptText(item.lastMsg.text);
+          } else {
+            item.lastMsg.text = 'Message cannot be decrypted';
+          }
+        }
+      }
+
       res.json(data);
     } catch (err) {
       sails.config.customLogger.log('error', 'Error in consultationOverview', { error: err?.message || err }, 'server-action', req.user?.id);
@@ -598,6 +610,18 @@ module.exports = {
         for (const item of data) {
           if (item.consultation?.note !== undefined) {
             delete item.consultation.note;
+          }
+        }
+      }
+
+      const hasKey = !!sails.config.globals.ENCRYPTION_KEY;
+      const encryption = hasKey ? sails.helpers.encryption() : null;
+      for (const item of data) {
+        if (item.lastMsg?.isEncrypted && item.lastMsg?.text && item.lastMsg?.type === 'text') {
+          if (hasKey) {
+            item.lastMsg.text = encryption.decryptText(item.lastMsg.text);
+          } else {
+            item.lastMsg.text = 'Message cannot be decrypted';
           }
         }
       }
@@ -1571,11 +1595,27 @@ module.exports = {
             }
           }
 
+          let isEncrypted = false;
+          if (sails.config.globals.ENCRYPTION_ENABLED) {
+            try {
+              const encryption = sails.helpers.encryption();
+              const encryptedBuffer = encryption.encryptBuffer(buffer);
+              fs.writeFileSync(uploadedFile.fd, encryptedBuffer);
+              isEncrypted = true;
+              sails.config.customLogger.log('info', `File encrypted successfully: ${filePath}`, null, 'server-action', req.user?.id);
+            } catch (encryptionError) {
+              sails.config.customLogger.log('error', 'Error encrypting file', { error: encryptionError?.message || encryptionError }, 'server-action', req.user?.id);
+              fs.unlinkSync(uploadedFile.fd);
+              return res.status(500).send(sails._t(sanitizedLocale, 'server error'));
+            }
+          }
+
           const message = await Message.create({
             type: 'attachment',
             mimeType: uploadedFile.type,
             fileName: uploadedFile.filename,
             filePath,
+            isEncrypted,
             consultation: req.params.consultation,
             to: req.body.to || null,
             from: req.user.id,
@@ -1633,13 +1673,31 @@ module.exports = {
       sails.config.customLogger.log('warn', `File not found in ${filePath}`, null, 'message', req.user?.id);
       return res.notFound();
     }
-    res.setHeader('Content-Type', msg.mimeType);
-    const readStream = fs.createReadStream(filePath);
-    readStream.on('error', (err) => {
-      sails.config.customLogger.log('error', 'Error reading file', { error: err?.message || err }, 'server-action', req.user?.id);
-      return res.serverError();
-    });
-    readStream.pipe(res);
+
+    const encryption = sails.helpers.encryption();
+    const shouldDecrypt = msg.isEncrypted || (sails.config.globals.ENCRYPTION_ENABLED && encryption.isFileEncrypted(filePath));
+
+    if (shouldDecrypt) {
+      try {
+        const decryptedBuffer = encryption.decryptFile(filePath);
+        res.setHeader('Content-Type', msg.mimeType);
+        res.setHeader('Content-Length', decryptedBuffer.length);
+        return res.send(decryptedBuffer);
+      } catch (decryptError) {
+        sails.config.customLogger.log('error', 'Error decrypting file', { error: decryptError?.message || decryptError }, 'server-action', req.user?.id);
+        return res.serverError({ error: 'Failed to decrypt file. The encryption key may be invalid.' });
+      }
+    } else {
+      res.setHeader('Content-Type', msg.mimeType);
+      const readStream = fs.createReadStream(filePath);
+      readStream.on('error', (err) => {
+        sails.config.customLogger.log('error', 'Error reading file', { error: err?.message || err }, 'server-action', req.user?.id);
+        if (!res.headersSent) {
+          return res.serverError();
+        }
+      });
+      readStream.pipe(res);
+    }
   },
 
   async patientFeedback(req, res) {

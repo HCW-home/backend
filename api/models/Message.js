@@ -34,6 +34,10 @@ module.exports = {
     filePath: {
       type: 'string',
     },
+    isEncrypted: {
+      type: 'boolean',
+      defaultsTo: false,
+    },
     acceptedAt: {
       type: 'number',
     },
@@ -63,6 +67,24 @@ module.exports = {
       type: 'json',
       defaultsTo: {},
     },
+  },
+
+  customToJSON: function() {
+    let obj;
+    if (typeof this.toObject === 'function') {
+      obj = this.toObject();
+    } else {
+      obj = { ...this };
+    }
+    if (obj.isEncrypted && obj.text && obj.type === 'text') {
+      if (sails.config.globals.ENCRYPTION_KEY) {
+        const encryption = sails.helpers.encryption();
+        obj.text = encryption.decryptText(obj.text);
+      } else {
+        obj.text = 'Message cannot be decrypted';
+      }
+    }
+    return obj;
   },
 
   async endCall(message, consultation, reason) {
@@ -101,6 +123,14 @@ module.exports = {
         };
         sails.config.customLogger.log('info', `Message beforeCreate: Added user details for MongoID: ${user.id}`, null,'message');
       }
+
+      if (sails.config.globals.ENCRYPTION_ENABLED && message.text && message.type === 'text') {
+        const encryption = sails.helpers.encryption();
+        message.text = encryption.encryptText(message.text);
+        message.isEncrypted = true;
+        sails.config.customLogger.log('info', 'Message text encrypted', null, 'server-action');
+      }
+
       return proceed();
     } catch (error) {
       sails.config.customLogger.log('error', 'Error in beforeCreate', error, 'server-action');
@@ -129,9 +159,15 @@ module.exports = {
       id: user.id,
     };
 
+    const broadcastMessage = { ...message, fromUserDetail };
+    if (broadcastMessage.isEncrypted && broadcastMessage.text && broadcastMessage.type === 'text') {
+      const encryption = sails.helpers.encryption();
+      broadcastMessage.text = encryption.decryptText(broadcastMessage.text);
+    }
+
     sails.config.customLogger.log('info', `Broadcasting newMessage event to roomNames ${roomNames}`, null, 'server-action');
     sails.sockets.broadcast(roomNames, 'newMessage', {
-      data: { ...message, fromUserDetail },
+      data: broadcastMessage,
     });
 
     if (message.type === 'audioCall' || message.type === 'videoCall') {

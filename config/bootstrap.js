@@ -8,6 +8,25 @@ const readdirP = promisify(fs.readdir);
 
 module.exports.bootstrap = async function() {
 
+  if (sails.config.globals.ENCRYPTION_ENABLED) {
+    const encryptionKey = sails.config.globals.ENCRYPTION_KEY;
+    if (!encryptionKey || encryptionKey.length !== 64) {
+      sails.config.customLogger.log('error', 'ENCRYPTION_ENABLED is true but ENCRYPTION_KEY is missing or invalid. Key must be 64 hex characters (32 bytes).', null, 'server-action', null);
+      throw new Error('Invalid encryption configuration: ENCRYPTION_KEY must be 64 hex characters');
+    }
+
+    try {
+      Buffer.from(encryptionKey, 'hex');
+    } catch (unused) {
+      sails.config.customLogger.log('error', 'ENCRYPTION_KEY is not a valid hex string', null, 'server-action', null);
+      throw new Error('Invalid encryption configuration: ENCRYPTION_KEY must be a valid hex string');
+    }
+
+    sails.config.customLogger.log('info', 'Encryption is ENABLED (files and messages)', null, 'server-action', null);
+  } else {
+    sails.config.customLogger.log('info', 'Encryption is DISABLED', null, 'server-action', null);
+  }
+
   // set ttl index
   const db = Consultation.getDatastore().manager;
 
