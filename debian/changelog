@@ -1,3 +1,9 @@
+hcw-athome-backend (0.5.85) UNRELEASED; urgency=medium
+
+  * Add message text and file encryption support
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 22 Jan 2026 16:13:22 +0000
+
 hcw-athome-backend (0.5.84) focal; urgency=medium
 
   [ Gor Grigoryan ]
