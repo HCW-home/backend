@@ -1,8 +1,9 @@
-hcw-athome-backend (0.5.85) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.86) UNRELEASED; urgency=medium
 
   * Add message text and file encryption support
+  * add encryption for publicinvite and consultation models
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 22 Jan 2026 16:13:22 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Wed, 04 Feb 2026 11:09:52 +0000
 
 hcw-athome-backend (0.5.84) focal; urgency=medium
 
