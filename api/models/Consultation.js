@@ -198,6 +198,82 @@ module.exports = {
       type: 'json',
       required: false,
     },
+    isEncrypted: {
+      type: 'boolean',
+      defaultsTo: false,
+    },
+  },
+
+  customToJSON: function() {
+    let obj;
+    if (typeof this.toObject === 'function') {
+      obj = this.toObject();
+    } else {
+      obj = { ...this };
+    }
+    if (obj.isEncrypted) {
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'note', 'patientComment', 'doctorComment'];
+      if (sails.config.globals.ENCRYPTION_KEY) {
+        const encryption = sails.helpers.encryption();
+        sensitiveFields.forEach(field => {
+          if (obj[field]) {
+            obj[field] = encryption.decryptText(obj[field]);
+          }
+        });
+        if (obj.metadata && typeof obj.metadata === 'string') {
+          try {
+            const decrypted = encryption.decryptText(obj.metadata);
+            obj.metadata = JSON.parse(decrypted);
+          } catch (e) {
+            obj.metadata = { error: 'Cannot be decrypted' };
+          }
+        }
+      } else {
+        sensitiveFields.forEach(field => {
+          if (obj[field]) {
+            obj[field] = 'Cannot be decrypted';
+          }
+        });
+        if (obj.metadata && typeof obj.metadata === 'string') {
+          obj.metadata = { error: 'Cannot be decrypted' };
+        }
+      }
+    }
+    return obj;
+  },
+
+  decryptForBroadcast(consultation) {
+    if (!consultation || !consultation.isEncrypted) {
+      return consultation;
+    }
+    const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'note', 'patientComment', 'doctorComment'];
+    const decrypted = { ...consultation };
+    if (sails.config.globals.ENCRYPTION_KEY) {
+      const encryption = sails.helpers.encryption();
+      sensitiveFields.forEach(field => {
+        if (decrypted[field]) {
+          decrypted[field] = encryption.decryptText(decrypted[field]);
+        }
+      });
+      if (decrypted.metadata && typeof decrypted.metadata === 'string') {
+        try {
+          const decryptedMeta = encryption.decryptText(decrypted.metadata);
+          decrypted.metadata = JSON.parse(decryptedMeta);
+        } catch (e) {
+          decrypted.metadata = { error: 'Cannot be decrypted' };
+        }
+      }
+    } else {
+      sensitiveFields.forEach(field => {
+        if (decrypted[field]) {
+          decrypted[field] = 'Cannot be decrypted';
+        }
+      });
+      if (decrypted.metadata && typeof decrypted.metadata === 'string') {
+        decrypted.metadata = { error: 'Cannot be decrypted' };
+      }
+    }
+    return decrypted;
   },
 
   async beforeCreate(consultation, cb) {
@@ -214,7 +290,48 @@ module.exports = {
         consultation.queue = defaultQueue.id;
       }
     }
+
+    if (sails.config.globals.ENCRYPTION_ENABLED) {
+      const encryption = sails.helpers.encryption();
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'note', 'patientComment', 'doctorComment'];
+      sensitiveFields.forEach(field => {
+        if (consultation[field]) {
+          consultation[field] = encryption.encryptText(consultation[field]);
+        }
+      });
+      if (consultation.metadata && typeof consultation.metadata === 'object') {
+        consultation.metadata = encryption.encryptText(JSON.stringify(consultation.metadata));
+      }
+      consultation.isEncrypted = true;
+      sails.config.customLogger.log('info', 'Consultation sensitive fields encrypted', null, 'server-action');
+    }
+
     cb();
+  },
+
+  async beforeUpdate(valuesToSet, proceed, query) {
+    if (sails.config.globals.ENCRYPTION_ENABLED) {
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'note', 'patientComment', 'doctorComment'];
+      const hasUpdatedSensitiveField = sensitiveFields.some(field => valuesToSet[field] !== undefined);
+      const hasUpdatedMetadata = valuesToSet.metadata !== undefined;
+
+      if (hasUpdatedSensitiveField || hasUpdatedMetadata) {
+        const encryption = sails.helpers.encryption();
+        sensitiveFields.forEach(field => {
+          if (valuesToSet[field]) {
+            const decrypted = encryption.decryptText(valuesToSet[field]);
+            if (decrypted === valuesToSet[field]) {
+              valuesToSet[field] = encryption.encryptText(valuesToSet[field]);
+            }
+          }
+        });
+        if (valuesToSet.metadata && typeof valuesToSet.metadata === 'object') {
+          valuesToSet.metadata = encryption.encryptText(JSON.stringify(valuesToSet.metadata));
+        }
+        valuesToSet.isEncrypted = true;
+      }
+    }
+    return proceed();
   },
 
   async afterCreate(consultation, proceed) {
@@ -292,13 +409,14 @@ module.exports = {
 
     sails.config.customLogger.log('info', `Broadcasting new consultation ${consultation.id}`, null, 'server-action', null);
     const participants = await Consultation.getConsultationParticipants(consultation);
+    const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
     participants.forEach((participant) => {
       sails.sockets.broadcast(participant, 'newConsultation', {
         event: 'newConsultation',
         data: {
           _id: consultation.id,
           unreadCount: 0,
-          consultation,
+          consultation: decryptedConsultation,
           nurse,
           translator,
           guest,
@@ -513,10 +631,11 @@ module.exports = {
     }
 
     sails.config.customLogger.log('info', `Broadcasting consultationClosed for consultation id ${consultation.id}`, null, 'message', null);
+    const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
     participants.forEach((participant) => {
       sails.sockets.broadcast(participant, 'consultationClosed', {
         data: {
-          consultation,
+          consultation: decryptedConsultation,
           _id: consultation.id,
         },
       });

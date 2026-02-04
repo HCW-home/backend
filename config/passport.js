@@ -47,7 +47,7 @@ passport.use(
   new CustomStrategy(async (req, callback) => {
     const token = validator.escape(req.body.inviteToken);
     sails.config.customLogger.log('info', `Processing invite for token with MongoID: ${token}`, null, 'message');
-    const invite = await PublicInvite.findOne({
+    let invite = await PublicInvite.findOne({
       or: [
         { inviteToken: token },
         { expertToken: token }
@@ -58,6 +58,8 @@ passport.use(
       sails.config.customLogger.log('info', `Invite not found for token: ${token}`, null, 'message');
       return callback({ invite: "not-found" }, null);
     }
+
+    invite = PublicInvite.decryptForUse(invite);
 
     if (invite.type === "TRANSLATOR_REQUEST") {
       sails.config.customLogger.log('info', `Invite type TRANSLATOR_REQUEST cannot be used for login for invite ID: ${invite.id}`, null, 'message');
@@ -133,12 +135,13 @@ passport.use(
       const consultation = await Consultation.findOne({ invitationToken: patientInvite.inviteToken });
       if (consultation) {
         consultation.experts.push(user.id);
+        const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
 
         (await Consultation.getConsultationParticipants(consultation)).forEach(
           (participant) => {
             sails.config.customLogger.log('info', `Broadcasting consultation ${consultation.id} update for participant with MongoID: ${participant}`, null, 'server-action');
             sails.sockets.broadcast(participant, "consultationUpdated", {
-              data: { consultation },
+              data: { consultation: decryptedConsultation },
             });
           }
         );
@@ -165,11 +168,12 @@ passport.use(
           .set({ guest: user.id })
           .fetch();
         if (consultation) {
+          const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
           (await Consultation.getConsultationParticipants(consultation)).forEach(
             (participant) => {
               sails.config.customLogger.log('info', `Broadcasting consultation ${consultation?.id} update for participant with MongoID: ${participant}`, null, 'server-action');
               sails.sockets.broadcast(participant, "consultationUpdated", {
-                data: { consultation },
+                data: { consultation: decryptedConsultation },
               });
             }
           );

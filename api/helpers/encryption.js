@@ -62,9 +62,25 @@ module.exports = {
           return encryptedText;
         }
 
+        const MIN_ENCRYPTED_LENGTH = IV_LENGTH + AUTH_TAG_LENGTH;
+        const base64Regex = /^[A-Za-z0-9+/]+=*$/;
+        if (!base64Regex.test(encryptedText)) {
+          return encryptedText;
+        }
+
+        let combined;
+        try {
+          combined = Buffer.from(encryptedText, 'base64');
+        } catch (unused) {
+          return encryptedText;
+        }
+
+        if (combined.length < MIN_ENCRYPTED_LENGTH) {
+          return encryptedText;
+        }
+
         try {
           const key = this.getEncryptionKey();
-          const combined = Buffer.from(encryptedText, 'base64');
 
           const iv = combined.slice(0, IV_LENGTH);
           const authTag = combined.slice(IV_LENGTH, IV_LENGTH + AUTH_TAG_LENGTH);
@@ -78,7 +94,7 @@ module.exports = {
             decipher.final()
           ]).toString('utf8');
         } catch (unused) {
-          return encryptedText;
+          return '[Encrypted]';
         }
       },
 

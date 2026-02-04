@@ -14,7 +14,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `FIRST_INVITE_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     const isWhatsApp = (invite.type === 'PATIENT' && invite.messageService === '1') ||
       (invite.type !== 'PATIENT' && invite.guestMessageService === '1');
@@ -73,7 +73,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `SECOND_INVITE_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     const isWhatsApp = (invite.type === 'PATIENT' && invite.messageService === '1') ||
       (invite.type !== 'PATIENT' && invite.guestMessageService === '1');
@@ -135,7 +135,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `FIRST_INVITE_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
@@ -154,7 +154,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `SECOND_INVITE_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
     const doctorName = (invite.doctor?.firstName || '') + ' ' + (invite.doctor?.lastName || '');
@@ -176,7 +176,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `FIRST_EXPERT_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
       sails.config.customLogger.log('verbose', `FIRST_EXPERT_REMINDER_SMS: No experts in invite ${invite.id}`, null, 'server-action');
@@ -241,7 +241,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `SECOND_EXPERT_REMINDER_SMS: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
       sails.config.customLogger.log('verbose', `SECOND_EXPERT_REMINDER_SMS: No experts in invite ${invite.id}`, null, 'server-action');
@@ -306,7 +306,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `FIRST_EXPERT_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
       sails.config.customLogger.log('verbose', `FIRST_EXPERT_REMINDER_EMAIL: No experts in invite ${invite.id}`, null, 'server-action');
@@ -344,7 +344,7 @@ const inviteJobs = {
       sails.config.customLogger.log('warn', `SECOND_EXPERT_REMINDER_EMAIL: Invite ${invite.id} not found, skipping reminder`, null, 'server-action');
       return;
     }
-    invite = latestInvite;
+    invite = PublicInvite.decryptForUse(latestInvite);
 
     if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
       sails.config.customLogger.log('verbose', `SECOND_EXPERT_REMINDER_EMAIL: No experts in invite ${invite.id}`, null, 'server-action');

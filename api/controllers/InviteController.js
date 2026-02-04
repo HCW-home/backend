@@ -320,20 +320,20 @@ module.exports = {
       invite = await PublicInvite.create(inviteData).fetch();
       sails.config.customLogger.log('info', `Invite created inviteId ${invite.id}`, null, 'server-action', req.user.id);
 
-      if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
+      if (value.guestPhoneNumber || value.guestEmailAddress) {
         const guestInviteData = {
           patientInvite: invite.id,
           doctor: doctor ? doctor.id : req.user.id,
           invitedBy: req.user.id,
           scheduledFor: value.scheduledFor ? new Date(value.scheduledFor) : undefined,
           type: 'GUEST',
-          guestEmailAddress: inviteData.guestEmailAddress,
-          guestPhoneNumber: inviteData.guestPhoneNumber,
-          guestMessageService: inviteData?.guestMessageService || '',
-          emailAddress: inviteData.guestEmailAddress,
-          phoneNumber: inviteData.guestPhoneNumber,
+          guestEmailAddress: escapeHtml(value.guestEmailAddress),
+          guestPhoneNumber: escapeHtml(value.guestPhoneNumber),
+          guestMessageService: value.guestMessageService || '',
+          emailAddress: escapeHtml(value.guestEmailAddress),
+          phoneNumber: escapeHtml(value.guestPhoneNumber),
           patientLanguage: value.language,
-          patientTZ: inviteData.patientTZ,
+          patientTZ: value.patientTZ,
         };
 
         guestInvite = await PublicInvite.create(guestInviteData).fetch();
@@ -664,17 +664,17 @@ module.exports = {
       if (cancelGuestInvite) {
         await PublicInvite.cancelGuestInvite(invite);
         sails.config.customLogger.log('info', `Guest invite cancelled inviteId ${escapeHtml(invite.id)}`, null, 'server-action', req.user.id);
-      } else if (inviteData.guestPhoneNumber || inviteData.guestEmailAddress) {
+      } else if (guestPhoneNumber || guestEmailAddress) {
         const guestInviteData = {
           patientInvite: invite.id,
           doctor: doctor ? doctor.id : req.user.id,
           invitedBy: req.user.id,
           scheduledFor: invite.scheduledFor,
           type: 'GUEST',
-          guestEmailAddress: inviteData.guestEmailAddress,
-          guestPhoneNumber: inviteData.guestPhoneNumber,
-          emailAddress: inviteData.guestEmailAddress,
-          phoneNumber: inviteData.guestPhoneNumber,
+          guestEmailAddress: escapeHtml(guestEmailAddress),
+          guestPhoneNumber: escapeHtml(guestPhoneNumber),
+          emailAddress: escapeHtml(guestEmailAddress),
+          phoneNumber: escapeHtml(guestPhoneNumber),
           patientLanguage: language,
         };
 

@@ -340,12 +340,60 @@ module.exports = {
 
       const hasKey = !!sails.config.globals.ENCRYPTION_KEY;
       const encryption = hasKey ? sails.helpers.encryption() : null;
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'note', 'patientComment', 'doctorComment'];
+      const inviteSensitiveFields = ['firstName', 'lastName', 'birthDate', 'phoneNumber', 'emailAddress', 'guestPhoneNumber', 'guestEmailAddress', 'note'];
       for (const item of data) {
         if (item.lastMsg?.isEncrypted && item.lastMsg?.text && item.lastMsg?.type === 'text') {
           if (hasKey) {
             item.lastMsg.text = encryption.decryptText(item.lastMsg.text);
           } else {
             item.lastMsg.text = 'Message cannot be decrypted';
+          }
+        }
+        if (item.consultation?.isEncrypted) {
+          sensitiveFields.forEach(field => {
+            if (item.consultation[field]) {
+              if (hasKey) {
+                item.consultation[field] = encryption.decryptText(item.consultation[field]);
+              } else {
+                item.consultation[field] = 'Cannot be decrypted';
+              }
+            }
+          });
+          if (item.consultation.metadata && typeof item.consultation.metadata === 'string') {
+            if (hasKey) {
+              try {
+                const decrypted = encryption.decryptText(item.consultation.metadata);
+                item.consultation.metadata = JSON.parse(decrypted);
+              } catch (e) {
+                item.consultation.metadata = { error: 'Cannot be decrypted' };
+              }
+            } else {
+              item.consultation.metadata = { error: 'Cannot be decrypted' };
+            }
+          }
+        }
+        if (item.guestInvite?.isEncrypted) {
+          inviteSensitiveFields.forEach(field => {
+            if (item.guestInvite[field]) {
+              if (hasKey) {
+                item.guestInvite[field] = encryption.decryptText(item.guestInvite[field]);
+              } else {
+                item.guestInvite[field] = 'Cannot be decrypted';
+              }
+            }
+          });
+          if (item.guestInvite.metadata && typeof item.guestInvite.metadata === 'string') {
+            if (hasKey) {
+              try {
+                const decrypted = encryption.decryptText(item.guestInvite.metadata);
+                item.guestInvite.metadata = JSON.parse(decrypted);
+              } catch (e) {
+                item.guestInvite.metadata = { error: 'Cannot be decrypted' };
+              }
+            } else {
+              item.guestInvite.metadata = { error: 'Cannot be decrypted' };
+            }
           }
         }
       }
@@ -616,12 +664,60 @@ module.exports = {
 
       const hasKey = !!sails.config.globals.ENCRYPTION_KEY;
       const encryption = hasKey ? sails.helpers.encryption() : null;
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'note', 'patientComment', 'doctorComment'];
+      const inviteSensitiveFields = ['firstName', 'lastName', 'birthDate', 'phoneNumber', 'emailAddress', 'guestPhoneNumber', 'guestEmailAddress', 'note'];
       for (const item of data) {
         if (item.lastMsg?.isEncrypted && item.lastMsg?.text && item.lastMsg?.type === 'text') {
           if (hasKey) {
             item.lastMsg.text = encryption.decryptText(item.lastMsg.text);
           } else {
             item.lastMsg.text = 'Message cannot be decrypted';
+          }
+        }
+        if (item.consultation?.isEncrypted) {
+          sensitiveFields.forEach(field => {
+            if (item.consultation[field]) {
+              if (hasKey) {
+                item.consultation[field] = encryption.decryptText(item.consultation[field]);
+              } else {
+                item.consultation[field] = 'Cannot be decrypted';
+              }
+            }
+          });
+          if (item.consultation.metadata && typeof item.consultation.metadata === 'string') {
+            if (hasKey) {
+              try {
+                const decrypted = encryption.decryptText(item.consultation.metadata);
+                item.consultation.metadata = JSON.parse(decrypted);
+              } catch (e) {
+                item.consultation.metadata = { error: 'Cannot be decrypted' };
+              }
+            } else {
+              item.consultation.metadata = { error: 'Cannot be decrypted' };
+            }
+          }
+        }
+        if (item.guestInvite?.isEncrypted) {
+          inviteSensitiveFields.forEach(field => {
+            if (item.guestInvite[field]) {
+              if (hasKey) {
+                item.guestInvite[field] = encryption.decryptText(item.guestInvite[field]);
+              } else {
+                item.guestInvite[field] = 'Cannot be decrypted';
+              }
+            }
+          });
+          if (item.guestInvite.metadata && typeof item.guestInvite.metadata === 'string') {
+            if (hasKey) {
+              try {
+                const decrypted = encryption.decryptText(item.guestInvite.metadata);
+                item.guestInvite.metadata = JSON.parse(decrypted);
+              } catch (e) {
+                item.guestInvite.metadata = { error: 'Cannot be decrypted' };
+              }
+            } else {
+              item.guestInvite.metadata = { error: 'Cannot be decrypted' };
+            }
           }
         }
       }
@@ -681,6 +777,8 @@ module.exports = {
           }
         }
 
+        invite = PublicInvite.decryptForUse(invite);
+
         if (invite.emailAddress || invite.phoneNumber) {
           const existingConsultation = await Consultation.findOne({
             invite: invite.id,
@@ -707,11 +805,12 @@ module.exports = {
               sails.config.customLogger.log('info', `Updated consultation ${existingConsultation.id} with ${user.role} ${user.id}`, null, 'server-action', user.id);
 
               const updatedConsultation = await Consultation.findOne({ id: existingConsultation.id });
+              const decryptedConsultation = Consultation.decryptForBroadcast(updatedConsultation);
               (await Consultation.getConsultationParticipants(updatedConsultation)).forEach(
                 (participant) => {
                   sails.config.customLogger.log('info', `Broadcasting consultation ${updatedConsultation.id} update for participant with MongoID: ${participant}`, null, 'server-action');
                   sails.sockets.broadcast(participant, "consultationUpdated", {
-                    data: { consultation: updatedConsultation },
+                    data: { consultation: decryptedConsultation },
                   });
                 }
               );
@@ -745,6 +844,9 @@ module.exports = {
               { expertToken: sanitizedToken },
             ],
           });
+          if (invite) {
+            invite = PublicInvite.decryptForUse(invite);
+          }
         }
 
         let existingConsultation = await Consultation.findOne({
@@ -950,10 +1052,11 @@ module.exports = {
         .populate('queue');
 
       const participants = await Consultation.getConsultationParticipants(updatedConsultation);
+      const decryptedConsultation = Consultation.decryptForBroadcast(updatedConsultation);
       participants.forEach(participantId => {
         sails.sockets.broadcast(participantId, 'ownershipTransferred', {
           data: {
-            consultation: updatedConsultation,
+            consultation: decryptedConsultation,
             previousOwner: previousOwner,
             newOwner: newOwner
           }
@@ -995,10 +1098,11 @@ module.exports = {
       sails.config.customLogger.log('info', `Consultation ${consultation.id} accepted by doctor ${req.user.id}`, null, 'server-action', req.user.id);
 
       const participants = await Consultation.getConsultationParticipants(consultation);
+      const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
       participants.forEach((participant) => {
         sails.sockets.broadcast(participant, 'consultationAccepted', {
           data: {
-            consultation,
+            consultation: decryptedConsultation,
             _id: consultation.id,
             doctor: {
               firstName: req.user.firstName,
@@ -1474,8 +1578,9 @@ module.exports = {
         consultation: req.params.consultation
       }).set({ closedAt: new Date() });
       await Message.endCall(message, consultation, 'MEMBERS_LEFT');
-      sails.sockets.broadcast(consultation.acceptedBy, 'rejectCall', { data: { consultation, message } });
-      sails.sockets.broadcast(consultation.owner, 'rejectCall', { data: { consultation, message } });
+      const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
+      sails.sockets.broadcast(consultation.acceptedBy, 'rejectCall', { data: { consultation: decryptedConsultation, message } });
+      sails.sockets.broadcast(consultation.owner, 'rejectCall', { data: { consultation: decryptedConsultation, message } });
       sails.config.customLogger.log('info', `Call rejection broadcast consultationId ${consultation.id} messageId ${message.id}`, null, 'server-action', req.user?.id);
       return res.json({ status: 200 });
     } catch (error) {
@@ -1508,11 +1613,12 @@ module.exports = {
         acceptedAt: new Date(),
         status: 'ongoing',
       });
+      const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
       sails.sockets.broadcast(consultation.acceptedBy, 'acceptCall', {
-        data: { consultation, message },
+        data: { consultation: decryptedConsultation, message },
       });
       sails.sockets.broadcast(consultation.owner, 'acceptCall', {
-        data: { consultation, message },
+        data: { consultation: decryptedConsultation, message },
       });
       sails.config.customLogger.log('info', `Call accepted broadcast for consultationId ${consultation.id} messageId ${message.id}`, null, 'server-action', req.user?.id);
       return res.json({ status: 200 });
@@ -1852,11 +1958,12 @@ module.exports = {
 
       consultation = await Consultation.findOne({ id: consultationId }).populate('invite');
       const participants = await Consultation.getConsultationParticipants(consultation);
+      const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
 
       participants.forEach((participant) => {
         sails.sockets.broadcast(participant, 'consultationAccepted', {
           data: {
-            consultation,
+            consultation: decryptedConsultation,
             _id: consultation.id,
             doctor: {
               firstName: doctor.firstName,
@@ -1915,7 +2022,7 @@ module.exports = {
       sails.config.customLogger.log(
         'info',
         `Note updated for consultation ${consultationId}`,
-        updatedConsultation,
+        null,
         'server-action',
         req.user?.id
       );
