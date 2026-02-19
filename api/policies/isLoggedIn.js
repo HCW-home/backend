@@ -1,12 +1,20 @@
 const jwt = require('jsonwebtoken');
 
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  return req.query.token || null;
+}
+
 module.exports = function(req, res, proceed) {
 
-
-  if (!req.headers['x-access-token'] && !req.query.token) {
+  const token = getBearerToken(req);
+  if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
-  jwt.verify(req.headers['x-access-token'] || req.query.token, sails.config.globals.APP_SECRET, async (err, decoded) => {
+  jwt.verify(token, sails.config.globals.APP_SECRET, async (err, decoded) => {
     if (err) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
