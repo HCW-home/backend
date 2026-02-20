@@ -375,34 +375,35 @@ module.exports = {
   },
 
   serializeConsultationToEncounter: function(consultation) {
-    const consultationId = consultation.id || (consultation._id ? consultation._id.toString() : null);
+    const decryptedConsultation = Consultation.decryptForBroadcast(consultation);
+    const consultationId = decryptedConsultation.id || (decryptedConsultation._id ? decryptedConsultation._id.toString() : null);
 
     const encounter = {
       resourceType: 'Encounter',
       id: consultationId,
-      status: this.consultationStatusToEncounterStatus(consultation.status),
+      status: this.consultationStatusToEncounterStatus(decryptedConsultation.status),
       class: {
         code: 'VR',
         display: 'virtual'
       }
     };
 
-    if (consultation.metadata?.identifier) {
-      encounter.identifier = [{ value: consultation.metadata.identifier }];
+    if (decryptedConsultation.metadata?.identifier) {
+      encounter.identifier = [{ value: decryptedConsultation.metadata.identifier }];
     }
 
-    if (consultation.createdAt || consultation.closedAt) {
+    if (decryptedConsultation.createdAt || decryptedConsultation.closedAt) {
       encounter.period = {};
-      if (consultation.createdAt) {
-        encounter.period.start = new Date(consultation.createdAt).toISOString();
+      if (decryptedConsultation.createdAt) {
+        encounter.period.start = new Date(decryptedConsultation.createdAt).toISOString();
       }
-      if (consultation.closedAt) {
-        encounter.period.end = new Date(consultation.closedAt).toISOString();
+      if (decryptedConsultation.closedAt) {
+        encounter.period.end = new Date(decryptedConsultation.closedAt).toISOString();
       }
     }
 
-    if (consultation.invite) {
-      const inviteId = consultation.invite.toString ? consultation.invite.toString() : consultation.invite;
+    if (decryptedConsultation.invite) {
+      const inviteId = decryptedConsultation.invite.toString ? decryptedConsultation.invite.toString() : decryptedConsultation.invite;
       encounter.appointment = [{
         reference: `Appointment/${inviteId}`
       }];
@@ -410,13 +411,13 @@ module.exports = {
 
     const notes = [];
 
-    const doctorId = consultation.acceptedBy ?
-      (consultation.acceptedBy.toString ? consultation.acceptedBy.toString() : consultation.acceptedBy) :
+    const doctorId = decryptedConsultation.acceptedBy ?
+      (decryptedConsultation.acceptedBy.toString ? decryptedConsultation.acceptedBy.toString() : decryptedConsultation.acceptedBy) :
       null;
 
-    if (consultation.note) {
+    if (decryptedConsultation.note) {
       const clinicalNote = {
-        text: consultation.note
+        text: decryptedConsultation.note
       };
 
       if (doctorId) {
@@ -426,16 +427,16 @@ module.exports = {
         };
       }
 
-      if (consultation.closedAt) {
-        clinicalNote.time = new Date(consultation.closedAt).toISOString();
+      if (decryptedConsultation.closedAt) {
+        clinicalNote.time = new Date(decryptedConsultation.closedAt).toISOString();
       }
 
       notes.push(clinicalNote);
     }
 
-    if (consultation.doctorComment) {
+    if (decryptedConsultation.doctorComment) {
       const doctorNote = {
-        text: consultation.doctorComment,
+        text: decryptedConsultation.doctorComment,
         extension: [{ url: 'category', valueString: 'rating' }]
       };
 
@@ -446,20 +447,20 @@ module.exports = {
         };
       }
 
-      if (consultation.closedAt) {
-        doctorNote.time = new Date(consultation.closedAt).toISOString();
+      if (decryptedConsultation.closedAt) {
+        doctorNote.time = new Date(decryptedConsultation.closedAt).toISOString();
       }
 
       notes.push(doctorNote);
     }
 
-    if (consultation.patientComment) {
-      const patientId = consultation.owner ?
-        (consultation.owner.toString ? consultation.owner.toString() : consultation.owner) :
+    if (decryptedConsultation.patientComment) {
+      const patientId = decryptedConsultation.owner ?
+        (decryptedConsultation.owner.toString ? decryptedConsultation.owner.toString() : decryptedConsultation.owner) :
         null;
 
       const patientNote = {
-        text: consultation.patientComment,
+        text: decryptedConsultation.patientComment,
         extension: [{ url: 'category', valueString: 'rating' }]
       };
 
@@ -470,8 +471,8 @@ module.exports = {
         };
       }
 
-      if (consultation.closedAt) {
-        patientNote.time = new Date(consultation.closedAt).toISOString();
+      if (decryptedConsultation.closedAt) {
+        patientNote.time = new Date(decryptedConsultation.closedAt).toISOString();
       }
 
       notes.push(patientNote);

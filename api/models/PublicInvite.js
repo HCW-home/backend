@@ -190,6 +190,82 @@ module.exports = {
     note: {
       type: 'string',
     },
+    isEncrypted: {
+      type: 'boolean',
+      defaultsTo: false,
+    },
+  },
+
+  customToJSON: function() {
+    let obj;
+    if (typeof this.toObject === 'function') {
+      obj = this.toObject();
+    } else {
+      obj = { ...this };
+    }
+    if (obj.isEncrypted) {
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'phoneNumber', 'emailAddress', 'guestPhoneNumber', 'guestEmailAddress', 'note'];
+      if (sails.config.globals.ENCRYPTION_KEY) {
+        const encryption = sails.helpers.encryption();
+        sensitiveFields.forEach(field => {
+          if (obj[field]) {
+            obj[field] = encryption.decryptText(obj[field]);
+          }
+        });
+        if (obj.metadata && typeof obj.metadata === 'string') {
+          try {
+            const decrypted = encryption.decryptText(obj.metadata);
+            obj.metadata = JSON.parse(decrypted);
+          } catch (e) {
+            obj.metadata = { error: 'Cannot be decrypted' };
+          }
+        }
+      } else {
+        sensitiveFields.forEach(field => {
+          if (obj[field]) {
+            obj[field] = 'Cannot be decrypted';
+          }
+        });
+        if (obj.metadata && typeof obj.metadata === 'string') {
+          obj.metadata = { error: 'Cannot be decrypted' };
+        }
+      }
+    }
+    return obj;
+  },
+
+  decryptForUse(invite) {
+    if (!invite || !invite.isEncrypted) {
+      return invite;
+    }
+    const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'phoneNumber', 'emailAddress', 'guestPhoneNumber', 'guestEmailAddress', 'note'];
+    const decrypted = { ...invite };
+    if (sails.config.globals.ENCRYPTION_KEY) {
+      const encryption = sails.helpers.encryption();
+      sensitiveFields.forEach(field => {
+        if (decrypted[field]) {
+          decrypted[field] = encryption.decryptText(decrypted[field]);
+        }
+      });
+      if (decrypted.metadata && typeof decrypted.metadata === 'string') {
+        try {
+          const decryptedMeta = encryption.decryptText(decrypted.metadata);
+          decrypted.metadata = JSON.parse(decryptedMeta);
+        } catch (e) {
+          decrypted.metadata = { error: 'Cannot be decrypted' };
+        }
+      }
+    } else {
+      sensitiveFields.forEach(field => {
+        if (decrypted[field]) {
+          decrypted[field] = 'Cannot be decrypted';
+        }
+      });
+      if (decrypted.metadata && typeof decrypted.metadata === 'string') {
+        decrypted.metadata = { error: 'Cannot be decrypted' };
+      }
+    }
+    return decrypted;
   },
 
   async beforeCreate(obj, proceed) {
@@ -197,6 +273,22 @@ module.exports = {
     obj.inviteToken = await generateToken();
     obj.expertToken = await generateToken();
     sails.config.customLogger.log('verbose', 'beforeCreate: Tokens generated',null, 'message');
+
+    if (sails.config.globals.ENCRYPTION_ENABLED) {
+      const encryption = sails.helpers.encryption();
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'phoneNumber', 'emailAddress', 'guestPhoneNumber', 'guestEmailAddress', 'note'];
+      sensitiveFields.forEach(field => {
+        if (obj[field]) {
+          obj[field] = encryption.encryptText(obj[field]);
+        }
+      });
+      if (obj.metadata && typeof obj.metadata === 'object') {
+        obj.metadata = encryption.encryptText(JSON.stringify(obj.metadata));
+      }
+      obj.isEncrypted = true;
+      sails.config.customLogger.log('info', 'PublicInvite sensitive fields encrypted', null, 'server-action');
+    }
+
     return proceed();
   },
 
@@ -230,6 +322,29 @@ module.exports = {
     }
 
     sails.config.customLogger.log('info', 'beforeUpdate: Date validation passed', null, 'message');
+
+    if (sails.config.globals.ENCRYPTION_ENABLED) {
+      const sensitiveFields = ['firstName', 'lastName', 'birthDate', 'phoneNumber', 'emailAddress', 'guestPhoneNumber', 'guestEmailAddress', 'note'];
+      const hasUpdatedSensitiveField = sensitiveFields.some(field => valuesToSet[field] !== undefined);
+      const hasUpdatedMetadata = valuesToSet.metadata !== undefined;
+
+      if (hasUpdatedSensitiveField || hasUpdatedMetadata) {
+        const encryption = sails.helpers.encryption();
+        sensitiveFields.forEach(field => {
+          if (valuesToSet[field]) {
+            const decrypted = encryption.decryptText(valuesToSet[field]);
+            if (decrypted === valuesToSet[field]) {
+              valuesToSet[field] = encryption.encryptText(valuesToSet[field]);
+            }
+          }
+        });
+        if (valuesToSet.metadata && typeof valuesToSet.metadata === 'object') {
+          valuesToSet.metadata = encryption.encryptText(JSON.stringify(valuesToSet.metadata));
+        }
+        valuesToSet.isEncrypted = true;
+      }
+    }
+
     return proceed();
   },
 
@@ -362,6 +477,7 @@ module.exports = {
   },
 
   async sendPatientInvite(invite, resend = false, userId) {
+    invite = PublicInvite.decryptForUse(invite);
     sails.config.customLogger.log('info', `sendPatientInvite: Starting patient invite ${invite.id}} process`, null, 'message', userId);
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
@@ -503,6 +619,7 @@ module.exports = {
   },
 
   async sendGuestInvite(invite) {
+    invite = PublicInvite.decryptForUse(invite);
     sails.config.customLogger.log('verbose', `sendGuestInvite: Starting guest invite process ${invite.id}`, null, 'message');
 
     const url = `${process.env.PUBLIC_URL}/inv/?invite=${invite.inviteToken}`;
@@ -621,6 +738,7 @@ module.exports = {
   },
 
   async sendExpertInvites(invite) {
+    invite = PublicInvite.decryptForUse(invite);
     sails.config.customLogger.log('verbose', `sendExpertInvites: Starting expert invites process inviteId ${invite.id}`, null, 'message');
 
     if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {
@@ -948,6 +1066,7 @@ module.exports = {
   },
 
   async createAndSendICS(invite) {
+    invite = PublicInvite.decryptForUse(invite);
     const locale = invite.patientLanguage || sails.config.globals.DEFAULT_PATIENT_LOCALE;
     const currentTime = Date.now();
     let scheduledTime = invite.scheduledFor;
@@ -1056,6 +1175,7 @@ module.exports = {
   },
 
   async setPatientOrGuestInviteReminders(invite) {
+    invite = PublicInvite.decryptForUse(invite);
     sails.config.customLogger.log('info', `setPatientOrGuestInviteReminders: Starting invite reminder scheduling for ${invite.id}`, null, 'message');
 
     const currentTime = Date.now();
@@ -1117,6 +1237,7 @@ module.exports = {
   },
 
   async setExpertInviteReminders(invite) {
+    invite = PublicInvite.decryptForUse(invite);
     sails.config.customLogger.log('info', `setExpertInviteReminders: Starting expert reminder scheduling for ${invite.id}`, null, 'message');
 
     if (!invite.experts || !Array.isArray(invite.experts) || invite.experts.length === 0) {

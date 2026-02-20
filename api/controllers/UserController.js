@@ -208,7 +208,7 @@ module.exports = {
   },
 
   getPaginatedUsers: async function (req, res) {
-    const { pageIndex, pageSize, roles, query } = req.query;
+    const { pageIndex, pageSize, roles, query, queues } = req.query;
 
     if (!roles || !Array.isArray(roles) || roles.length === 0) {
       return res.json({ data: [], total: 0 });
@@ -229,13 +229,35 @@ module.exports = {
     }
 
     try {
-      const users = await User.find({
+      let users = await User.find({
         where: whereClause,
         skip: pageIndex * pageSize,
         limit: pageSize,
-      }).meta({ makeLikeModifierCaseInsensitive: true });
+      }).populate('allowedQueues').meta({ makeLikeModifierCaseInsensitive: true });
 
-      const total = Number(await User.count(whereClause)) || 0;
+      if (queues && Array.isArray(queues) && queues.length > 0) {
+        users = users.filter(user => {
+          if (!user.allowedQueues || user.allowedQueues.length === 0) {
+            return false;
+          }
+          return user.allowedQueues.some(q => queues.includes(q.id));
+        });
+      }
+
+      let total;
+      if (queues && Array.isArray(queues) && queues.length > 0) {
+        const allUsersForCount = await User.find({
+          where: whereClause,
+        }).populate('allowedQueues').meta({ makeLikeModifierCaseInsensitive: true });
+        total = allUsersForCount.filter(user => {
+          if (!user.allowedQueues || user.allowedQueues.length === 0) {
+            return false;
+          }
+          return user.allowedQueues.some(q => queues.includes(q.id));
+        }).length;
+      } else {
+        total = Number(await User.count(whereClause)) || 0;
+      }
 
       return res.json({ data: users, total });
     } catch (error) {

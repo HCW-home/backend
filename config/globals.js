@@ -87,6 +87,9 @@ module.exports.globals = {
   attachmentsDir:
     process.env.ATTACHMENTS_DIR || "/var/lib/hug-home/attachments",
 
+  ENCRYPTION_ENABLED: process.env.ENCRYPTION_ENABLED === 'true',
+  ENCRYPTION_KEY: process.env.ENCRYPTION_KEY || null,
+  ENCRYPTION_HEADER: process.env.ENCRYPTION_HEADER || 'HCWENC01',
 
   hideCallerName: process.env.HIDE_CALLER_NAME === 'true',
   HIDE_SCHEDULER_ROLE: process.env.HIDE_SCHEDULER_ROLE === 'true',
