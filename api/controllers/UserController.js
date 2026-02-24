@@ -1,4 +1,5 @@
 const validator = require("validator");
+const { ObjectId } = require('mongodb');
 const { escapeHtml } = require('../utils/helpers');
 
 module.exports = {
@@ -214,50 +215,71 @@ module.exports = {
       return res.json({ data: [], total: 0 });
     }
 
-    const whereClause = {
-      role: { in: roles },
-    };
-
+    const skip = parseInt(pageIndex, 10) * parseInt(pageSize, 10);
+    const limit = parseInt(pageSize, 10);
     const sanitizedQuery = query && typeof query === 'string' ? escapeHtml(query.trim()) : null;
-
-    if (sanitizedQuery) {
-      whereClause.or = [
-        { firstName: { contains: sanitizedQuery } },
-        { lastName: { contains: sanitizedQuery } },
-        { email: { contains: sanitizedQuery } },
-      ];
-    }
+    const hasQueueFilter = queues && Array.isArray(queues) && queues.length > 0;
 
     try {
-      let users = await User.find({
+      if (hasQueueFilter) {
+        const db = User.getDatastore().manager;
+        const joinCollection = db.collection('queue_allowedQueues_queue__user_allowedQueues');
+        const queueObjectIds = queues.map(q => new ObjectId(q));
+
+        const joinDocs = await joinCollection.find({
+          queue_allowedQueues_queue: { $in: queueObjectIds }
+        }).toArray();
+        const userIdsInQueues = [...new Set(joinDocs.map(d => d.user_allowedQueues.toString()))];
+
+        if (userIdsInQueues.length === 0) {
+          return res.json({ data: [], total: 0 });
+        }
+
+        const matchStage = {
+          _id: { $in: userIdsInQueues.map(id => new ObjectId(id)) },
+          role: { $in: roles },
+        };
+
+        if (sanitizedQuery) {
+          const regex = new RegExp(sanitizedQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+          matchStage.$or = [
+            { firstName: regex },
+            { lastName: regex },
+            { email: regex },
+          ];
+        }
+
+        const userCollection = db.collection('user');
+        const total = await userCollection.countDocuments(matchStage);
+        const rawUsers = await userCollection.find(matchStage).skip(skip).limit(limit).toArray();
+
+        const users = await Promise.all(rawUsers.map(async (u) => {
+          const user = await User.findOne({ id: u._id.toString() }).populate('allowedQueues');
+          return user;
+        }));
+
+        return res.json({ data: users.filter(Boolean), total });
+      }
+
+      const whereClause = {
+        role: { in: roles },
+      };
+
+      if (sanitizedQuery) {
+        whereClause.or = [
+          { firstName: { contains: sanitizedQuery } },
+          { lastName: { contains: sanitizedQuery } },
+          { email: { contains: sanitizedQuery } },
+        ];
+      }
+
+      const users = await User.find({
         where: whereClause,
-        skip: pageIndex * pageSize,
-        limit: pageSize,
+        skip,
+        limit,
       }).populate('allowedQueues').meta({ makeLikeModifierCaseInsensitive: true });
 
-      if (queues && Array.isArray(queues) && queues.length > 0) {
-        users = users.filter(user => {
-          if (!user.allowedQueues || user.allowedQueues.length === 0) {
-            return false;
-          }
-          return user.allowedQueues.some(q => queues.includes(q.id));
-        });
-      }
-
-      let total;
-      if (queues && Array.isArray(queues) && queues.length > 0) {
-        const allUsersForCount = await User.find({
-          where: whereClause,
-        }).populate('allowedQueues').meta({ makeLikeModifierCaseInsensitive: true });
-        total = allUsersForCount.filter(user => {
-          if (!user.allowedQueues || user.allowedQueues.length === 0) {
-            return false;
-          }
-          return user.allowedQueues.some(q => queues.includes(q.id));
-        }).length;
-      } else {
-        total = Number(await User.count(whereClause)) || 0;
-      }
+      const total = Number(await User.count(whereClause)) || 0;
 
       return res.json({ data: users, total });
     } catch (error) {
