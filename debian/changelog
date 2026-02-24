@@ -1,10 +1,17 @@
-hcw-athome-backend (0.5.87) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.88) UNRELEASED; urgency=medium
 
+  [ Gor Grigoryan ]
   * Add message text and file encryption support
   * add encryption for publicinvite and consultation models
   * Replace x-access-token header with standard Authorization: Bearer
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 19 Feb 2026 16:28:09 +0000
+  [ Olivier Bitsch ]
+  * Add spanish translation
+
+  [ Gor Grigoryan ]
+  * Fix user filtering by moving queue filter to database level before pagination
+
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Tue, 24 Feb 2026 08:25:11 +0000
 
 hcw-athome-backend (0.5.84) focal; urgency=medium
 
