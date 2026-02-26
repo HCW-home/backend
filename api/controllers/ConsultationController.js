@@ -1600,7 +1600,7 @@ module.exports = {
       }
       if (message.isConferenceCall) {
         await Message.addToCollection(req.params.message, 'currentParticipants', req.user.id);
-        if (!message.acceptAt) {
+        if (!message.acceptedAt) {
           await Message.updateOne({ _id: req.params.message, consultation: req.params.consultation }).set({
             acceptedAt: new Date(),
             status: 'ongoing',
