@@ -68,6 +68,7 @@ module.exports.routes = {
   'GET /api/v1/user/ip': 'UserController.ip',
   'POST /api/v1/user/notif': 'UserController.updateNotif',
   'POST /api/v1/user/terms': 'UserController.updateTerms',
+  'PATCH /api/v1/user/:id/profile': 'UserController.updateProfile',
   'PUT /api/v1/user/:id/status': 'UserController.updateStatus',
   'GET /api/v1/users/paginated': 'UserController.getPaginatedUsers',
 

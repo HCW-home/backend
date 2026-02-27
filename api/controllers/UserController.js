@@ -149,6 +149,36 @@ module.exports = {
     }
   },
 
+  async updateProfile(req, res) {
+    try {
+      if (req.params.id !== req.user.id) {
+        return res.forbidden({ error: 'You can only update your own profile.' });
+      }
+
+      const allowedFields = ['firstName', 'lastName', 'phoneNumber', 'organization', 'country', 'sex'];
+      const valuesToUpdate = {};
+
+      for (const field of allowedFields) {
+        if (req.body[field] !== undefined) {
+          const value = validator.escape(String(req.body[field])).trim();
+          if (field === 'sex' && !['male', 'female', 'other'].includes(value)) {
+            return res.badRequest({ error: 'Invalid value for the sex field. Allowed: male, female, other.' });
+          }
+          valuesToUpdate[field] = value;
+        }
+      }
+
+      if (Object.keys(valuesToUpdate).length === 0) {
+        return res.badRequest({ error: 'No valid fields to update.' });
+      }
+
+      const updatedUser = await User.updateOne({ id: req.user.id }).set(valuesToUpdate);
+      return res.ok(updatedUser);
+    } catch (error) {
+      return res.serverError(error);
+    }
+  },
+
   async updateNotif(req, res) {
     const valuesToUpdate = {};
 
