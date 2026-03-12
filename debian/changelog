@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.90) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.91) UNRELEASED; urgency=medium
 
   [ Gor Grigoryan ]
   * Add message text and file encryption support
@@ -17,8 +17,9 @@ hcw-athome-backend (0.5.90) UNRELEASED; urgency=medium
   [ Gor Grigoryan ]
   * fix typo on acceptedAt
   * add update profile end-point
+  * Add new backend parameter to make shared queue mandatory
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Fri, 27 Feb 2026 08:26:26 +0000
+ -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 12 Mar 2026 10:35:58 +0000
 
 hcw-athome-backend (0.5.84) focal; urgency=medium
 
