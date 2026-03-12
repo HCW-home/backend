@@ -177,6 +177,14 @@ module.exports = {
       }
     }
 
+    if (sails.config.globals.REQUIRE_SHARED_QUEUE && !value.queue) {
+      sails.config.customLogger.log('warn', 'Missing required queue', null, 'message', req.user.id);
+      return res.status(400).json({
+        success: false,
+        error: 'queue is required.',
+      });
+    }
+
     const tz = escapeHtml(value.patientTZ) || sails.config.globals.DEFAULT_PATIENT_TIMEZONE
     if (tz) {
       const isTZValid = moment.tz.names().includes(tz);

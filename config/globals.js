@@ -100,6 +100,8 @@ module.exports.globals = {
 
   SKIP_CONSULTATION_PLAN_PAGE: process.env.SKIP_CONSULTATION_PLAN_PAGE === 'true',
 
+  REQUIRE_SHARED_QUEUE: process.env.REQUIRE_SHARED_QUEUE === 'true',
+
   REDMINE_DOMAIN: process.env.REDMINE_DOMAIN || "https://projects.iabsis.com",
   REDMINE_API_KEY: process.env.REDMINE_API_KEY,
   WHITELISTED_PREFIXES: {

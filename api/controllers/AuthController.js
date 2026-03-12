@@ -705,7 +705,8 @@ module.exports = {
       skipConsultationPlanPage: sails.config.globals.SKIP_CONSULTATION_PLAN_PAGE,
       doctorLanguages,
       patientLanguages,
-      enableFieldsFormDoctor
+      enableFieldsFormDoctor,
+      requireSharedQueue: sails.config.globals.REQUIRE_SHARED_QUEUE,
     });
   },
 
