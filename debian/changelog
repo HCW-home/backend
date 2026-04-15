@@ -1,4 +1,4 @@
-hcw-athome-backend (0.5.91) UNRELEASED; urgency=medium
+hcw-athome-backend (0.5.92) focal; urgency=medium
 
   [ Gor Grigoryan ]
   * Add message text and file encryption support
@@ -7,6 +7,7 @@ hcw-athome-backend (0.5.91) UNRELEASED; urgency=medium
 
   [ Olivier Bitsch ]
   * Add spanish translation
+  * Fix queue visible by all people when shareWhenOpened is true
 
   [ Gor Grigoryan ]
   * Fix user filtering by moving queue filter to database level before pagination
@@ -19,7 +20,7 @@ hcw-athome-backend (0.5.91) UNRELEASED; urgency=medium
   * add update profile end-point
   * Add new backend parameter to make shared queue mandatory
 
- -- Gor Grigoryan <gorgrigoryan1997@gmail.com>  Thu, 12 Mar 2026 10:35:58 +0000
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 Apr 2026 10:45:42 +0200
 
 hcw-athome-backend (0.5.84) focal; urgency=medium
 
