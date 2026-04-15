@@ -82,11 +82,20 @@ module.exports = {
         });
 
         if (sharedQueues.length > 0) {
-          const sharedQueueIds = sharedQueues.map(q => new ObjectId(q.id));
+          let filteredSharedQueues = sharedQueues;
+          if (!req.user.viewAllQueues && req.user.allowedQueues && req.user.allowedQueues.length > 0) {
+            const userQueueIds = req.user.allowedQueues.map(q => q.id.toString());
+            filteredSharedQueues = sharedQueues.filter(q => userQueueIds.includes(q.id.toString()));
+          } else if (!req.user.viewAllQueues) {
+            filteredSharedQueues = [];
+          }
 
-          match.push({
-            queue: { $in: sharedQueueIds }
-          });
+          if (filteredSharedQueues.length > 0) {
+            const sharedQueueIds = filteredSharedQueues.map(q => new ObjectId(q.id));
+            match.push({
+              queue: { $in: sharedQueueIds }
+            });
+          }
         }
       }
 

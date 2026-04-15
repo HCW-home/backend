@@ -457,14 +457,8 @@ module.exports = {
       const queueId = consultation.queue.toString ? consultation.queue.toString() : consultation.queue;
       const queue = await Queue.findOne({ id: queueId });
       if (queue && queue.shareWhenOpened) {
-        const doctorsAndAdmins = await User.find({
-          or: [
-            { role: 'doctor' },
-            { role: 'admin' }
-          ]
-        });
-
-        doctorsAndAdmins.forEach(user => {
+        const queueUsers = await Queue.getQueueUsers(queue.id);
+        queueUsers.forEach(user => {
           participantSet.add(user.id);
         });
       }

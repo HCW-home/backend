@@ -42,7 +42,11 @@ module.exports = async function (req, res, proceed) {
       if (!consultation) {
         const consultationData = await Consultation.findOne({ id: consultationId }).populate('queue');
         if (consultationData && consultationData.queue && consultationData.queue.shareWhenOpened) {
-          consultation = 1;
+          const userHasQueueAccess = req.user.viewAllQueues ||
+            (req.user.allowedQueues && req.user.allowedQueues.some(q => q.id.toString() === consultationData.queue.id.toString()));
+          if (userHasQueueAccess) {
+            consultation = 1;
+          }
         }
       }
     } else if (req.user.role === 'translator') {

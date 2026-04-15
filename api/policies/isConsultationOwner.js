@@ -43,11 +43,16 @@ module.exports = async function (req, res, proceed) {
     if (acceptedByMyselfOrDoctor) {
       consultation = 1;
     } else {
-      // Check if the consultation belongs to a shared queue
+      // Check if the consultation belongs to a shared queue the user has access to
       const consultationData = await Consultation.findOne({ id: consultationId }).populate('queue');
       if (consultationData && consultationData.queue && consultationData.queue.shareWhenOpened) {
-        consultation = 1;
-      } else {
+        const userHasQueueAccess = req.user.viewAllQueues ||
+          (req.user.allowedQueues && req.user.allowedQueues.some(q => q.id.toString() === consultationData.queue.id.toString()));
+        if (userHasQueueAccess) {
+          consultation = 1;
+        }
+      }
+      if (!consultation) {
         acceptedBySomeoneElse = await Consultation.count({
           id: consultationId,
           and: [
