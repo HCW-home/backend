@@ -459,7 +459,7 @@ module.exports = {
       if (queue && queue.shareWhenOpened) {
         const queueUsers = await Queue.getQueueUsers(queue.id);
         queueUsers.forEach(user => {
-          participantSet.add(user.id);
+          participantSet.add(user._id.toString());
         });
       }
     }
