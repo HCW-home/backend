@@ -1,3 +1,9 @@
+hcw-athome-backend (0.5.93) focal; urgency=medium
+
+  * Fix crash
+
+ -- Olivier Bitsch <olivier.b@iabsis.com>  Wed, 15 Apr 2026 10:49:08 +0200
+
 hcw-athome-backend (0.5.92) focal; urgency=medium
 
   [ Gor Grigoryan ]
