@@ -3,10 +3,12 @@ flows:
 - deb
 - publish-github
 - sonar
+- weblate
 options:
  distrib: "ubuntu"
  codename: "focal"
  external_git_url: "git@github.com:HCW-home/backend.git"
+ weblate_project: "hcwhome/hcw-athome-backend"
 modes:
 - ON_VERSION
 - ON_TAG
