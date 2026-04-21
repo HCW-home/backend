@@ -18,7 +18,7 @@ const columns = [
   { colName: 'Satisfaction message caregiver', key: 'doctorComment' },
   { colName: 'Department', key: 'acceptedBy.department' },
   { colName: 'Function', key: 'acceptedBy._function' },
-  { colName: 'caregiver ID', key: 'acceptedBy.id' },
+  { colName: 'Caregiver name', key: 'acceptedBy.name' },
   {
     colName: 'Number of participant joined',
     key: 'numberOfEffectiveParticipants',
